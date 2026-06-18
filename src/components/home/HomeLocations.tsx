@@ -1,19 +1,15 @@
 import AmbientDoodles from "@/components/effects/AmbientDoodles";
+import SectionHeader from "@/components/ui/SectionHeader";
+import { locationBranches } from "@/data/home";
+import { siteIdentity } from "@/data/site";
 import LocationCard from "./LocationCard";
-import { locationBranches } from "@/content/home";
-import { siteIdentity } from "@/content/site";
 
 export default function HomeLocations() {
   return (
     <section className="section dotted-paper" id="subeler">
       <AmbientDoodles />
       <div className="container">
-        <div className="section-header reveal">
-          <div>
-            <p className="eyebrow">Adres net, menü net</p>
-            <h2>Şubeler</h2>
-          </div>
-        </div>
+        <SectionHeader eyebrow="Adres net, menü net" title="Şubeler" />
 
         <div className="branch-grid">
           {locationBranches.map((branch) => (

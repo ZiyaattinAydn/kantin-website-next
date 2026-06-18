@@ -1,43 +1,40 @@
+import { branchById } from "@/data/branches";
+import type { Event as EventRecord, EventBranchId } from "@/types/domain";
+
 export const EVENT_DEMO_STORAGE_KEY = "kantin_demo_events_v1";
 
-export const eventBranchLabels = {
-  alsancak: "Alsancak",
-  atakent: "Atakent",
+export type EventBranch = EventBranchId;
+
+export const eventBranchLabels: Record<EventBranch, string> = {
+  alsancak: branchById.alsancak.name,
+  atakent: branchById.atakent.name,
   both: "İki şube",
-} as const;
+};
 
-export const eventBranchAddresses = {
-  alsancak: "1464. Sokak No:71/A, Alsancak, Konak / İzmir",
-  atakent: "2035 Sokak No:6, Atakent, Karşıyaka / İzmir",
-  both: "Alsancak + Atakent",
-} as const;
+export const eventBranchAddresses: Record<EventBranch, string> = {
+  alsancak: `${branchById.alsancak.addressLine}, ${branchById.alsancak.district} / ${branchById.alsancak.city}`,
+  atakent: `${branchById.atakent.addressLine}, ${branchById.atakent.district} / ${branchById.atakent.city}`,
+  both: `${branchById.alsancak.name} + ${branchById.atakent.name}`,
+};
 
-export type EventBranch = keyof typeof eventBranchLabels;
-
-export type RawEvent = {
-  id?: string;
-  title?: string;
-  description?: string;
+export type RawEvent = Partial<
+  Omit<EventRecord, "startAt" | "endAt" | "branchId">
+> & {
   startAt?: unknown;
   endAt?: unknown;
   branch?: string;
-  status?: string;
-  link?: string;
-  imageUrl?: string;
-  location?: string;
+  branchId?: string;
 };
 
-export type KantinEvent = {
+export type KantinEvent = Omit<
+  EventRecord,
+  "id" | "startAt" | "endAt" | "branchId" | "status"
+> & {
   id?: string;
-  title: string;
-  description: string;
   startAt: Date;
   endAt: Date | null;
   branch: EventBranch;
   status: "published";
-  link?: string;
-  imageUrl?: string;
-  location?: string;
 };
 
 type TimestampLike = {
@@ -75,7 +72,9 @@ function parseDate(value: unknown): Date | null {
 }
 
 function normaliseBranch(value?: string): EventBranch {
-  return value && value in eventBranchLabels ? (value as EventBranch) : "both";
+  return value === "alsancak" || value === "atakent" || value === "both"
+    ? value
+    : "both";
 }
 
 export function normalisePublishedEvents(items: RawEvent[]): KantinEvent[] {
@@ -94,7 +93,7 @@ export function normalisePublishedEvents(items: RawEvent[]): KantinEvent[] {
         description: item.description?.trim() || "Detaylar yakında.",
         startAt,
         endAt,
-        branch: normaliseBranch(item.branch),
+        branch: normaliseBranch(item.branchId ?? item.branch),
         status: "published",
         link: item.link?.trim() || undefined,
         imageUrl: item.imageUrl?.trim() || undefined,

@@ -212,16 +212,54 @@
   margin-top: 28px;
 }
 
-.hero-meta span,
+.hero-meta-link,
 .event-tags span {
   display: inline-flex;
-  min-height: 30px;
+  min-height: 34px;
   align-items: center;
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 800;
+}
+
+.hero-meta-link {
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.34);
+  color: var(--ink);
+  touch-action: manipulation;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms var(--ease);
+}
+
+.hero-meta-arrow {
+  color: var(--blue);
+  font-size: 0.82rem;
+  transition: transform 180ms var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hero-meta-link:hover {
+    border-color: rgba(0, 71, 187, 0.42);
+    background: rgba(255, 255, 255, 0.76);
+    color: var(--blue);
+    box-shadow: 0 8px 22px rgba(0, 71, 187, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .hero-meta-link:hover .hero-meta-arrow {
+    transform: translate(2px, -2px);
+  }
+}
+
+.hero-meta-link:active {
+  background: rgba(0, 71, 187, 0.1);
+  transform: scale(0.97);
 }
 
 .hero-art {
@@ -1130,12 +1168,14 @@
 .reveal.reveal-pending {
   opacity: 0;
   transform: translateY(22px);
+  will-change: opacity, transform;
 }
 
 .reveal.reveal-pending.is-visible,
 .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
+  will-change: auto;
 }
 
 .reveal-delay-1 {
@@ -1144,6 +1184,29 @@
 
 .reveal-delay-2 {
   transition-delay: 200ms;
+}
+
+@media (max-width: 719px) {
+  .reveal {
+    transition-duration: 480ms;
+  }
+
+  .reveal.reveal-pending {
+    transform: translateY(14px);
+  }
+
+  .reveal-delay-1 {
+    transition-delay: 60ms;
+  }
+
+  .reveal-delay-2 {
+    transition-delay: 120ms;
+  }
+
+  .hero-meta-link {
+    min-height: 42px;
+    padding-inline: 14px;
+  }
 }
 
 /* Accessibility */
@@ -4321,8 +4384,8 @@ body {
   display: flex;
   flex-direction: column;
   padding: clamp(26px, 3vw, 36px);
-  border-color: rgba(255, 255, 255, 0.16);
-  background: linear-gradient(145deg, var(--blue), #145dd7);
+  border-color: rgba(0, 71, 187, 0.12);
+  background: var(--blue);
   color: var(--white);
 }
 
@@ -5681,6 +5744,15 @@ body {
   .menu-sheet-column-left,
   .menu-sheet-column-right {
     height: 100%;
+    grid-row: 2;
+  }
+
+  .menu-sheet-column-left {
+    grid-column: 1;
+  }
+
+  .menu-sheet-column-right {
+    grid-column: 2;
   }
 }
 
@@ -5742,5 +5814,39 @@ body {
   .event-list-image {
     min-height: 210px;
     aspect-ratio: 16 / 10;
+  }
+}
+
+/* =========================================================
+ Day 4 refinement pass — menu layout, spacing and palette fixes
+ ========================================================= */
+.menu-truth-note {
+  background-color: var(--cream);
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(0, 71, 187, 0.19) 1px, transparent 1.2px);
+  background-size: 20px 20px;
+}
+
+.menu-truth-note .container {
+  position: relative;
+  z-index: 1;
+}
+
+.compact-row small {
+  display: inline-block;
+  margin-left: 0.34rem;
+}
+
+.home-merch-bundles {
+  background: linear-gradient(145deg, var(--blue), var(--blue-dark));
+}
+
+@media (min-width: 720px) {
+  .menu-sheet-column-left {
+    grid-column: 2;
+  }
+
+  .menu-sheet-column-right {
+    grid-column: 1;
   }
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
+import ActionLink from "@/components/ui/ActionLink";
 import AmbientDoodles from "@/components/effects/AmbientDoodles";
-import { homeHero } from "@/content/home";
+import { homeHero } from "@/data/home";
 
 const marqueeItems = Array.from({ length: 4 }, (_, index) => index);
 
@@ -18,16 +19,19 @@ export default function HomeHero() {
           </h1>
           <p className="hero-lead">{homeHero.description}</p>
           <div className="hero-actions">
-            <Link className="button button-primary" href={homeHero.primaryAction.href}>
+            <ActionLink href={homeHero.primaryAction.href} variant="primary">
               {homeHero.primaryAction.label} <span aria-hidden="true">↗</span>
-            </Link>
-            <Link className="button button-ghost" href={homeHero.secondaryAction.href}>
+            </ActionLink>
+            <ActionLink href={homeHero.secondaryAction.href} variant="ghost">
               {homeHero.secondaryAction.label}
-            </Link>
+            </ActionLink>
           </div>
           <div aria-label="Kantin özellikleri" className="hero-meta">
             {homeHero.features.map((feature) => (
-              <span key={feature}>{feature}</span>
+              <Link className="hero-meta-link" href={feature.href} key={feature.label}>
+                <span>{feature.label}</span>
+                <span aria-hidden="true" className="hero-meta-arrow">↗</span>
+              </Link>
             ))}
           </div>
         </div>

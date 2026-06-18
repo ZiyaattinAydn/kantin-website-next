@@ -24,7 +24,7 @@ import {
   coffeeGroups,
   menuHero,
   sauceBar,
-} from "@/content/menu";
+} from "@/data/menu";
 import {
   AtakentFoodItem,
   BranchFoodItem,
@@ -187,13 +187,13 @@ export function AlsancakMenuPanel({ hidden, panelRef }: PanelProps) {
         <div className="alsancak-menu-grid">
           <section className="menu-sheet-block reveal"><SheetTitle>Fıçı Biralar</SheetTitle><p className="draft-beer-note">Tüm fıçı biralar Mexican hazırlanabilir.</p><PriceTable headers={["Ürün", "20 cl", "50 cl", "66 cl"]} rows={alsancakDraftBeers} headClassName="dark-head" rowClassName="four-cols" /></section>
           <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Şişe Biralar</SheetTitle><CompactList items={alsancakBottleBeers} className="bottle-grid-als" /></section>
-          <div className="menu-sheet-column menu-sheet-column-left">
-            <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Deli + Salata</SheetTitle><CheeseFeature />{alsancakDeliItems.map((item) => <BranchFoodItem key={item.name} item={item} />)}<BeerSalads /></section>
-          </div>
           <div className="menu-sheet-column menu-sheet-column-right">
             <section className="menu-sheet-block reveal"><SheetTitle>Şaraplar</SheetTitle><article className="editorial-item editorial-dark"><div><h4>{alsancakWine.name}</h4><p>{alsancakWine.description}</p></div><strong>{alsancakWine.price}<br /><small>{alsancakWine.priceDetail}</small></strong></article></section>
             <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Fritöz</SheetTitle>{alsancakFryerItems.map((item) => <BranchFoodItem key={item.name} item={item} />)}</section>
             <section className="menu-sheet-block reveal"><SheetTitle>Fırın</SheetTitle><div className="cute-note">Paylaşmaya hazır: bütün sandviçler ikiye bölünerek servis edilir ♡</div>{alsancakOvenItems.map((item) => <BranchFoodItem key={item.name} item={item} />)}</section>
+          </div>
+          <div className="menu-sheet-column menu-sheet-column-left">
+            <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Deli + Salata</SheetTitle><CheeseFeature />{alsancakDeliItems.map((item) => <BranchFoodItem key={item.name} item={item} />)}<BeerSalads /></section>
           </div>
         </div>
         <aside className="sauce-bar reveal"><div><p className="menu-kicker">{sauceBar.kicker}</p><h3>{sauceBar.title}</h3></div><p>{sauceBar.items.join(" · ")}</p></aside>
@@ -235,5 +235,5 @@ export function AtakentMenuPanel({ hidden, panelRef }: PanelProps) {
 }
 
 export function MenuTruthNote() {
-  return <section className="menu-truth-note"><div className="container reveal"><p>Menüde bir ürün görünüyorsa yalnızca seçili şube için geçerlidir.</p><a className="text-link" href="#main">Şube seçimine dön ↑</a></div></section>;
+  return <section className="menu-truth-note dotted-paper"><div className="container reveal"><p>Menüde bir ürün görünüyorsa yalnızca seçili şube için geçerlidir.</p></div></section>;
 }

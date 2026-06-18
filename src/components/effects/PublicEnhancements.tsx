@@ -10,9 +10,14 @@ function showRevealItem(item: HTMLElement) {
   item.classList.remove("reveal-pending");
 }
 
-function isNearViewport(item: HTMLElement) {
+function isNearViewport(item: HTMLElement, mobile: boolean) {
   const rect = item.getBoundingClientRect();
-  return rect.bottom >= -40 && rect.top <= window.innerHeight * 1.15;
+  const viewportBuffer = mobile ? 1.05 : 1.15;
+  return rect.bottom >= -32 && rect.top <= window.innerHeight * viewportBuffer;
+}
+
+function isRenderable(item: HTMLElement) {
+  return item.getClientRects().length > 0 && !item.closest("[hidden]");
 }
 
 export default function PublicEnhancements() {
@@ -28,6 +33,7 @@ export default function PublicEnhancements() {
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    const mobile = window.matchMedia("(max-width: 719px)").matches;
 
     if (reduceMotion || !("IntersectionObserver" in window)) {
       revealItems.forEach(showRevealItem);
@@ -42,11 +48,16 @@ export default function PublicEnhancements() {
           currentObserver.unobserve(entry.target);
         });
       },
-      { threshold: 0.04, rootMargin: "0px 0px 90px 0px" },
+      {
+        threshold: mobile ? 0.01 : 0.04,
+        rootMargin: mobile ? "0px 0px 48px 0px" : "0px 0px 90px 0px",
+      },
     );
 
     revealItems.forEach((item) => {
-      if (isNearViewport(item)) {
+      if (!isRenderable(item)) return;
+
+      if (isNearViewport(item, mobile)) {
         showRevealItem(item);
       } else {
         item.classList.add("reveal-pending");
@@ -56,7 +67,9 @@ export default function PublicEnhancements() {
 
     const revealVisibleItems = () => {
       revealItems.forEach((item) => {
-        if (isNearViewport(item)) showRevealItem(item);
+        if (isRenderable(item) && isNearViewport(item, mobile)) {
+          showRevealItem(item);
+        }
       });
     };
 

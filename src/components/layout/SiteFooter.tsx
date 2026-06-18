@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { footerNavigation, siteIdentity } from "@/content/site";
+import { footerNavigation, siteIdentity } from "@/data/site";
 import styles from "./SiteFooter.module.css";
 
 export default function SiteFooter() {
