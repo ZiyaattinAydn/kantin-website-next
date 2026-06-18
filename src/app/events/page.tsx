@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
 import PublicPageShell from "@/components/layout/PublicPageShell";
-import { homeMarkup } from "@/content/home";
+import { eventsMarkup } from "@/content/events";
 
 export const metadata: Metadata = {
-  title: "kantin. — savor the sip, share the bite",
+  title: "Etkinlikler",
+  description: "Kantin Alsancak ve Atakent şubelerindeki yaklaşan etkinlikler.",
 };
 
-export default function HomePage() {
+export default function EventsPage() {
   return (
     <PublicPageShell
-      activePage="home"
-      markup={homeMarkup}
+      activePage="events"
+      markup={eventsMarkup}
       scripts={[
         {
-          id: "kantin-events-home",
+          id: "kantin-events-list",
           src: "/assets/js/events-public.js?v=next-migration-1",
           type: "module",
         },

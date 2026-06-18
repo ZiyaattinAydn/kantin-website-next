@@ -1,43 +1,13 @@
-:root {
-  --kantin-blue: #0047bb;
-  --kantin-navy: #02194b;
-  --kantin-cream: #f4ead8;
-  --kantin-text: #111111;
-}
-
-* {
-  box-sizing: border-box;
-}
+/*
+ * Geçişin ilk aşamasında mevcut Kantin CSS'i public/assets/css/style.css
+ * üzerinden yükleniyor. Bölümler React bileşenlerine taşındıkça stiller
+ * CSS Modules dosyalarına ayrılacak.
+ */
 
 html {
-  scroll-behavior: smooth;
+  min-width: 320px;
 }
 
 body {
   margin: 0;
-  background: var(--kantin-cream);
-  color: var(--kantin-text);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-main {
-  min-height: calc(100vh - 88px);
-}
-
-main section {
-  width: min(1200px, calc(100% - 40px));
-  margin: 0 auto;
-  padding: 80px 0;
-}
-
-h1 {
-  margin-top: 0;
-  font-size: clamp(2.5rem, 7vw, 6rem);
 }
