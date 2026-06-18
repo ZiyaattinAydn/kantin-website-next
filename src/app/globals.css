@@ -1,7 +1,8 @@
 /*
- * Geçişin ilk aşamasında mevcut Kantin CSS'i public/assets/css/style.css
- * üzerinden yükleniyor. Bölümler React bileşenlerine taşındıkça stiller
- * CSS Modules dosyalarına ayrılacak.
+ * Mevcut marka CSS'i public/assets/css/style.css üzerinden yükleniyor.
+ * React'e taşınan bileşenlerin görsel sınıfları korunarak geçiş risksiz
+ * ilerletiliyor. Yeni bağımsız bileşenler sonraki aşamalarda CSS Modules'a
+ * ayrılacak.
  */
 
 html {

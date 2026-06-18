@@ -10,12 +10,12 @@ export const metadata: Metadata = {
 export default function MenuPage() {
   return (
     <PublicPageShell
-      activePage="menu"
+      page="menu"
       markup={menuMarkup}
       scripts={[
         {
           id: "kantin-menu-branches",
-          src: "/assets/js/menu-branches.js?v=next-migration-1",
+          src: "/assets/js/menu-branches.js?v=react-layout-1",
         },
       ]}
     />

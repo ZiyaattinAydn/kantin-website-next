@@ -1,6 +1,8 @@
 import Script from "next/script";
 import SiteFooter from "./SiteFooter";
-import SiteHeader, { type ActivePage } from "./SiteHeader";
+import SiteHeader from "./SiteHeader";
+
+export type PublicPageName = "home" | "events" | "menu";
 
 type LegacyScript = {
   id: string;
@@ -9,13 +11,13 @@ type LegacyScript = {
 };
 
 type PublicPageShellProps = {
-  activePage: ActivePage;
+  page: PublicPageName;
   markup: string;
   scripts?: LegacyScript[];
 };
 
 export default function PublicPageShell({
-  activePage,
+  page,
   markup,
   scripts = [],
 }: PublicPageShellProps) {
@@ -25,20 +27,21 @@ export default function PublicPageShell({
         İçeriğe geç
       </a>
 
-      <SiteHeader activePage={activePage} />
+      <SiteHeader />
 
-      {/*
-        Bu içerik mevcut ve güvenilir statik proje kaynaklarından geliyor.
-        Görsel eşitliği koruyan geçiş katmanıdır; bölümler sonraki adımlarda
-        tek tek gerçek React bileşenlerine ayrılacaktır.
-      */}
+      {/**
+       * Büyük içerik blokları görsel eşitliği korumak için şimdilik mevcut
+       * güvenilir statik kaynaktan geliyor. Header ve footer artık tamamen
+       * React tarafından yönetiliyor; sıradaki aşamada ana sayfa bölümleri
+       * küçük bileşenlere ayrılacak.
+       */}
       <main id="main" dangerouslySetInnerHTML={{ __html: markup }} />
 
       <SiteFooter />
 
       <Script
-        id={`kantin-main-${activePage}`}
-        src="/assets/js/main.js?v=next-migration-1"
+        id={`kantin-main-${page}`}
+        src="/assets/js/main.js?v=react-layout-1"
         strategy="afterInteractive"
       />
 

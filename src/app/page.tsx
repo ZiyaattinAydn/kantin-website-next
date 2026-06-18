@@ -9,12 +9,12 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <PublicPageShell
-      activePage="home"
+      page="home"
       markup={homeMarkup}
       scripts={[
         {
           id: "kantin-events-home",
-          src: "/assets/js/events-public.js?v=next-migration-1",
+          src: "/assets/js/events-public.js?v=react-layout-1",
           type: "module",
         },
       ]}

@@ -41,12 +41,12 @@ export default function AdminPage() {
 
       <Script
         id="kantin-main-admin"
-        src="/assets/js/main.js?v=next-migration-1"
+        src="/assets/js/main.js?v=react-layout-1"
         strategy="afterInteractive"
       />
       <Script
         id="kantin-admin-legacy"
-        src="/assets/js/admin.js?v=next-migration-1"
+        src="/assets/js/admin.js?v=react-layout-1"
         type="module"
         strategy="afterInteractive"
       />
