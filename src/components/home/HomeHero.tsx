@@ -1,5 +1,6 @@
-import AmbientDoodles from "@/components/effects/AmbientDoodles";
 import Link from "next/link";
+import AmbientDoodles from "@/components/effects/AmbientDoodles";
+import { homeHero } from "@/content/home";
 
 const marqueeItems = Array.from({ length: 4 }, (_, index) => index);
 
@@ -9,28 +10,25 @@ export default function HomeHero() {
       <AmbientDoodles />
       <div className="container hero-grid">
         <div className="hero-copy reveal">
-          <p className="eyebrow">Alsancak · Atakent · İzmir</p>
+          <p className="eyebrow">{homeHero.eyebrow}</p>
           <h1>
-            Yudumunu al.
+            {homeHero.title[0]}
             <br />
-            <span>Lokmanı paylaş.</span>
+            <span>{homeHero.title[1]}</span>
           </h1>
-          <p className="hero-lead">
-            İki şube, iki farklı menü. Alsancak’ta self-servis sokak pub ruhu;
-            Atakent’te bahçe, kokteyller ve daha geniş mutfak seçkisi.
-          </p>
+          <p className="hero-lead">{homeHero.description}</p>
           <div className="hero-actions">
-            <Link className="button button-primary" href="/menu">
-              Şubeni ve menünü seç <span aria-hidden="true">↗</span>
+            <Link className="button button-primary" href={homeHero.primaryAction.href}>
+              {homeHero.primaryAction.label} <span aria-hidden="true">↗</span>
             </Link>
-            <Link className="button button-ghost" href="#subeler">
-              Konumlara bak
+            <Link className="button button-ghost" href={homeHero.secondaryAction.href}>
+              {homeHero.secondaryAction.label}
             </Link>
           </div>
           <div aria-label="Kantin özellikleri" className="hero-meta">
-            <span>Şubeye özel menü</span>
-            <span>Paylaşmalık tabaklar</span>
-            <span>İyi müzik</span>
+            {homeHero.features.map((feature) => (
+              <span key={feature}>{feature}</span>
+            ))}
           </div>
         </div>
 
@@ -56,16 +54,13 @@ export default function HomeHero() {
 
       <div aria-hidden="true" className="marquee">
         <div className="marquee-track">
-          <div className="marquee-group">
-            {marqueeItems.map((item) => (
-              <span key={`first-${item}`}>SAVOR THE SIP · SHARE THE BITE</span>
-            ))}
-          </div>
-          <div className="marquee-group">
-            {marqueeItems.map((item) => (
-              <span key={`second-${item}`}>SAVOR THE SIP · SHARE THE BITE</span>
-            ))}
-          </div>
+          {["first", "second"].map((group) => (
+            <div key={group} className="marquee-group">
+              {marqueeItems.map((item) => (
+                <span key={`${group}-${item}`}>{homeHero.marquee}</span>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     </section>

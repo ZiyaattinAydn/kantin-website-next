@@ -1,43 +1,43 @@
 import Link from "next/link";
+import { footerNavigation, siteIdentity } from "@/content/site";
+import styles from "./SiteFooter.module.css";
 
 export default function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="site-footer">
-      <div className="container footer-grid">
+    <footer className={styles.footer}>
+      <div className={`container ${styles.grid}`}>
         <div>
-          <Link className="brand footer-brand" href="/" aria-label="Kantin ana sayfa">
+          <Link className={styles.brand} href="/" aria-label="Kantin ana sayfa">
             kantin<span>.</span>
           </Link>
-          <p>
-            savor the sip,
+          <p className={styles.intro}>
+            {siteIdentity.sloganLines[0]}
             <br />
-            share the bite.
+            {siteIdentity.sloganLines[1]}
           </p>
         </div>
 
-        <nav className="footer-links" aria-label="Footer keşfet bağlantıları">
-          <p className="footer-label">Keşfet</p>
-          <Link href="/events">Etkinlikler</Link>
-          <Link href="/menu">Şube menüleri</Link>
-          <Link href="/#subeler">Konumlar</Link>
-        </nav>
-
-        <div className="footer-links">
-          <p className="footer-label">Sosyal</p>
-          <a
-            href="https://www.instagram.com/kantinizmir/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Instagram ↗
-          </a>
-          <a href="mailto:hello@kantin.pub">hello@kantin.pub</a>
-        </div>
+        {footerNavigation.map((group) => (
+          <nav key={group.title} className={styles.links} aria-label={`${group.title} bağlantıları`}>
+            <p className={styles.label}>{group.title}</p>
+            {group.links.map((link) =>
+              link.external ? (
+                <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer">
+                  {link.label}
+                </a>
+              ) : (
+                <Link key={link.href} href={link.href}>
+                  {link.label}
+                </Link>
+              ),
+            )}
+          </nav>
+        ))}
       </div>
 
-      <div className="container footer-bottom">
+      <div className={`container ${styles.bottom}`}>
         <span>© {year} kantin.</span>
         <span>İzmir’de iyi akşamlar için.</span>
       </div>

@@ -1,0 +1,79 @@
+.footer {
+  padding: 64px 0 24px;
+  background: #02194b;
+  color: var(--white);
+}
+
+.grid {
+  display: grid;
+  gap: 42px;
+}
+
+.brand {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: var(--white);
+  font-family: "Montserrat", sans-serif;
+  font-size: 2.3rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.07em;
+}
+
+.brand span {
+  color: var(--white);
+}
+
+.intro {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 8px;
+}
+
+.label {
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.links a {
+  font-weight: 700;
+}
+
+.links a:hover {
+  color: #9dbdff;
+}
+
+.links :where(a, button):focus-visible {
+  outline-color: rgba(255, 255, 255, 0.82);
+}
+
+.bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.78rem;
+}
+
+@media (min-width: 720px) {
+  .grid {
+    grid-template-columns: 1.4fr 0.7fr 0.7fr;
+  }
+
+  .bottom {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}

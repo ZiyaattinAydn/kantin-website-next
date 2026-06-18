@@ -8,26 +8,8 @@ import {
   MenuTruthNote,
 } from "./MenuSections";
 
-type MenuBranch = "alsancak" | "atakent";
-
-type BranchOption = {
-  id: MenuBranch;
-  label: string;
-  description: string;
-};
-
-const branchOptions: BranchOption[] = [
-  {
-    id: "alsancak",
-    label: "Alsancak",
-    description: "Self-servis · kokteyl yok",
-  },
-  {
-    id: "atakent",
-    label: "Atakent",
-    description: "Bubble kokteyl · grill",
-  },
-];
+import { branchOptions, type MenuBranch } from "@/content/menu";
+import styles from "./MenuPageClient.module.css";
 
 
 type MenuPageClientProps = {
@@ -37,6 +19,7 @@ type MenuPageClientProps = {
 export default function MenuPageClient({ initialBranch }: MenuPageClientProps) {
   const [activeBranch, setActiveBranch] = useState<MenuBranch>(initialBranch);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const selectorRef = useRef<HTMLDivElement | null>(null);
   const alsancakPanelRef = useRef<HTMLElement | null>(null);
   const atakentPanelRef = useRef<HTMLElement | null>(null);
 
@@ -67,9 +50,7 @@ export default function MenuPageClient({ initialBranch }: MenuPageClientProps) {
 
       if (!shouldScroll) return;
 
-      const selector = document.querySelector<HTMLElement>(
-        ".branch-selector-wrap",
-      );
+      const selector = selectorRef.current;
       const reduceMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
@@ -104,9 +85,9 @@ export default function MenuPageClient({ initialBranch }: MenuPageClientProps) {
     <>
       <MenuHero />
 
-      <div className="branch-selector-wrap">
+      <div ref={selectorRef} className={styles.selectorWrap}>
         <div
-          className="container branch-selector"
+          className={`container ${styles.selector}`}
           role="tablist"
           aria-label="Şube menüsü seçimi"
         >
@@ -120,7 +101,7 @@ export default function MenuPageClient({ initialBranch }: MenuPageClientProps) {
                   tabRefs.current[index] = element;
                 }}
                 id={`tab-${branch.id}`}
-                className={`branch-tab${isActive ? " active" : ""}`}
+                className={`${styles.tab}${isActive ? ` ${styles.active}` : ""}`}
                 type="button"
                 role="tab"
                 aria-controls={`panel-${branch.id}`}

@@ -1,14 +1,3 @@
-/*
- * Mevcut marka CSS'i public/assets/css/style.css üzerinden yükleniyor.
- * React'e taşınan bileşenlerin görsel sınıfları korunarak geçiş risksiz
- * ilerletiliyor. Yeni bağımsız bileşenler sonraki aşamalarda CSS Modules'a
- * ayrılacak.
- */
-
-html {
-  min-width: 320px;
-}
-
-body {
-  margin: 0;
-}
+@import "../styles/tokens.css";
+@import "../styles/base.css";
+@import "../styles/legacy.css";

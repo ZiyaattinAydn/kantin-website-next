@@ -1,3 +1,9 @@
+export type ImageAsset = {
+  src: string;
+  width: number;
+  height: number;
+};
+
 export type MerchDoodle = {
   src: string;
   className: string;
@@ -15,6 +21,104 @@ export type MerchBundle = {
   name: string;
   price: string;
 };
+
+export type HomeMenuBranch = {
+  slug: "alsancak" | "atakent";
+  code: "ALS" | "ATA";
+  name: string;
+  image: ImageAsset;
+  title: string;
+  description: string;
+  tags: string[];
+  delayClass?: string;
+};
+
+export type LocationBranch = {
+  slug: "alsancak" | "atakent";
+  code: "ALS" | "ATA";
+  visualClass: "branch-alsancak" | "branch-atakent";
+  eyebrow: string;
+  title: string;
+  address: string;
+  mapsUrl: string;
+  images: ImageAsset[];
+  delayClass?: string;
+};
+
+export const homeHero = {
+  eyebrow: "Alsancak · Atakent · İzmir",
+  title: ["Yudumunu al.", "Lokmanı paylaş."],
+  description:
+    "İki şube, iki farklı menü. Alsancak’ta self-servis sokak pub ruhu; Atakent’te bahçe, kokteyller ve daha geniş mutfak seçkisi.",
+  primaryAction: { href: "/menu", label: "Şubeni ve menünü seç" },
+  secondaryAction: { href: "#subeler", label: "Konumlara bak" },
+  features: ["Şubeye özel menü", "Paylaşmalık tabaklar", "İyi müzik"],
+  marquee: "SAVOR THE SIP · SHARE THE BITE",
+} as const;
+
+export const homeMenuBranches: HomeMenuBranch[] = [
+  {
+    slug: "alsancak",
+    code: "ALS",
+    name: "Alsancak",
+    image: {
+      src: "/assets/img/branches/alsancak-1.jpg",
+      width: 1080,
+      height: 1350,
+    },
+    title: "Bira, şarap ve hızlı atıştırmalıklar.",
+    description:
+      "Fıçı ve şişe biralar, sandviçler, fritöz ürünleri, deli şişleri ve gün boyu açık kahve barı. Kokteyl bu şubenin menüsünde yer almıyor.",
+    tags: ["Self-servis", "Bira", "Kahve Barı"],
+  },
+  {
+    slug: "atakent",
+    code: "ATA",
+    name: "Atakent",
+    image: {
+      src: "/assets/img/branches/atakent-1.webp",
+      width: 841,
+      height: 1155,
+    },
+    title: "Bubble kokteyller, aperitifler ve grill.",
+    description:
+      "Fıçı ve şişe biraların yanında bubble ve house kokteyller; sıcak tabaklar, 17:00 sonrası ızgara şişleri ve tatlı.",
+    tags: ["Kokteyl", "Grill", "Bahçe"],
+    delayClass: "reveal-delay-1",
+  },
+];
+
+export const locationBranches: LocationBranch[] = [
+  {
+    slug: "alsancak",
+    code: "ALS",
+    visualClass: "branch-alsancak",
+    eyebrow: "Alsancak · Self-servis",
+    title: "1464. Sokak No:71/A",
+    address: "Alsancak, Konak / İzmir",
+    mapsUrl:
+      "https://www.google.com/maps/search/?api=1&query=Kantin+Izmir+1464+Sokak+71A+Alsancak+Konak+Izmir",
+    images: [
+      { src: "/assets/img/branches/alsancak-1.jpg", width: 1080, height: 1350 },
+      { src: "/assets/img/branches/alsancak-2.jpg", width: 1080, height: 1350 },
+    ],
+  },
+  {
+    slug: "atakent",
+    code: "ATA",
+    visualClass: "branch-atakent",
+    eyebrow: "Atakent · Bahçe",
+    title: "2035 Sokak No:6",
+    address: "Atakent, Karşıyaka / İzmir",
+    mapsUrl:
+      "https://www.google.com/maps/search/?api=1&query=Kantin+Atakent+2035+Sokak+6+Atakent+Karsiyaka+Izmir",
+    images: [
+      { src: "/assets/img/branches/atakent-1.webp", width: 841, height: 1155 },
+      { src: "/assets/img/branches/atakent-2.webp", width: 773, height: 1143 },
+    ],
+    delayClass: "reveal-delay-1",
+  },
+];
 
 export const merchDoodles: MerchDoodle[] = [
   { src: "/assets/img/merch/doodles/table-friends.png", className: "merch-doodle-table" },

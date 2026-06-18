@@ -2,17 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AmbientDoodles from "@/components/effects/AmbientDoodles";
+import { EventListCard, EventsZeroState } from "./EventCards";
+import styles from "./EventsPageClient.module.css";
 import {
-  eventBranchAddresses,
-  eventBranchLabels,
-  formatEventDay,
-  formatEventFullDate,
-  formatEventMonth,
-  formatEventTime,
-  formatEventWeekday,
   loadPublishedEvents,
-  safeExternalUrl,
-  safeImageUrl,
   type EventBranch,
   type KantinEvent,
 } from "@/lib/events";
@@ -27,91 +20,6 @@ const filters: ReadonlyArray<{ value: EventFilter; label: string }> = [
 
 function matchesFilter(event: KantinEvent, filter: EventFilter): boolean {
   return filter === "all" || event.branch === filter || event.branch === "both";
-}
-
-function EventListCard({ event }: { event: KantinEvent }) {
-  const externalLink = safeExternalUrl(event.link);
-  const imageUrl = safeImageUrl(event.imageUrl);
-  const address = event.location || eventBranchAddresses[event.branch];
-  const timeRange = `${formatEventTime(event.startAt)}${
-    event.endAt ? `–${formatEventTime(event.endAt)}` : ""
-  }`;
-
-  return (
-    <article className="event-list-card" data-branch={event.branch}>
-      <div className="event-list-date">
-        <span>{formatEventMonth(event.startAt)}</span>
-        <strong>{formatEventDay(event.startAt)}</strong>
-        <small>{formatEventWeekday(event.startAt)}</small>
-      </div>
-
-      {imageUrl ? (
-        <figure className="event-list-image">
-          <img
-            alt={`${event.title} etkinlik görseli`}
-            decoding="async"
-            loading="lazy"
-            src={imageUrl}
-          />
-        </figure>
-      ) : null}
-
-      <div className="event-list-body">
-        <div className="event-tags">
-          <span>{eventBranchLabels[event.branch]}</span>
-          <span>{formatEventTime(event.startAt)}</span>
-          <span>{address}</span>
-        </div>
-
-        <h2>{event.title}</h2>
-        <p>{event.description}</p>
-
-        <div className="event-list-footer">
-          <span>
-            {formatEventFullDate(event.startAt)} · {timeRange}
-          </span>
-
-          {externalLink ? (
-            <a
-              className="calendar-button"
-              href={externalLink}
-              rel="noopener"
-              target="_blank"
-            >
-              Kayıt / detay ↗
-            </a>
-          ) : null}
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function EventsZeroState() {
-  return (
-    <article className="events-zero-state">
-      <div className="events-zero-mark">00</div>
-      <div>
-        <p className="eyebrow">Şu an yayınlanmış etkinlik yok</p>
-        <h2>
-          Takvim sakin.
-          <br />
-          Bu da gayet normal.
-        </h2>
-        <p>
-          Yeni bir etkinlik eklendiğinde tarih, saat ve şube bilgisi burada görünecek.
-        </p>
-      </div>
-      <a
-        className="button button-primary"
-        href="https://www.instagram.com/kantinizmir/"
-        rel="noopener"
-        target="_blank"
-      >
-        Instagram’ı takip et ↗
-      </a>
-    </article>
-  );
 }
 
 export default function EventsPageClient() {
@@ -164,9 +72,9 @@ export default function EventsPageClient() {
         </div>
       </section>
 
-      <section className="section events-page">
+      <section className={`section ${styles.page}`}>
         <div className="container">
-          <div aria-label="Etkinlikleri şubeye göre filtrele" className="filter-bar reveal">
+          <div aria-label="Etkinlikleri şubeye göre filtrele" className={`${styles.filterBar} reveal`}>
             {filters.map((filter) => {
               const active = filter.value === activeFilter;
 
@@ -174,7 +82,7 @@ export default function EventsPageClient() {
                 <button
                   key={filter.value}
                   aria-pressed={active}
-                  className={`filter-button${active ? " active" : ""}`}
+                  className={`${styles.filterButton}${active ? ` ${styles.active}` : ""}`}
                   onClick={() => setActiveFilter(filter.value)}
                   type="button"
                 >
@@ -187,10 +95,10 @@ export default function EventsPageClient() {
           <div
             aria-busy={isLoading}
             aria-live="polite"
-            className="event-list dynamic-events-list"
+            className={`${styles.list} dynamic-events-list`}
           >
             {isLoading ? (
-              <p className="empty-state">Etkinlik takvimi yükleniyor…</p>
+              <p className={styles.empty}>Etkinlik takvimi yükleniyor…</p>
             ) : events.length === 0 ? (
               <EventsZeroState />
             ) : visibleEvents.length ? (
@@ -198,7 +106,7 @@ export default function EventsPageClient() {
                 <EventListCard key={event.id || `${event.title}-${index}`} event={event} />
               ))
             ) : (
-              <p className="empty-state">Bu şube için yayınlanmış etkinlik bulunmuyor.</p>
+              <p className={styles.empty}>Bu şube için yayınlanmış etkinlik bulunmuyor.</p>
             )}
           </div>
         </div>

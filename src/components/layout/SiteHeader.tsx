@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { primaryNavigation, type NavigationItem } from "./navigation";
+import styles from "./SiteHeader.module.css";
 
 const DESKTOP_BREAKPOINT = 1024;
 
@@ -137,15 +138,15 @@ export default function SiteHeader() {
   }, [closeMenu, isMobile, isOpen]);
 
   return (
-    <header className={`site-header${isScrolled ? " scrolled" : ""}`}>
-      <div className="container nav-wrap">
-        <Link className="brand" href="/" aria-label="Kantin ana sayfa">
+    <header className={`${styles.header}${isScrolled ? ` ${styles.scrolled}` : ""}`}>
+      <div className={`container ${styles.navWrap}`}>
+        <Link className={styles.brand} href="/" aria-label="Kantin ana sayfa">
           kantin<span>.</span>
         </Link>
 
         <button
           ref={toggleRef}
-          className="nav-toggle"
+          className={styles.toggle}
           type="button"
           aria-expanded={isOpen}
           aria-controls="site-nav"
@@ -159,7 +160,7 @@ export default function SiteHeader() {
 
         <nav
           ref={navRef}
-          className={`site-nav${isOpen ? " open" : ""}`}
+          className={`${styles.nav}${isOpen ? ` ${styles.open}` : ""}`}
           id="site-nav"
           aria-label="Ana navigasyon"
           aria-hidden={isMobile ? !isOpen : undefined}
@@ -170,7 +171,7 @@ export default function SiteHeader() {
             return (
               <Link
                 key={item.href}
-                className={active ? "active" : undefined}
+                className={`${styles.navLink}${active ? ` ${styles.active}` : ""}`}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 onClick={() => closeMenu()}
@@ -180,7 +181,7 @@ export default function SiteHeader() {
             );
           })}
 
-          <Link className="nav-cta" href="/menu" onClick={() => closeMenu()}>
+          <Link className={`${styles.navLink} ${styles.cta}`} href="/menu" onClick={() => closeMenu()}>
             Şubeni seç
           </Link>
         </nav>

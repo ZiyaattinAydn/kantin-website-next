@@ -1,0 +1,49 @@
+.selectorWrap {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 60;
+  border-block: 1px solid var(--line);
+  background: rgba(244, 239, 230, 0.94);
+  backdrop-filter: blur(18px);
+}
+
+.selector {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding-block: 10px;
+}
+
+.tab {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
+  align-items: center;
+  min-height: 66px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.tab strong {
+  font-size: 0.92rem;
+}
+
+.tab small {
+  color: var(--muted);
+  font-size: 0.62rem;
+}
+
+.active {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: var(--white);
+}
+
+.active small {
+  color: rgba(255, 255, 255, 0.72);
+}
