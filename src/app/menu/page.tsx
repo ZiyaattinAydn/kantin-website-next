@@ -1,23 +1,24 @@
 import type { Metadata } from "next";
 import PublicPageShell from "@/components/layout/PublicPageShell";
-import { menuMarkup } from "@/content/menu";
+import MenuPageClient from "@/components/menu/MenuPageClient";
 
 export const metadata: Metadata = {
   title: "Şube Menüleri",
   description: "Kantin Alsancak ve Atakent şubelerine özel menüler.",
 };
 
-export default function MenuPage() {
+type MenuPageProps = {
+  searchParams: Promise<{ sube?: string | string[] }>;
+};
+
+export default async function MenuPage({ searchParams }: MenuPageProps) {
+  const params = await searchParams;
+  const requestedBranch = Array.isArray(params.sube) ? params.sube[0] : params.sube;
+  const initialBranch = requestedBranch === "atakent" ? "atakent" : "alsancak";
+
   return (
-    <PublicPageShell
-      page="menu"
-      markup={menuMarkup}
-      scripts={[
-        {
-          id: "kantin-menu-branches",
-          src: "/assets/js/menu-branches.js?v=react-layout-1",
-        },
-      ]}
-    />
+    <PublicPageShell>
+      <MenuPageClient initialBranch={initialBranch} />
+    </PublicPageShell>
   );
 }

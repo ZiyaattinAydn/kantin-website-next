@@ -94,9 +94,6 @@ export default function SiteHeader() {
     return () => document.body.classList.remove("nav-open");
   }, [isOpen]);
 
-  useEffect(() => {
-    closeMenu();
-  }, [pathname, closeMenu]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

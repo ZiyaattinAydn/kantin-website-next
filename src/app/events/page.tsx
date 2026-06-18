@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import EventsPageClient from "@/components/events/EventsPageClient";
 import PublicPageShell from "@/components/layout/PublicPageShell";
-import { eventsMarkup } from "@/content/events";
 
 export const metadata: Metadata = {
   title: "Etkinlikler",
@@ -9,16 +9,8 @@ export const metadata: Metadata = {
 
 export default function EventsPage() {
   return (
-    <PublicPageShell
-      page="events"
-      markup={eventsMarkup}
-      scripts={[
-        {
-          id: "kantin-events-list",
-          src: "/assets/js/events-public.js?v=react-layout-1",
-          type: "module",
-        },
-      ]}
-    />
+    <PublicPageShell>
+      <EventsPageClient />
+    </PublicPageShell>
   );
 }

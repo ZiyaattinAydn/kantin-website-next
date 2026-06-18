@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
+import HomeEvents from "@/components/home/HomeEvents";
+import HomeHero from "@/components/home/HomeHero";
+import HomeLocations from "@/components/home/HomeLocations";
+import HomeMenuBranches from "@/components/home/HomeMenuBranches";
+import HomeMerchDrop from "@/components/home/HomeMerchDrop";
 import PublicPageShell from "@/components/layout/PublicPageShell";
-import { homeMarkup } from "@/content/home";
 
 export const metadata: Metadata = {
   title: "kantin. — savor the sip, share the bite",
@@ -8,16 +12,12 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <PublicPageShell
-      page="home"
-      markup={homeMarkup}
-      scripts={[
-        {
-          id: "kantin-events-home",
-          src: "/assets/js/events-public.js?v=react-layout-1",
-          type: "module",
-        },
-      ]}
-    />
+    <PublicPageShell>
+      <HomeHero />
+      <HomeMenuBranches />
+      <HomeMerchDrop />
+      <HomeEvents />
+      <HomeLocations />
+    </PublicPageShell>
   );
 }

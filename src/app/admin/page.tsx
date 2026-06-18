@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Script from "next/script";
 import AdminBodyClass from "@/components/admin/AdminBodyClass";
 import { adminMarkup } from "@/content/admin";
@@ -15,9 +16,9 @@ export default function AdminPage() {
 
       <header className="admin-header">
         <div className="container admin-header-inner">
-          <a className="brand" href="/">
+          <Link className="brand" href="/">
             kantin<span>.</span>
-          </a>
+          </Link>
           <div>
             <span className="admin-mode-badge" data-admin-mode>
               Bağlantı kontrol ediliyor
@@ -40,13 +41,8 @@ export default function AdminPage() {
       />
 
       <Script
-        id="kantin-main-admin"
-        src="/assets/js/main.js?v=react-layout-1"
-        strategy="afterInteractive"
-      />
-      <Script
         id="kantin-admin-legacy"
-        src="/assets/js/admin.js?v=react-layout-1"
+        src="/assets/js/admin.js?v=react-final"
         type="module"
         strategy="afterInteractive"
       />
