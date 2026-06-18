@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import MerchCard from "@/components/cards/MerchCard";
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { merchBundles, merchDoodles, merchProducts } from "@/content/home";
+import { merchBundles, merchDoodles, merchSideProducts } from "@/data/merch";
+import { formatTry } from "@/lib/formatters";
 
 export default function HomeMerchDrop() {
   const [isOpen, setIsOpen] = useState(false);
@@ -196,17 +198,8 @@ export default function HomeMerchDrop() {
                 </div>
 
                 <div className="home-merch-product-list">
-                  {merchProducts.map((product) => (
-                    <article key={product.name} className="home-merch-product">
-                      <img alt={product.imageAlt} src={product.image} />
-                      <div>
-                        <div className="home-merch-product-title">
-                          <h4>{product.name}</h4>
-                          <strong>{product.price}</strong>
-                        </div>
-                        <p>{product.description}</p>
-                      </div>
-                    </article>
+                  {merchSideProducts.map((product) => (
+                    <MerchCard key={product.id} product={product} variant="visual" />
                   ))}
                 </div>
               </article>
@@ -218,7 +211,7 @@ export default function HomeMerchDrop() {
                   {merchBundles.map((bundle) => (
                     <div key={bundle.name}>
                       <span>{bundle.name}</span>
-                      <strong>{bundle.price}</strong>
+                      <strong>{formatTry(bundle.price)}</strong>
                     </div>
                   ))}
                 </div>

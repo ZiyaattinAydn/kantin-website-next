@@ -1,34 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { merchDoodles } from "@/content/home";
-
-const menuMerchProducts = [
-  {
-    index: "01",
-    name: "Oversize Tişört",
-    price: "₺690",
-    description:
-      "500 GSM pamuk single jersey kumaş, rahat ve oversize kesim unisex tişört.",
-    detail: "Beden: S–XL · Materyal: %100 Organik Pamuk",
-  },
-  {
-    index: "02",
-    name: "Tote Çanta",
-    price: "₺440",
-    description:
-      "Orta boy, iç cepli, sağlam saplı, çok amaçlı pamuk kanvas tote çanta.",
-    detail: "Beden: Tek beden · Materyal: %100 Pamuk Kanvas",
-  },
-  {
-    index: "03",
-    name: "Baseball Şapka",
-    price: "₺420",
-    description:
-      "Önde nakışlı, arkada metal tokalı ayarlanabilir kayışa sahip ikonik Kantin. mavi baseball şapka.",
-    detail: "Beden: Tek beden · Materyal: %100 Organik Pamuk",
-  },
-] as const;
+import MerchCard from "@/components/cards/MerchCard";
+import {
+  merchBundleOffers,
+  merchDoodles,
+  merchProducts,
+} from "@/data/merch";
+import { formatTry } from "@/lib/formatters";
 
 export default function MenuMerchShowcase() {
   const [isOpen, setIsOpen] = useState(false);
@@ -113,16 +92,17 @@ export default function MenuMerchShowcase() {
           <aside className="merch-price-card">
             <div className="merch-price-headline"><p className="eyebrow">Ürün listesi</p><h4>Fiyatlar + detaylar</h4></div>
             <div className="merch-price-list">
-              {menuMerchProducts.map((product) => (
-                <article key={product.name}>
-                  <div className="merch-price-line"><strong>{product.index}. {product.name}</strong><span>{product.price}</span></div>
-                  <p>{product.description}</p><small>{product.detail}</small>
-                </article>
+              {merchProducts.map((product) => (
+                <MerchCard key={product.id} product={product} variant="detail" />
               ))}
               <div className="merch-bundle-box">
                 <h5>Bundle fırsatları</h5>
-                <div><span>Full Set · Tişört + Çanta + Şapka</span><strong>₺1350</strong></div>
-                <div><span>2’li Kombin · Tişört + Çanta veya Tişört + Şapka</span><strong>₺990</strong></div>
+                {merchBundleOffers.map((bundle) => (
+                  <div key={bundle.name}>
+                    <span>{bundle.name}</span>
+                    <strong>{formatTry(bundle.price)}</strong>
+                  </div>
+                ))}
               </div>
             </div>
           </aside>

@@ -3,7 +3,7 @@ import type {
   EditorialMenuItem,
   FoodMenuItem,
   PriceTableRow,
-} from "@/content/menu";
+} from "@/types/menu";
 
 export function SheetTitle({ children }: { children: React.ReactNode }) {
   return (

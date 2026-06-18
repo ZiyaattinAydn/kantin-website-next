@@ -1,5 +1,5 @@
-import Link from "next/link";
-import type { LocationBranch } from "@/content/home";
+import ActionLink from "@/components/ui/ActionLink";
+import type { LocationBranch } from "@/types/content";
 
 export default function LocationCard({ branch }: { branch: LocationBranch }) {
   return (
@@ -34,12 +34,12 @@ export default function LocationCard({ branch }: { branch: LocationBranch }) {
           <p>{branch.address}</p>
         </div>
         <div className="branch-actions">
-          <a className="button button-primary" href={branch.mapsUrl} rel="noopener" target="_blank">
+          <ActionLink href={branch.mapsUrl} variant="primary" external>
             Yol tarifi ↗
-          </a>
-          <Link className="button button-ghost" href={`/menu?sube=${branch.slug}`}>
+          </ActionLink>
+          <ActionLink href={`/menu?sube=${branch.slug}`} variant="ghost">
             Menüyü gör
-          </Link>
+          </ActionLink>
         </div>
       </div>
     </article>

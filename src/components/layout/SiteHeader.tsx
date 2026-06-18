@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { primaryNavigation, type NavigationItem } from "./navigation";
+import { primaryNavigation } from "@/data/site";
+import type { NavigationItem } from "@/types/content";
 import styles from "./SiteHeader.module.css";
 
 const DESKTOP_BREAKPOINT = 1024;
@@ -181,9 +182,6 @@ export default function SiteHeader() {
             );
           })}
 
-          <Link className={`${styles.navLink} ${styles.cta}`} href="/menu" onClick={() => closeMenu()}>
-            Şubeni seç
-          </Link>
         </nav>
       </div>
     </header>
