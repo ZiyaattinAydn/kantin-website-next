@@ -134,3 +134,20 @@ Tamamlanan düzenlemeler:
 - Tüm karikatürleri her alana yığmak yerine etkinlik bölümüne özel düşük yoğunluklu bir doodle preset'i tanımlandı.
 - Mobil görünümde illüstrasyon sayısı ve boyutları azaltıldı; `prefers-reduced-motion` desteği korundu.
 - Etkinlik kartlarına hafif yarı saydam zemin verilerek arka plan çizimleri üzerinde metin kontrastı güvenceye alındı.
+
+## 4. Gün — Anılarımız bölümü
+
+- Ana sayfaya `Anılarımız` başlıklı fotoğraf ve marka hikâyesi bölümü eklendi.
+- Aralık 2023 Alsancak başlangıcı ile Atakent Bubble Bar hikâyesi iki ayrı editorial kartta anlatıldı.
+- Ekip, mutfak, self-servis akışı ve sokak atmosferini gösteren 8 fotoğraf WebP formatında optimize edilerek kullanıldı.
+- Masaüstünde düzensiz editorial grid, tablette iki sütun ve mobilde tek sütun galeri düzeni hazırlandı.
+- Marka mavisi, krem noktalı zemin ve kontrollü karikatür dokusu mevcut tasarım sistemiyle korundu.
+
+
+## 4. Gün — Anılarımız galeri lightbox güncellemesi
+
+- Servis tepsisi taşıyan ekip fotoğrafı alt galeriye eklendi.
+- Anılarımız bölümündeki ana fotoğraf ve tüm küçük galeri görselleri tıklanabilir hale getirildi.
+- Fotoğraflar açıklama, kategori ve büyük görselle erişilebilir bir modal içinde açılıyor.
+- Modal Escape tuşu, arka plana tıklama, kapatma düğmesi, odak döngüsü ve mobil kaydırma desteği içeriyor.
+- Açıklama kapatıldığında klavye odağı fotoğrafı açan düğmeye geri dönüyor.

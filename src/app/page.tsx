@@ -3,6 +3,7 @@ import HomeEvents from "@/components/home/HomeEvents";
 import HomeHero from "@/components/home/HomeHero";
 import HomeLocations from "@/components/home/HomeLocations";
 import HomeMenuBranches from "@/components/home/HomeMenuBranches";
+import HomeMemories from "@/components/home/HomeMemories";
 import HomeMerchDrop from "@/components/home/HomeMerchDrop";
 import PublicPageShell from "@/components/layout/PublicPageShell";
 
@@ -16,6 +17,7 @@ export default function HomePage() {
       <HomeHero />
       <HomeMenuBranches />
       <HomeMerchDrop />
+      <HomeMemories />
       <HomeEvents />
       <HomeLocations />
     </PublicPageShell>

@@ -6158,3 +6158,614 @@ body {
     transform: none !important;
   }
 }
+
+/* =========================================================
+ Day 4 — round, consistent dotted background tile
+ Önceki SVG denemesi kaldırıldı. 2x PNG tile tarayıcı ölçeklemesinde
+ noktaların çizgi/çentik gibi görünmesini engeller.
+ ========================================================= */
+.dotted-paper,
+.menu-truth-note,
+.home-events-illustrated,
+.coffee-bar-section,
+.coffee-bar-section + .alsancak-merch-section,
+.coffee-bar-section + .alsancak-merch-section .merch-panel-shell,
+.atakent-food.dotted-paper,
+.home-merch-cartoon {
+  background-color: var(--cream) !important;
+  background-image: url("/assets/ui/kantin-dot-pattern.png") !important;
+  background-size: 20px 20px !important;
+  background-position: 0 0 !important;
+  background-repeat: repeat !important;
+}
+
+
+/* =========================================================
+ Day 4 — memories polish pass
+ ========================================================= */
+.home-memories-doodles {
+  inset: 0;
+}
+
+.home-memories-doodles .merch-doodle,
+.home-events-doodles .merch-doodle,
+.home-merch-doodles .merch-doodle,
+.merch-doodle-stage .merch-doodle,
+.home-memories-doodles + .container .doodle {
+  filter: brightness(0) saturate(100%) invert(27%) sepia(82%) saturate(1687%) hue-rotate(205deg) brightness(98%) contrast(92%);
+}
+
+.home-memories-doodles .merch-doodle {
+  opacity: 0.16;
+}
+
+.home-memories-doodles .ambient-doodle-jump {
+  --doodle-width: 150px;
+  left: 2%;
+  top: 20%;
+  --ambient-doodle-opacity: 0.16;
+}
+
+.home-memories-doodles .ambient-doodle-table {
+  --doodle-width: 148px;
+  right: -18px;
+  top: 10%;
+  left: auto;
+  --ambient-doodle-opacity: 0.16;
+}
+
+.home-memories-doodles .ambient-doodle-hug {
+  --doodle-width: 160px;
+  left: -26px;
+  bottom: 18%;
+  --ambient-doodle-opacity: 0.16;
+}
+
+.home-memories-doodles .ambient-doodle-walk {
+  --doodle-width: 138px;
+  right: 4%;
+  left: auto;
+  bottom: 8%;
+  --ambient-doodle-opacity: 0.16;
+}
+
+#anilarimiz,
+#etkinlikler {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+}
+
+@media (max-width: 760px) {
+  .home-memories-doodles .ambient-doodle-table {
+    --doodle-width: 116px;
+    right: -30px;
+    top: 9%;
+  }
+
+  .home-memories-doodles .ambient-doodle-jump {
+    --doodle-width: 104px;
+    left: -22px;
+    top: 24%;
+  }
+
+  .home-memories-doodles .ambient-doodle-hug {
+    --doodle-width: 116px;
+    left: -26px;
+    bottom: 24%;
+  }
+
+  .home-memories-doodles .ambient-doodle-walk {
+    --doodle-width: 100px;
+    right: -12px;
+    bottom: 10%;
+  }
+}
+
+
+/* =========================================================
+ Day 4 — memories balance fix
+ Anılar bölümünde noktalı zemin tekrar CSS tabanlı yerel desene döner,
+ karikatürler ise görünür ama baskın olmayan seviyeye çekilir.
+ ========================================================= */
+#anilarimiz.section.dotted-paper {
+  background-color: var(--cream) !important;
+  background-image: radial-gradient(circle, rgba(0, 71, 187, 0.18) 1.1px, transparent 1.15px) !important;
+  background-size: 20px 20px !important;
+  background-position: 0 0 !important;
+  background-repeat: repeat !important;
+}
+
+.home-memories-doodles {
+  inset: 0;
+  z-index: 0;
+}
+
+.home-memories-doodles .merch-doodle {
+  opacity: var(--ambient-doodle-opacity, 0.22) !important;
+  filter: brightness(0) saturate(100%) invert(31%) sepia(78%) saturate(1622%) hue-rotate(203deg) brightness(98%) contrast(88%);
+}
+
+.home-memories-doodles .ambient-doodle-jump {
+  --doodle-width: 172px;
+  --ambient-doodle-opacity: 0.22;
+  left: -20px;
+  top: 17%;
+}
+
+.home-memories-doodles .ambient-doodle-table {
+  --doodle-width: 162px;
+  --ambient-doodle-opacity: 0.21;
+  right: -20px;
+  top: 7%;
+  left: auto;
+}
+
+.home-memories-doodles .ambient-doodle-hug {
+  --doodle-width: 170px;
+  --ambient-doodle-opacity: 0.2;
+  left: -16px;
+  bottom: 20%;
+}
+
+.home-memories-doodles .ambient-doodle-walk {
+  --doodle-width: 154px;
+  --ambient-doodle-opacity: 0.21;
+  right: 2%;
+  left: auto;
+  bottom: 9%;
+}
+
+#anilarimiz > .container {
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 760px) {
+  #anilarimiz.section.dotted-paper {
+    background-size: 18px 18px !important;
+  }
+
+  .home-memories-doodles .ambient-doodle-table {
+    --doodle-width: 124px;
+    right: -26px;
+    top: 8%;
+  }
+
+  .home-memories-doodles .ambient-doodle-jump {
+    --doodle-width: 116px;
+    left: -24px;
+    top: 26%;
+  }
+
+  .home-memories-doodles .ambient-doodle-hug {
+    --doodle-width: 120px;
+    left: -28px;
+    bottom: 21%;
+  }
+
+  .home-memories-doodles .ambient-doodle-walk {
+    --doodle-width: 110px;
+    right: -10px;
+    bottom: 7%;
+  }
+}
+
+
+/* =========================================================
+ Day 4 — memories doodle expansion
+ Daha fazla karikatür, fotoğrafların arkasına da kontrollü yerleşim,
+ ve Anılarımız için daha tutarlı PNG dot pattern.
+ ========================================================= */
+#anilarimiz.section.dotted-paper {
+  background-color: var(--cream) !important;
+  background-image: url("/assets/ui/kantin-dot-pattern.png") !important;
+  background-size: 20px 20px !important;
+  background-position: 0 0 !important;
+  background-repeat: repeat !important;
+}
+
+.home-memories-doodles {
+  inset: 0;
+  z-index: 0;
+}
+
+.home-memories-doodles .merch-doodle {
+  opacity: var(--ambient-doodle-opacity, 0.18) !important;
+  filter: brightness(0) saturate(100%) invert(31%) sepia(78%) saturate(1622%) hue-rotate(203deg) brightness(98%) contrast(88%);
+}
+
+/* outer anchors */
+.home-memories-doodles .ambient-doodle-table {
+  --doodle-width: 156px;
+  --ambient-doodle-opacity: 0.18;
+  right: 4%;
+  left: auto;
+  top: 7%;
+}
+
+.home-memories-doodles .ambient-doodle-jump {
+  --doodle-width: 142px;
+  --ambient-doodle-opacity: 0.17;
+  left: 4%;
+  top: 32%;
+}
+
+.home-memories-doodles .ambient-doodle-hug {
+  --doodle-width: 148px;
+  --ambient-doodle-opacity: 0.17;
+  left: 3%;
+  bottom: 17%;
+}
+
+.home-memories-doodles .ambient-doodle-walk {
+  --doodle-width: 136px;
+  --ambient-doodle-opacity: 0.18;
+  right: 5%;
+  left: auto;
+  bottom: 10%;
+}
+
+/* new inner/middle doodles behind cards */
+.home-memories-doodles .ambient-doodle-look {
+  --doodle-width: 120px;
+  --ambient-doodle-opacity: 0.14;
+  left: 46%;
+  top: 11%;
+}
+
+.home-memories-doodles .ambient-doodle-bar {
+  --doodle-width: 132px;
+  --ambient-doodle-opacity: 0.14;
+  right: 12%;
+  top: 43%;
+}
+
+.home-memories-doodles .ambient-doodle-cats {
+  --doodle-width: 124px;
+  --ambient-doodle-opacity: 0.14;
+  left: 39%;
+  top: 58%;
+}
+
+.home-memories-doodles .ambient-doodle-share {
+  --doodle-width: 126px;
+  --ambient-doodle-opacity: 0.14;
+  right: 34%;
+  top: 23%;
+}
+
+.home-memories-doodles .ambient-doodle-highfive {
+  --doodle-width: 136px;
+  --ambient-doodle-opacity: 0.14;
+  left: 28%;
+  bottom: 11%;
+}
+
+#anilarimiz > .container {
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 1100px) {
+  .home-memories-doodles .ambient-doodle-table { --doodle-width: 132px; }
+  .home-memories-doodles .ambient-doodle-jump { --doodle-width: 122px; left: 2%; }
+  .home-memories-doodles .ambient-doodle-hug { --doodle-width: 126px; }
+  .home-memories-doodles .ambient-doodle-walk { --doodle-width: 118px; }
+  .home-memories-doodles .ambient-doodle-look { --doodle-width: 104px; left: 44%; }
+  .home-memories-doodles .ambient-doodle-bar { --doodle-width: 112px; right: 8%; }
+  .home-memories-doodles .ambient-doodle-cats { --doodle-width: 108px; left: 42%; }
+  .home-memories-doodles .ambient-doodle-share { --doodle-width: 108px; right: 30%; }
+  .home-memories-doodles .ambient-doodle-highfive { --doodle-width: 114px; left: 24%; }
+}
+
+@media (max-width: 760px) {
+  #anilarimiz.section.dotted-paper {
+    background-size: 18px 18px !important;
+  }
+
+  .home-memories-doodles .ambient-doodle-table {
+    --doodle-width: 112px;
+    right: -16px;
+    top: 10%;
+  }
+
+  .home-memories-doodles .ambient-doodle-jump {
+    --doodle-width: 98px;
+    left: -16px;
+    top: 30%;
+  }
+
+  .home-memories-doodles .ambient-doodle-hug {
+    --doodle-width: 104px;
+    left: -20px;
+    bottom: 18%;
+  }
+
+  .home-memories-doodles .ambient-doodle-walk {
+    --doodle-width: 96px;
+    right: -10px;
+    bottom: 9%;
+  }
+
+  .home-memories-doodles .ambient-doodle-look,
+  .home-memories-doodles .ambient-doodle-cats,
+  .home-memories-doodles .ambient-doodle-highfive {
+    display: block;
+  }
+
+  .home-memories-doodles .ambient-doodle-look {
+    --doodle-width: 88px;
+    left: 46%;
+    top: 14%;
+  }
+
+  .home-memories-doodles .ambient-doodle-share {
+    --doodle-width: 92px;
+    right: 18%;
+    top: 43%;
+  }
+
+  .home-memories-doodles .ambient-doodle-bar {
+    --doodle-width: 92px;
+    right: -18px;
+    top: 60%;
+  }
+
+  .home-memories-doodles .ambient-doodle-cats {
+    --doodle-width: 90px;
+    left: 56%;
+    top: 70%;
+  }
+
+  .home-memories-doodles .ambient-doodle-highfive {
+    --doodle-width: 94px;
+    left: 10%;
+    bottom: 6%;
+  }
+}
+
+
+/* =========================================================
+ Day 4 — Anılarımız doodle density pass
+ Şubeler ve Merch Drop ile aynı görsel yoğunluğu yakalamak için
+ daha büyük ana karikatürler ve fotoğraf bloklarının aralarına
+ yerleşen ikinci bir dekoratif katman kullanılır.
+ ========================================================= */
+#anilarimiz.section.dotted-paper {
+  background-color: var(--cream) !important;
+  background-image: url("/assets/ui/kantin-dot-pattern.png") !important;
+  background-size: 20px 20px !important;
+  background-position: 0 0 !important;
+  background-repeat: repeat !important;
+}
+
+.home-memories-doodles,
+.home-memories-doodles-secondary {
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.home-memories-doodles .merch-doodle,
+.home-memories-doodles-secondary .merch-doodle {
+  opacity: var(--ambient-doodle-opacity, 0.2) !important;
+  filter: brightness(0) saturate(100%) invert(31%) sepia(78%) saturate(1622%) hue-rotate(203deg) brightness(98%) contrast(88%);
+}
+
+/* Birinci katman: büyük, bölümün karakterini belirleyen karikatürler */
+.home-memories-doodles .ambient-doodle-table {
+  --doodle-width: 250px;
+  --ambient-doodle-opacity: 0.22;
+  left: -38px;
+  top: 4%;
+}
+
+.home-memories-doodles .ambient-doodle-look {
+  --doodle-width: 190px;
+  --ambient-doodle-opacity: 0.19;
+  left: 42%;
+  top: 8%;
+}
+
+.home-memories-doodles .ambient-doodle-bar {
+  --doodle-width: 240px;
+  --ambient-doodle-opacity: 0.21;
+  right: -34px;
+  top: 18%;
+}
+
+.home-memories-doodles .ambient-doodle-jump {
+  --doodle-width: 225px;
+  --ambient-doodle-opacity: 0.2;
+  left: -28px;
+  top: 34%;
+}
+
+.home-memories-doodles .ambient-doodle-cats {
+  --doodle-width: 205px;
+  --ambient-doodle-opacity: 0.18;
+  right: 10%;
+  top: 43%;
+}
+
+.home-memories-doodles .ambient-doodle-share {
+  --doodle-width: 220px;
+  --ambient-doodle-opacity: 0.2;
+  right: -28px;
+  top: 57%;
+}
+
+.home-memories-doodles .ambient-doodle-highfive {
+  --doodle-width: 225px;
+  --ambient-doodle-opacity: 0.19;
+  left: 28%;
+  bottom: 8%;
+}
+
+.home-memories-doodles .ambient-doodle-hug {
+  --doodle-width: 220px;
+  --ambient-doodle-opacity: 0.2;
+  left: -22px;
+  bottom: 18%;
+}
+
+.home-memories-doodles .ambient-doodle-walk {
+  --doodle-width: 205px;
+  --ambient-doodle-opacity: 0.2;
+  right: 3%;
+  left: auto;
+  bottom: 3%;
+}
+
+/* İkinci katman: fotoğraf ve kart bloklarının arasındaki boşlukları doldurur */
+.home-memories-doodles-secondary .ambient-doodle-table,
+.home-memories-doodles-secondary .ambient-doodle-look,
+.home-memories-doodles-secondary .ambient-doodle-bar {
+  display: none;
+}
+
+.home-memories-doodles-secondary .ambient-doodle-jump {
+  --doodle-width: 168px;
+  --ambient-doodle-opacity: 0.15;
+  left: 18%;
+  top: 22%;
+}
+
+.home-memories-doodles-secondary .ambient-doodle-cats {
+  --doodle-width: 172px;
+  --ambient-doodle-opacity: 0.15;
+  right: 22%;
+  top: 31%;
+}
+
+.home-memories-doodles-secondary .ambient-doodle-share {
+  --doodle-width: 178px;
+  --ambient-doodle-opacity: 0.15;
+  left: 46%;
+  top: 49%;
+}
+
+.home-memories-doodles-secondary .ambient-doodle-highfive {
+  --doodle-width: 180px;
+  --ambient-doodle-opacity: 0.15;
+  right: 29%;
+  bottom: 29%;
+  left: auto;
+}
+
+.home-memories-doodles-secondary .ambient-doodle-hug {
+  --doodle-width: 170px;
+  --ambient-doodle-opacity: 0.15;
+  left: 19%;
+  bottom: 12%;
+}
+
+.home-memories-doodles-secondary .ambient-doodle-walk {
+  --doodle-width: 165px;
+  --ambient-doodle-opacity: 0.15;
+  right: 44%;
+  left: auto;
+  bottom: 4%;
+}
+
+#anilarimiz > .container {
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 1100px) {
+  .home-memories-doodles .ambient-doodle-table { --doodle-width: 210px; }
+  .home-memories-doodles .ambient-doodle-look { --doodle-width: 165px; }
+  .home-memories-doodles .ambient-doodle-bar { --doodle-width: 205px; }
+  .home-memories-doodles .ambient-doodle-jump { --doodle-width: 190px; }
+  .home-memories-doodles .ambient-doodle-cats { --doodle-width: 178px; }
+  .home-memories-doodles .ambient-doodle-share { --doodle-width: 188px; }
+  .home-memories-doodles .ambient-doodle-highfive { --doodle-width: 190px; }
+  .home-memories-doodles .ambient-doodle-hug { --doodle-width: 186px; }
+  .home-memories-doodles .ambient-doodle-walk { --doodle-width: 176px; }
+
+  .home-memories-doodles-secondary .ambient-doodle-jump,
+  .home-memories-doodles-secondary .ambient-doodle-cats,
+  .home-memories-doodles-secondary .ambient-doodle-share,
+  .home-memories-doodles-secondary .ambient-doodle-highfive,
+  .home-memories-doodles-secondary .ambient-doodle-hug,
+  .home-memories-doodles-secondary .ambient-doodle-walk {
+    --doodle-width: 148px;
+  }
+}
+
+@media (max-width: 760px) {
+  #anilarimiz.section.dotted-paper {
+    background-size: 18px 18px !important;
+  }
+
+  .home-memories-doodles .ambient-doodle-look,
+  .home-memories-doodles .ambient-doodle-cats,
+  .home-memories-doodles .ambient-doodle-highfive {
+    display: block;
+  }
+
+  .home-memories-doodles .ambient-doodle-table {
+    --doodle-width: 132px;
+    left: -32px;
+    top: 4%;
+  }
+
+  .home-memories-doodles .ambient-doodle-look {
+    --doodle-width: 108px;
+    left: 45%;
+    top: 10%;
+  }
+
+  .home-memories-doodles .ambient-doodle-bar {
+    --doodle-width: 128px;
+    right: -30px;
+    top: 21%;
+  }
+
+  .home-memories-doodles .ambient-doodle-jump {
+    --doodle-width: 118px;
+    left: -24px;
+    top: 36%;
+  }
+
+  .home-memories-doodles .ambient-doodle-cats {
+    --doodle-width: 112px;
+    right: 2%;
+    top: 46%;
+  }
+
+  .home-memories-doodles .ambient-doodle-share {
+    --doodle-width: 120px;
+    right: -24px;
+    top: 60%;
+  }
+
+  .home-memories-doodles .ambient-doodle-highfive {
+    --doodle-width: 118px;
+    left: 24%;
+    bottom: 9%;
+  }
+
+  .home-memories-doodles .ambient-doodle-hug {
+    --doodle-width: 118px;
+    left: -24px;
+    bottom: 19%;
+  }
+
+  .home-memories-doodles .ambient-doodle-walk {
+    --doodle-width: 112px;
+    right: -12px;
+    bottom: 3%;
+  }
+
+  .home-memories-doodles-secondary .ambient-doodle-jump,
+  .home-memories-doodles-secondary .ambient-doodle-cats,
+  .home-memories-doodles-secondary .ambient-doodle-share,
+  .home-memories-doodles-secondary .ambient-doodle-highfive,
+  .home-memories-doodles-secondary .ambient-doodle-hug,
+  .home-memories-doodles-secondary .ambient-doodle-walk {
+    --doodle-width: 94px;
+    --ambient-doodle-opacity: 0.12;
+  }
+}

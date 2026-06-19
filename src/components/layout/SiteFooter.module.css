@@ -1,79 +1,407 @@
 .footer {
-  padding: 64px 0 24px;
-  background: #02194b;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(68px, 8vw, 108px) 0 26px;
+  background:
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.075) 1px, transparent 1.2px),
+    #02194b;
+  background-size: 22px 22px;
   color: var(--white);
 }
 
-.grid {
+.footer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(0, 71, 187, 0.32), transparent 34%),
+    radial-gradient(circle at 85% 76%, rgba(20, 93, 215, 0.2), transparent 30%);
+  pointer-events: none;
+}
+
+.doodle {
+  position: absolute;
+  z-index: 0;
+  width: clamp(170px, 17vw, 300px);
+  opacity: 0.12;
+  pointer-events: none;
+  filter: brightness(0) invert(1);
+}
+
+.doodleLeft {
+  left: -46px;
+  bottom: 8%;
+  transform: rotate(-4deg);
+}
+
+.doodleRight {
+  right: -28px;
+  top: 8%;
+  transform: rotate(4deg);
+}
+
+.topGrid,
+.secondaryGrid,
+.bottom {
+  position: relative;
+  z-index: 1;
+}
+
+.topGrid {
   display: grid;
-  gap: 42px;
+  gap: 30px;
+}
+
+.brandBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: clamp(28px, 4vw, 46px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.055);
+  backdrop-filter: blur(10px);
 }
 
 .brand {
   display: inline-block;
-  margin-bottom: 18px;
+  margin-bottom: 34px;
   color: var(--white);
   font-family: "Montserrat", sans-serif;
-  font-size: 2.3rem;
+  font-size: clamp(2.8rem, 5vw, 5.1rem);
   font-weight: 900;
-  line-height: 1;
-  letter-spacing: -0.07em;
+  line-height: 0.9;
+  letter-spacing: -0.075em;
 }
 
 .brand span {
+  color: #6ea2ff;
+}
+
+.brandBlock h2 {
+  max-width: 8ch;
+  margin: 0 0 18px;
   color: var(--white);
+  font-size: clamp(2.25rem, 4vw, 4.2rem);
+  line-height: 0.95;
+  letter-spacing: -0.055em;
 }
 
 .intro {
-  color: rgba(255, 255, 255, 0.58);
+  max-width: 42ch;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 1rem;
+  line-height: 1.62;
+}
+
+.brandActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 32px;
+}
+
+.primaryAction,
+.secondaryAction,
+.branchActions a,
+.branchActions :global(a) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 10px 17px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 850;
+  transition: transform 180ms var(--ease), background-color 180ms ease, color 180ms ease;
+}
+
+.primaryAction {
+  gap: 8px;
+  background: var(--white);
+  color: var(--blue-dark);
+}
+
+.secondaryAction {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  color: var(--white);
+}
+
+.primaryAction:hover,
+.secondaryAction:hover,
+.branchActions a:hover {
+  transform: translateY(-2px);
+}
+
+.branchGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.branchCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(24px, 3vw, 34px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.965);
+  color: var(--ink);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.14);
+}
+
+.branchHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.branchCode,
+.label {
+  display: block;
+  margin-bottom: 10px;
+  color: #8fb8ff;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.branchHeading h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.9rem, 3vw, 3rem);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+}
+
+.cityPill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--blue);
+  font-size: 0.72rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.branchCard address {
+  margin-top: 24px;
+  color: var(--muted);
+  font-style: normal;
+  line-height: 1.55;
+}
+
+.featureList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 22px;
+}
+
+.featureList span {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid rgba(0, 71, 187, 0.14);
+  border-radius: 999px;
+  background: rgba(0, 71, 187, 0.055);
+  color: var(--blue);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.hoursNote {
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.branchActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.branchActions a:first-child {
+  gap: 7px;
+  background: var(--blue);
+  color: var(--white);
+}
+
+.branchActions a:last-child {
+  border: 1px solid rgba(16, 16, 16, 0.14);
+  color: var(--ink);
+}
+
+.secondaryGrid {
+  display: grid;
+  gap: 24px;
+  margin-top: 28px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.navigationGroups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
 }
 
 .links {
   display: flex;
   flex-direction: column;
-  align-items: start;
-  gap: 8px;
-}
-
-.label {
-  margin-bottom: 8px;
-  color: rgba(255, 255, 255, 0.42);
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  align-items: flex-start;
+  gap: 9px;
 }
 
 .links a {
-  font-weight: 700;
+  color: rgba(255, 255, 255, 0.84);
+  font-weight: 750;
 }
 
 .links a:hover {
-  color: #9dbdff;
+  color: var(--white);
 }
 
-.links :where(a, button):focus-visible {
-  outline-color: rgba(255, 255, 255, 0.82);
+.links :where(a, button):focus-visible,
+.brandActions :where(a, button):focus-visible,
+.branchActions :where(a, button):focus-visible,
+.workCard :where(a, button):focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.82);
+  outline-offset: 4px;
+}
+
+.workCard {
+  display: grid;
+  gap: 28px;
+  align-items: end;
+  padding: clamp(24px, 3vw, 34px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 30px;
+  background: var(--blue);
+  color: var(--white);
+}
+
+.workCard h3 {
+  max-width: 14ch;
+  margin: 0 0 12px;
+  color: var(--white);
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.workCard p:not(.label) {
+  max-width: 48ch;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+  line-height: 1.55;
+}
+
+.workCard > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  min-height: 48px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--blue);
+  font-weight: 900;
 }
 
 .bottom {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 48px;
+  margin-top: 42px;
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.76rem;
 }
 
-@media (min-width: 720px) {
-  .grid {
-    grid-template-columns: 1.4fr 0.7fr 0.7fr;
+@media (min-width: 760px) {
+  .branchGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workCard {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .bottom {
     flex-direction: row;
+    align-items: center;
     justify-content: space-between;
+  }
+}
+
+@media (min-width: 1080px) {
+  .topGrid {
+    grid-template-columns: minmax(330px, 0.72fr) minmax(0, 1.28fr);
+    align-items: stretch;
+  }
+
+  .secondaryGrid {
+    grid-template-columns: minmax(320px, 0.7fr) minmax(0, 1.3fr);
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 620px) {
+  .footer {
+    padding-top: 58px;
+  }
+
+  .doodle {
+    width: 160px;
+    opacity: 0.08;
+  }
+
+  .brandBlock,
+  .branchCard,
+  .workCard {
+    border-radius: 24px;
+  }
+
+  .brandActions,
+  .branchActions {
+    width: 100%;
+  }
+
+  .primaryAction,
+  .secondaryAction,
+  .branchActions a,
+  .workCard > a {
+    flex: 1 1 auto;
+  }
+
+  .navigationGroups {
+    gap: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primaryAction,
+  .secondaryAction,
+  .branchActions a {
+    transition: none;
   }
 }

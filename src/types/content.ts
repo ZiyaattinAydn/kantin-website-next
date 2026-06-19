@@ -57,3 +57,13 @@ export type FooterLink = {
   label: string;
   external?: boolean;
 };
+
+export type InstagramPost = {
+  id: string;
+  image: string;
+  imageAlt: string;
+  caption: string;
+  branch: string;
+  publishedAt: string;
+  permalink: string;
+};

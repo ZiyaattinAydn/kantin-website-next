@@ -4,7 +4,7 @@ type AmbientDoodle = {
   className: string;
 };
 
-type AmbientDoodlePreset = "all" | "events";
+type AmbientDoodlePreset = "all" | "events" | "memories";
 
 const ambientDoodles: AmbientDoodle[] = [
   {
@@ -57,6 +57,7 @@ const ambientDoodles: AmbientDoodle[] = [
 const presetIds: Record<AmbientDoodlePreset, readonly AmbientDoodle["id"][]> = {
   all: ambientDoodles.map((doodle) => doodle.id),
   events: ["jump", "share", "highfive", "walk"],
+  memories: ["table", "look", "bar", "jump", "cats", "share", "highfive", "hug", "walk"],
 };
 
 export default function AmbientDoodles({

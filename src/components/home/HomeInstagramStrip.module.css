@@ -1,0 +1,253 @@
+.shell {
+  position: relative;
+  overflow: hidden;
+  margin-top: 22px;
+  padding: clamp(22px, 3vw, 34px);
+  border: 2px solid var(--blue);
+  border-radius: 28px;
+  background: rgba(244, 239, 230, 0.92);
+  box-shadow: 0 20px 55px rgba(0, 71, 187, 0.07);
+}
+
+.header {
+  display: grid;
+  gap: 22px;
+  align-items: end;
+  margin-bottom: 24px;
+}
+
+.header h3 {
+  margin: 0;
+  color: var(--blue);
+  font-size: clamp(2.2rem, 7vw, 4.4rem);
+  line-height: 0.9;
+  letter-spacing: -0.065em;
+}
+
+.description {
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+}
+
+.controls button {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid rgba(0, 71, 187, 0.22);
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--blue);
+  font-size: 1.15rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 180ms var(--ease), background-color 180ms ease, color 180ms ease;
+}
+
+.controls button:hover:not(:disabled),
+.controls button:focus-visible {
+  transform: translateY(-2px);
+  background: var(--blue);
+  color: var(--white);
+}
+
+.controls button:disabled {
+  cursor: default;
+  opacity: 0.36;
+}
+
+.instagramButton {
+  display: inline-flex;
+  min-height: 48px;
+  flex: 1 1 220px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: var(--white);
+  font-weight: 900;
+  transition: transform 180ms var(--ease), background-color 180ms ease;
+}
+
+.instagramButton:hover,
+.instagramButton:focus-visible {
+  transform: translateY(-2px);
+  background: var(--blue-dark);
+}
+
+.track {
+  display: grid;
+  grid-auto-columns: minmax(238px, 29%);
+  grid-auto-flow: column;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 2px 2px 12px;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 71, 187, 0.35) transparent;
+}
+
+.track:focus-visible {
+  outline: 3px solid rgba(0, 71, 187, 0.38);
+  outline-offset: 5px;
+  border-radius: 20px;
+}
+
+.card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(16, 16, 16, 0.13);
+  border-radius: 24px;
+  background: var(--white);
+  box-shadow: 0 12px 32px rgba(16, 16, 16, 0.08);
+  scroll-snap-align: start;
+}
+
+.card > a {
+  display: block;
+  height: 100%;
+  color: inherit;
+}
+
+.media {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  background: #d8d1c5;
+}
+
+.media img {
+  object-fit: cover;
+  transition: transform 420ms var(--ease), filter 220ms ease;
+}
+
+.card:hover .media img,
+.card:focus-within .media img {
+  transform: scale(1.035);
+  filter: saturate(1.04);
+}
+
+.index {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: inline-flex;
+  min-width: 38px;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(244, 239, 230, 0.92);
+  color: var(--blue);
+  font-size: 0.68rem;
+  font-weight: 900;
+  box-shadow: 0 8px 20px rgba(16, 16, 16, 0.14);
+}
+
+.copy {
+  display: flex;
+  min-height: 148px;
+  flex-direction: column;
+  padding: 18px;
+}
+
+.copy span {
+  color: var(--blue);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.copy strong {
+  margin-top: 10px;
+  color: var(--ink);
+  font-size: 1.08rem;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+}
+
+.copy small {
+  margin-top: auto;
+  padding-top: 18px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+
+@media (min-width: 760px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr) minmax(330px, 0.72fr);
+  }
+
+  .headerActions {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 980px) {
+  .track {
+    grid-auto-columns: minmax(250px, 44%);
+  }
+}
+
+@media (max-width: 620px) {
+  .shell {
+    margin-inline: -2px;
+    padding: 20px;
+    border-radius: 24px;
+  }
+
+  .headerActions,
+  .instagramButton {
+    width: 100%;
+  }
+
+  .controls {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .instagramButton {
+    flex-basis: 100%;
+  }
+
+  .track {
+    grid-auto-columns: 84%;
+    gap: 12px;
+    margin-right: -20px;
+    padding-right: 20px;
+  }
+
+  .copy {
+    min-height: 138px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    scroll-behavior: auto;
+  }
+
+  .media img,
+  .controls button,
+  .instagramButton {
+    transition: none;
+  }
+}
