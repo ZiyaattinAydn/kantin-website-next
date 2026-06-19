@@ -7,7 +7,7 @@ import HomeMerchDrop from "@/components/home/HomeMerchDrop";
 import PublicPageShell from "@/components/layout/PublicPageShell";
 
 export const metadata: Metadata = {
-  title: "kantin. — savor the sip, share the bite",
+  title: "kantin. — Savor the sip. Share the bite.",
 };
 
 export default function HomePage() {

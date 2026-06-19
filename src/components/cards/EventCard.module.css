@@ -1,0 +1,159 @@
+.listCard {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.52);
+}
+
+.listDate {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  background: var(--blue);
+  color: var(--white);
+}
+
+.listDate span,
+.listDate small {
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.listDate strong {
+  font-family: "Montserrat", sans-serif;
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.listDate small {
+  justify-self: end;
+}
+
+.listImage {
+  min-height: 220px;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 22px;
+  background: rgba(0, 71, 187, 0.08);
+}
+
+.listImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.listCard:has(.listImage) {
+  grid-template-columns: auto minmax(170px, 0.34fr) minmax(0, 1fr);
+}
+
+.listBody {
+  padding: 24px 20px;
+}
+
+.listBody h2 {
+  margin: 22px 0 16px;
+  font-size: clamp(1.65rem, 7vw, 3rem);
+}
+
+.listBody > p {
+  margin-bottom: 28px;
+  color: var(--muted);
+}
+
+.listFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.listFooter > span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.calendarButton {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: var(--white);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.zeroState {
+  display: grid;
+  gap: 26px;
+  align-items: center;
+  padding: 34px;
+  border: 1px dashed rgba(0, 71, 187, 0.45);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.zeroState h2 {
+  margin-bottom: 16px;
+}
+
+.zeroState p:not(:global(.eyebrow)) {
+  margin-bottom: 0;
+  color: var(--muted);
+}
+
+.zeroMark {
+  color: var(--blue);
+  font-family: "Montserrat", sans-serif;
+  font-size: 4.5rem;
+  font-weight: 900;
+}
+
+@media (min-width: 720px) {
+  .listCard {
+    grid-template-columns: 150px 1fr;
+  }
+
+  .listDate {
+    grid-template-columns: 1fr;
+    align-content: start;
+    justify-items: center;
+    padding: 30px 20px;
+  }
+
+  .listDate strong {
+    font-size: 4.5rem;
+  }
+
+  .listDate small {
+    justify-self: center;
+  }
+
+  .listBody {
+    padding: 34px;
+  }
+
+  .listFooter {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 760px) {
+  .listCard:has(.listImage) {
+    grid-template-columns: 1fr;
+  }
+
+  .listImage {
+    min-height: 210px;
+    aspect-ratio: 16 / 10;
+  }
+}

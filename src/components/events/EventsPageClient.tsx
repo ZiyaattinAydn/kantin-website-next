@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AmbientDoodles from "@/components/effects/AmbientDoodles";
-import { EventListCard, EventsZeroState } from "./EventCards";
+import EventCard, { EventsZeroState } from "@/components/cards/EventCard";
+import { eventFilters } from "@/data/events";
 import styles from "./EventsPageClient.module.css";
 import {
   loadPublishedEvents,
@@ -11,12 +12,6 @@ import {
 } from "@/lib/events";
 
 type EventFilter = "all" | Exclude<EventBranch, "both">;
-
-const filters: ReadonlyArray<{ value: EventFilter; label: string }> = [
-  { value: "all", label: "Tümü" },
-  { value: "alsancak", label: "Alsancak" },
-  { value: "atakent", label: "Atakent" },
-];
 
 function matchesFilter(event: KantinEvent, filter: EventFilter): boolean {
   return filter === "all" || event.branch === filter || event.branch === "both";
@@ -75,7 +70,7 @@ export default function EventsPageClient() {
       <section className={`section ${styles.page}`}>
         <div className="container">
           <div aria-label="Etkinlikleri şubeye göre filtrele" className={`${styles.filterBar} reveal`}>
-            {filters.map((filter) => {
+            {eventFilters.map((filter) => {
               const active = filter.value === activeFilter;
 
               return (
@@ -103,7 +98,11 @@ export default function EventsPageClient() {
               <EventsZeroState />
             ) : visibleEvents.length ? (
               visibleEvents.map((event, index) => (
-                <EventListCard key={event.id || `${event.title}-${index}`} event={event} />
+                <EventCard
+                  key={event.id || `${event.title}-${index}`}
+                  event={event}
+                  variant="list"
+                />
               ))
             ) : (
               <p className={styles.empty}>Bu şube için yayınlanmış etkinlik bulunmuyor.</p>

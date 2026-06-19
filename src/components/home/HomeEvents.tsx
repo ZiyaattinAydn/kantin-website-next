@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { HomeEventCard } from "@/components/events/EventCards";
-import { siteIdentity } from "@/content/site";
+import EventCard from "@/components/cards/EventCard";
+import AmbientDoodles from "@/components/effects/AmbientDoodles";
+import SectionHeader from "@/components/ui/SectionHeader";
+import { siteIdentity } from "@/data/site";
 import { loadPublishedEvents, type KantinEvent } from "@/lib/events";
 
 export default function HomeEvents() {
@@ -22,22 +23,30 @@ export default function HomeEvents() {
   }, []);
 
   return (
-    <section className="section" id="etkinlikler">
+    <section className="section dotted-paper home-events-illustrated" id="etkinlikler">
+      <AmbientDoodles className="home-events-doodles" preset="events" />
       <div className="container">
-        <div className="section-header reveal">
-          <div>
-            <p className="eyebrow">Sadece gerçekten olduğunda</p>
-            <h2>Yaklaşan etkinlikler</h2>
-          </div>
-          <Link className="text-link" href="/events">
-            Etkinlik sayfası <span>↗</span>
-          </Link>
-        </div>
+        <SectionHeader
+          eyebrow="Sadece gerçekten olduğunda"
+          title="Yaklaşan etkinlikler"
+          action={{
+            href: "/events",
+            label: (
+              <>
+                Etkinlik sayfası <span>↗</span>
+              </>
+            ),
+          }}
+        />
 
         <div aria-live="polite" className="event-grid dynamic-events-home">
           {events.length ? (
             events.map((event, index) => (
-              <HomeEventCard key={event.id || `${event.title}-${index}`} event={event} />
+              <EventCard
+                key={event.id || `${event.title}-${index}`}
+                event={event}
+                variant="home"
+              />
             ))
           ) : (
             <article className="event-empty-card">

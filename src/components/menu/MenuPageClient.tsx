@@ -8,7 +8,7 @@ import {
   MenuTruthNote,
 } from "./MenuSections";
 
-import { branchOptions, type MenuBranch } from "@/content/menu";
+import { branchOptions, type MenuBranch } from "@/data/menu";
 import styles from "./MenuPageClient.module.css";
 
 
@@ -22,7 +22,32 @@ export default function MenuPageClient({ initialBranch }: MenuPageClientProps) {
   const selectorRef = useRef<HTMLDivElement | null>(null);
   const alsancakPanelRef = useRef<HTMLElement | null>(null);
   const atakentPanelRef = useRef<HTMLElement | null>(null);
+  const shouldScrollAfterBranchChangeRef = useRef(false);
 
+
+  const scrollToPanelStart = useCallback((branch: MenuBranch) => {
+    const panel =
+      branch === "alsancak"
+        ? alsancakPanelRef.current
+        : atakentPanelRef.current;
+
+    if (!panel) return;
+
+    const rootStyles = window.getComputedStyle(document.documentElement);
+    const headerHeight = Number.parseFloat(
+      rootStyles.getPropertyValue("--header-height"),
+    ) || 0;
+    const selectorHeight = selectorRef.current?.getBoundingClientRect().height ?? 0;
+    const panelTop = panel.getBoundingClientRect().top + window.scrollY;
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    window.scrollTo({
+      top: Math.max(0, panelTop - headerHeight - selectorHeight - 8),
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
+  }, []);
 
   useEffect(() => {
     const panel =
@@ -35,34 +60,31 @@ export default function MenuPageClient({ initialBranch }: MenuPageClientProps) {
         item.classList.add("is-visible");
         item.classList.remove("reveal-pending");
       });
+
+      if (shouldScrollAfterBranchChangeRef.current) {
+        shouldScrollAfterBranchChangeRef.current = false;
+        scrollToPanelStart(activeBranch);
+      }
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [activeBranch]);
+  }, [activeBranch, scrollToPanelStart]);
 
   const activateBranch = useCallback(
     (branch: MenuBranch, shouldScroll = true) => {
-      setActiveBranch(branch);
-
       const url = new URL(window.location.href);
       url.searchParams.set("sube", branch);
       window.history.replaceState({}, "", url);
 
-      if (!shouldScroll) return;
-
-      const selector = selectorRef.current;
-      const reduceMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-      ).matches;
-
-      if (selector) {
-        window.scrollTo({
-          top: Math.max(0, selector.offsetTop - 80),
-          behavior: reduceMotion ? "auto" : "smooth",
-        });
+      if (branch === activeBranch) {
+        if (shouldScroll) scrollToPanelStart(branch);
+        return;
       }
+
+      shouldScrollAfterBranchChangeRef.current = shouldScroll;
+      setActiveBranch(branch);
     },
-    [],
+    [activeBranch, scrollToPanelStart],
   );
 
   const handleTabKeyDown = (
