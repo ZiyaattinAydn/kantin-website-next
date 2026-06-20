@@ -1,112 +1,219 @@
-.identity {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
+.page {
+  width: min(100%, 1480px);
+  margin: 0 auto;
 }
 
-.identity strong,
-.identity small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
 }
 
-.identity strong {
-  color: var(--ink);
-  font-size: 0.78rem;
+.head h1 {
+  margin: 4px 0 12px;
+  font-size: clamp(2.6rem, 7vw, 6rem);
+  line-height: 0.9;
 }
 
-.identity small {
-  color: var(--muted);
-  font-size: 0.66rem;
+.head h1 span {
+  color: var(--blue);
 }
 
-.intro {
+.head p:not(:global(.eyebrow)) {
   max-width: 760px;
-  margin: -18px 0 34px;
+  margin: 0;
   color: var(--muted);
-  line-height: 1.75;
+  line-height: 1.7;
 }
 
-.grid {
+.headActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.headActions a {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--blue);
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 16px 18px;
+  border: 1px solid rgba(0, 87, 214, 0.2);
+  border-radius: 16px;
+  background: rgba(0, 87, 214, 0.07);
+}
+
+.alert strong {
+  color: var(--blue);
+  font-size: 1.5rem;
+}
+
+.alert span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.alert a {
+  margin-left: auto;
+  color: var(--blue);
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.cards {
   display: grid;
-  gap: 16px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .card {
   display: grid;
-  min-height: 190px;
+  min-height: 148px;
   align-content: space-between;
-  gap: 30px;
-  padding: 24px;
+  gap: 10px;
+  padding: 20px;
   border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.58);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--ink);
+  transition: transform 150ms ease, border-color 150ms ease;
 }
 
-.cardTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+.card:hover {
+  border-color: var(--blue);
+  transform: translateY(-2px);
 }
 
-.cardNumber {
+.card > span {
   color: var(--blue);
   font-family: "Montserrat", sans-serif;
-  font-size: 0.72rem;
+  font-size: 2.5rem;
   font-weight: 900;
 }
 
-.status {
-  padding: 5px 8px;
-  border-radius: 999px;
-  background: rgba(0, 71, 187, 0.1);
+.card strong {
+  font-size: 1rem;
+}
+
+.card small {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.grid {
+  display: grid;
+  gap: 20px;
+}
+
+.panel {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.panelHead h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.panelHead span {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.quickLinks,
+.logs {
+  display: grid;
+  gap: 8px;
+}
+
+.quickLinks a,
+.logs > div {
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--white);
+}
+
+.quickLinks a {
   color: var(--blue);
-  font-size: 0.6rem;
+  font-size: 0.78rem;
   font-weight: 900;
-  text-transform: uppercase;
 }
 
-.card h2 {
-  margin: 0 0 10px;
-  font-size: 1.55rem;
+.logs > div {
+  display: grid;
+  gap: 3px;
 }
 
-.card p {
+.logs strong {
+  font-size: 0.77rem;
+}
+
+.logs span,
+.logs p {
   margin: 0;
   color: var(--muted);
-  line-height: 1.6;
+  font-size: 0.68rem;
 }
 
 .security {
-  margin-top: 24px;
-  padding: 22px;
-  border: 1px solid rgba(0, 128, 70, 0.24);
-  border-radius: var(--radius-md);
+  margin-top: 20px;
+  padding: 18px 20px;
+  border: 1px solid rgba(0, 128, 70, 0.22);
+  border-radius: 16px;
   background: rgba(0, 128, 70, 0.07);
 }
 
 .security strong {
-  display: block;
-  margin-bottom: 7px;
   color: #08713f;
 }
 
 .security p {
-  margin: 0;
+  margin: 7px 0 0;
   color: var(--muted);
+  font-size: 0.78rem;
   line-height: 1.6;
 }
 
-@media (min-width: 720px) {
-  .grid {
+@media (min-width: 680px) {
+  .cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 1100px) {
-  .grid {
+@media (min-width: 1040px) {
+  .cards {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

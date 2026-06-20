@@ -1,0 +1,175 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/auth/admin";
+import { logAdminAction } from "@/lib/admin/audit";
+import { createClient } from "@/lib/supabase/server";
+import {
+  PUBLIC_IMAGE_BUCKETS,
+  validateStorageFile,
+  type StorageBucket,
+} from "@/lib/supabase/storage";
+
+function text(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function message(error: unknown) {
+  return error instanceof Error ? error.message.slice(0, 220) : "Medya işlemi tamamlanamadı.";
+}
+
+function extension(name: string) {
+  return name.split(".").pop()?.toLowerCase() || "bin";
+}
+
+export async function uploadAdminMedia(formData: FormData): Promise<never> {
+  const admin = await requireAdmin();
+  let destination: string;
+
+  try {
+    const fileValue = formData.get("file");
+    if (!(fileValue instanceof File)) throw new Error("Yüklenecek görsel seçilmedi.");
+
+    const bucket = text(formData, "bucket") as StorageBucket;
+    if (!PUBLIC_IMAGE_BUCKETS.includes(bucket as (typeof PUBLIC_IMAGE_BUCKETS)[number])) {
+      throw new Error("Geçersiz medya bucket seçimi.");
+    }
+
+    const validation = validateStorageFile(fileValue, bucket);
+    if (!validation.ok) throw new Error(validation.message);
+
+    const title = text(formData, "title");
+    const altText = text(formData, "alt_text");
+    if (!title || !altText) throw new Error("Medya adı ve alt metin zorunlu.");
+
+    const year = new Date().getUTCFullYear();
+    const objectPath = `admin/${year}/${crypto.randomUUID()}.${extension(fileValue.name)}`;
+    const supabase = await createClient();
+    const { error: uploadError } = await supabase.storage.from(bucket).upload(objectPath, fileValue, {
+      cacheControl: "3600",
+      contentType: fileValue.type,
+      upsert: false,
+    });
+    if (uploadError) throw new Error(uploadError.message);
+
+    const { data, error: insertError } = await supabase
+      .from("media")
+      .insert({
+        source: "storage",
+        kind: "image",
+        bucket_name: bucket,
+        object_path: objectPath,
+        title,
+        alt_text: altText,
+        mime_type: fileValue.type,
+        size_bytes: fileValue.size,
+        status: "published",
+        is_active: true,
+      })
+      .select("id")
+      .single();
+
+    if (insertError) {
+      await supabase.storage.from(bucket).remove([objectPath]);
+      throw new Error(insertError.message);
+    }
+
+    await logAdminAction({
+      actorId: admin.userId,
+      action: "media_upload",
+      entityType: "media",
+      entityId: data.id,
+      entityLabel: title,
+      metadata: { bucket, objectPath },
+    });
+    destination = "/admin/media?notice=Görsel başarıyla yüklendi.";
+  } catch (error) {
+    destination = `/admin/media?error=${encodeURIComponent(message(error))}`;
+  }
+
+  revalidatePath("/admin/media");
+  redirect(destination);
+}
+
+export async function archiveAdminMedia(formData: FormData): Promise<never> {
+  const admin = await requireAdmin();
+  const id = text(formData, "id");
+  let destination: string;
+
+  try {
+    if (!id) throw new Error("Medya kaydı bulunamadı.");
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("media")
+      .update({ status: "archived", is_active: false })
+      .eq("id", id)
+      .select("title")
+      .single();
+    if (error) throw new Error(error.message);
+    await logAdminAction({
+      actorId: admin.userId,
+      action: "media_archive",
+      entityType: "media",
+      entityId: id,
+      entityLabel: data.title,
+    });
+    destination = "/admin/media?notice=Medya kaydı arşivlendi.";
+  } catch (error) {
+    destination = `/admin/media?error=${encodeURIComponent(message(error))}`;
+  }
+
+  revalidatePath("/admin/media");
+  redirect(destination);
+}
+
+export async function deleteTestAdminMedia(formData: FormData): Promise<never> {
+  const admin = await requireAdmin();
+  const id = text(formData, "id");
+  let destination: string;
+
+  try {
+    if (!id) throw new Error("Medya kaydı bulunamadı.");
+    const supabase = await createClient();
+    const { data: media, error: mediaError } = await supabase.from("media").select("*").eq("id", id).single();
+    if (mediaError) throw new Error(mediaError.message);
+    if (media.source !== "storage" || !media.title || !/^TEST[_\s-]/i.test(media.title)) {
+      throw new Error("Yalnız TEST_ adlı Storage görselleri kalıcı silinebilir.");
+    }
+
+    const referenceQueries = [
+      supabase.from("menu_items").select("id", { count: "exact", head: true }).eq("image_media_id", id),
+      supabase.from("events").select("id", { count: "exact", head: true }).eq("image_media_id", id),
+      supabase.from("merch_products").select("id", { count: "exact", head: true }).eq("image_media_id", id),
+      supabase.from("instagram_posts").select("id", { count: "exact", head: true }).eq("image_media_id", id),
+      supabase.from("job_applications").select("id", { count: "exact", head: true }).eq("cv_media_id", id),
+    ];
+    const references = await Promise.all(referenceQueries);
+    if (references.some((result) => (result.count ?? 0) > 0)) {
+      throw new Error("Bu medya bir içerikte kullanılıyor; önce içerik bağlantısını kaldır.");
+    }
+
+    if (media.bucket_name && media.object_path) {
+      const { error: removeError } = await supabase.storage.from(media.bucket_name).remove([media.object_path]);
+      if (removeError) throw new Error(removeError.message);
+    }
+
+    const { error: deleteError } = await supabase.from("media").delete().eq("id", id);
+    if (deleteError) throw new Error(deleteError.message);
+
+    await logAdminAction({
+      actorId: admin.userId,
+      action: "media_delete_test",
+      entityType: "media",
+      entityId: id,
+      entityLabel: media.title,
+    });
+    destination = "/admin/media?notice=TEST görseli kalıcı olarak silindi.";
+  } catch (error) {
+    destination = `/admin/media?error=${encodeURIComponent(message(error))}`;
+  }
+
+  revalidatePath("/admin/media");
+  redirect(destination);
+}

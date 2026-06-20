@@ -1,107 +1,126 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import AdminSignOutButton from "@/components/admin/AdminSignOutButton";
+import AdminShell from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/auth/admin";
 import styles from "./AdminDashboard.module.css";
+import { formatAdminDate } from "@/lib/admin/format";
+import { createClient } from "@/lib/supabase/server";
 
-export const metadata: Metadata = {
-  title: "Yönetici Paneli",
-  robots: { index: false, follow: false },
-};
+export const dynamic = "force-dynamic";
 
-const modules = [
-  {
-    title: "Menü yönetimi",
-    description: "Kategori, ürün, fiyat, porsiyon ve şube görünürlüğü.",
-  },
-  {
-    title: "Etkinlikler",
-    description: "Etkinlik kayıtları, tarihler, şubeler ve yayın durumu.",
-  },
-  {
-    title: "Merch ve Instagram",
-    description: "Ürün kartları, medya, gönderiler ve içerik sıralaması.",
-  },
-  {
-    title: "Şubeler ve site ayarları",
-    description: "Adresler, çalışma saatleri, footer ve bölüm görünürlüğü.",
-  },
-  {
-    title: "Kariyer başvuruları",
-    description: "Başvuru durumları ve private CV dosyalarına güvenli erişim.",
-  },
-  {
-    title: "Kontrollü tema",
-    description: "Tasarım sistemini bozmayan renk, yazı ve yoğunluk seçenekleri.",
-  },
-];
+const cards = [
+  { key: "menu_items", label: "Menü ürünü", href: "/admin/manage/menu-items" },
+  { key: "menu_categories", label: "Kategori", href: "/admin/manage/menu-categories" },
+  { key: "events", label: "Etkinlik", href: "/admin/manage/events" },
+  { key: "merch_products", label: "Merch kaydı", href: "/admin/manage/merch-products" },
+  { key: "instagram_posts", label: "Instagram gönderisi", href: "/admin/manage/instagram-posts" },
+  { key: "job_applications", label: "Kariyer başvurusu", href: "/admin/applications" },
+] as const;
 
-export default async function AdminPage() {
+export default async function AdminDashboardPage() {
   const admin = await requireAdmin();
   const identity = admin.displayName || admin.email || "Yetkili kullanıcı";
+  const supabase = await createClient();
+  const [counts, logsResult, newApplicationsResult] = await Promise.all([
+    Promise.all(
+      cards.map(async (card) => {
+        const { count, error } = await supabase
+          .from(card.key)
+          .select("id", { count: "exact", head: true });
+        return { ...card, count: error ? null : count ?? 0 };
+      }),
+    ),
+    supabase
+      .from("admin_activity_logs")
+      .select("id, action, entity_type, entity_label, created_at")
+      .order("created_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("job_applications")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "new"),
+  ]);
 
   return (
-    <>
-      <header className="admin-header">
-        <div className="container admin-header-inner">
-          <Link className="brand" href="/">
-            kantin<span>.</span>
-          </Link>
-          <div>
-            <div className={styles.identity}>
-              <strong>{identity}</strong>
-              <small>Admin · Supabase Auth</small>
-            </div>
-            <AdminSignOutButton />
-          </div>
+    <AdminShell identity={identity}>
+    <section className={styles.page}>
+      <header className={styles.head}>
+        <div>
+          <p className="eyebrow">Güvenli yönetim alanı</p>
+          <h1>
+            Yönetici paneli<span>.</span>
+          </h1>
+          <p>
+            Menüden kariyer başvurularına kadar bütün canlı Supabase içeriklerini
+            tek yerden yönet. Yazma işlemleri admin rolü ve RLS ile korunur.
+          </p>
+        </div>
+        <div className={styles.headActions}>
+          <Link href="/" target="_blank">Public siteyi aç</Link>
+          <Link href="/admin/media">Görsel yükle</Link>
         </div>
       </header>
 
-      <main className="admin-main">
-        <section className="container admin-dashboard">
-          <div className="admin-dashboard-head">
-            <div>
-              <p className="eyebrow">Güvenli yönetim alanı</p>
-              <h1>
-                Yönetici paneli<span>.</span>
-              </h1>
-            </div>
-            <span className="admin-mode-badge">Oturum aktif</span>
+      <div className={styles.alert}>
+        <strong>{newApplicationsResult.count ?? 0}</strong>
+        <span>yeni kariyer başvurusu inceleme bekliyor.</span>
+        <Link href="/admin/applications?status=new">Başvurulara git</Link>
+      </div>
+
+      <div className={styles.cards}>
+        {counts.map((card) => (
+          <Link className={styles.card} href={card.href} key={card.key}>
+            <span>{card.count ?? "—"}</span>
+            <strong>{card.label}</strong>
+            <small>Yönetimi aç →</small>
+          </Link>
+        ))}
+      </div>
+
+      <div className={styles.grid}>
+        <article className={styles.panel}>
+          <div className={styles.panelHead}>
+            <h2>Hızlı işlemler</h2>
+            <span>Faz 9</span>
           </div>
+          <div className={styles.quickLinks}>
+            <Link href="/admin/manage/menu-items?new=1">Yeni menü ürünü</Link>
+            <Link href="/admin/manage/events?new=1">Yeni etkinlik</Link>
+            <Link href="/admin/manage/merch-products?new=1">Yeni merch ürünü</Link>
+            <Link href="/admin/manage/instagram-posts?new=1">Yeni Instagram gönderisi</Link>
+            <Link href="/admin/manage/site-settings">Footer ve site ayarları</Link>
+            <Link href="/admin/manage/content-blocks">Anılarımız ve içerik blokları</Link>
+          </div>
+        </article>
 
-          <p className={styles.intro}>
-            Supabase oturumu, aktif profil ve admin rolü sunucu tarafında
-            doğrulandı. İçerik yönetim modülleri Faz 9&apos;da bu güvenli kabuğun
-            içine eklenecek.
-          </p>
-
-          <div className={styles.grid}>
-            {modules.map((module, index) => (
-              <article className={styles.card} key={module.title}>
-                <div className={styles.cardTop}>
-                  <span className={styles.cardNumber}>
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className={styles.status}>Faz 9</span>
+        <article className={styles.panel}>
+          <div className={styles.panelHead}>
+            <h2>Son admin işlemleri</h2>
+            <span>{logsResult.data?.length ?? 0} kayıt</span>
+          </div>
+          <div className={styles.logs}>
+            {(logsResult.data ?? []).length ? (
+              logsResult.data?.map((log) => (
+                <div key={log.id}>
+                  <strong>{log.entity_label || log.entity_type}</strong>
+                  <span>{log.action} · {formatAdminDate(log.created_at)}</span>
                 </div>
-                <div>
-                  <h2>{module.title}</h2>
-                  <p>{module.description}</p>
-                </div>
-              </article>
-            ))}
+              ))
+            ) : (
+              <p>Henüz admin işlem kaydı yok. Faz 9 migration’ı çalıştırıldıktan sonra burada görünecek.</p>
+            )}
           </div>
+        </article>
+      </div>
 
-          <div className={styles.security}>
-            <strong>Yetkilendirme etkin</strong>
-            <p>
-              Giriş yapmamış kullanıcılar login sayfasına yönlendirilir. Giriş
-              yapmış olsa bile aktif admin rolü olmayan hesaplar bu sayfayı
-              görüntüleyemez; veritabanı işlemleri ayrıca RLS tarafından korunur.
-            </p>
-          </div>
-        </section>
-      </main>
-    </>
+      <div className={styles.security}>
+        <strong>Test güvenliği</strong>
+        <p>
+          Mevcut içerikleri kalıcı silmek yerine pasife al veya arşivle. Kalıcı silme
+          yalnız adı <b>TEST_</b> ya da slug değeri <b>test-</b> ile başlayan deneme
+          kayıtlarında etkinleştirildi.
+        </p>
+      </div>
+    </section>
+    </AdminShell>
   );
 }

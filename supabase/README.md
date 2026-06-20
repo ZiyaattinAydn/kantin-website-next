@@ -22,3 +22,15 @@ Public okuma, admin CRUD ve kariyer başvurusu INSERT politikaları bilinçli ol
 Supabase Dashboard → SQL Editor → New query alanında migration dosyasının tamamını tek seferde çalıştırın.
 
 Migration başarıyla tamamlandıktan sonra Table Editor içinde tabloların oluştuğunu ve her tabloda RLS'nin açık olduğunu kontrol edin.
+
+## Faz 9 migration
+
+`migrations/20260620060000_admin_crud_support.sql`
+
+Bu migration mevcut içerik kayıtlarını değiştirmez veya silmez. Yalnızca admin panelindeki kritik işlemler için `admin_activity_logs` tablosunu, indekslerini ve RLS politikalarını ekler.
+
+Faz 9 sonrasında:
+
+- admin CRUD işlemleri loglanır,
+- test kayıtları için güvenli cleanup SQL'i kullanılabilir,
+- Faz 9 destek tablosu gerekirse ayrı rollback dosyasıyla kaldırılabilir.

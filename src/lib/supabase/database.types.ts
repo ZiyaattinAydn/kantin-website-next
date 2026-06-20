@@ -1094,6 +1094,47 @@ export type Database = {
           },
         ];
       };
+      admin_activity_logs: {
+        Row: {
+          id: string;
+          actor_id: string;
+          action: string;
+          entity_type: string;
+          entity_id: string | null;
+          entity_label: string | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          actor_id: string;
+          action: string;
+          entity_type: string;
+          entity_id?: string | null;
+          entity_label?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          actor_id?: string;
+          action?: string;
+          entity_type?: string;
+          entity_id?: string | null;
+          entity_label?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "admin_activity_logs_actor_id_fkey";
+            columns: ["actor_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;

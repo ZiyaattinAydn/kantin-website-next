@@ -1,0 +1,177 @@
+.shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 25% 0%, rgba(0, 87, 214, 0.08), transparent 32rem),
+    var(--cream);
+}
+
+.mobileHeader {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  display: flex;
+  min-height: 66px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(244, 239, 230, 0.96);
+  backdrop-filter: blur(16px);
+}
+
+.menuButton {
+  padding: 9px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--blue);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 110;
+  display: flex;
+  width: min(310px, 88vw);
+  flex-direction: column;
+  padding: 24px 20px;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+  background: #061a4b;
+  color: white;
+  transform: translateX(-102%);
+  transition: transform 180ms ease;
+  overflow-y: auto;
+}
+
+.sidebarOpen {
+  transform: translateX(0);
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.brandRow :global(.brand) {
+  color: white;
+}
+
+.badge {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #8bddff;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.identity {
+  display: grid;
+  gap: 4px;
+  margin: 24px 0;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.identity strong {
+  overflow: hidden;
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identity span {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.65rem;
+}
+
+.nav {
+  display: grid;
+  gap: 22px;
+}
+
+.nav section h2 {
+  margin: 0 0 8px;
+  color: #6ed9ff;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.nav section > div {
+  display: grid;
+  gap: 3px;
+}
+
+.nav a {
+  padding: 10px 12px;
+  border-radius: 11px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.nav a:hover,
+.nav a.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.sidebarFooter {
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.sidebarFooter > a {
+  color: #8bddff;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.sidebarFooter :global(.admin-text-button) {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 11px;
+  color: #ffb6b6;
+  text-align: left;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  border: 0;
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.main {
+  min-width: 0;
+  padding: 28px 18px 80px;
+}
+
+@media (min-width: 1080px) {
+  .mobileHeader,
+  .backdrop {
+    display: none;
+  }
+
+  .sidebar {
+    transform: none;
+  }
+
+  .main {
+    margin-left: 310px;
+    padding: 42px clamp(28px, 4vw, 64px) 100px;
+  }
+}
