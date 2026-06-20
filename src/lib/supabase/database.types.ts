@@ -1186,6 +1186,14 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
       };
+      is_valid_theme_settings: {
+        Args: { p_value: Json };
+        Returns: boolean;
+      };
+      is_valid_section_visibility: {
+        Args: { p_value: Json };
+        Returns: boolean;
+      };
     };
     Enums: {
       app_role: "viewer" | "editor" | "admin";

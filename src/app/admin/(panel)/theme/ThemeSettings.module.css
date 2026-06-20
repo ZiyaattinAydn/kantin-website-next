@@ -1,0 +1,373 @@
+.page {
+  display: grid;
+  gap: 24px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.head {
+  display: grid;
+  gap: 20px;
+  align-items: end;
+  padding: clamp(24px, 5vw, 48px);
+  border: 1px solid rgba(0, 71, 187, 0.14);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--shadow);
+}
+
+.head h1 {
+  margin: 0;
+  color: var(--blue-dark);
+  font-size: clamp(2.5rem, 7vw, 5.2rem);
+}
+
+.head h1 span {
+  color: var(--blue);
+}
+
+.head p:not(:global(.eyebrow)) {
+  max-width: 760px;
+  margin: 14px 0 0;
+  color: var(--muted);
+}
+
+.head > a {
+  justify-self: start;
+  padding: 11px 16px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.notice,
+.error {
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.notice {
+  border: 1px solid rgba(22, 140, 91, 0.25);
+  background: #e8f5ee;
+  color: #0b6b42;
+}
+
+.error {
+  border: 1px solid rgba(178, 58, 72, 0.25);
+  background: #fff0f1;
+  color: #8d2632;
+}
+
+.form {
+  display: grid;
+  gap: 20px;
+}
+
+.panel {
+  padding: clamp(22px, 4vw, 36px);
+  border: 1px solid rgba(2, 25, 75, 0.12);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 14px 40px rgba(2, 25, 75, 0.06);
+}
+
+.panelHead {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.panelHead > div {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.panelHead span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--blue);
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.panelHead h2,
+.panel h3 {
+  margin: 0;
+  color: var(--blue-dark);
+}
+
+.panelHead h2 {
+  font-size: clamp(1.45rem, 4vw, 2.25rem);
+}
+
+.panelHead p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.panel h3 {
+  margin: 24px 0 12px;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.optionGrid,
+.visibilityGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.optionCard,
+.toggleCard {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid rgba(2, 25, 75, 0.14);
+  border-radius: 16px;
+  background: white;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.optionCard:hover,
+.toggleCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 71, 187, 0.42);
+  box-shadow: 0 10px 24px rgba(2, 25, 75, 0.08);
+}
+
+.optionCard input {
+  margin-top: 3px;
+  accent-color: var(--blue);
+}
+
+.optionCard:has(input:checked) {
+  border-color: var(--blue);
+  background: rgba(0, 71, 187, 0.045);
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+
+.optionCard > span,
+.toggleCard > span:last-child {
+  display: grid;
+  gap: 4px;
+}
+
+.optionCard strong,
+.toggleCard strong {
+  color: var(--blue-dark);
+  font-size: 0.82rem;
+}
+
+.optionCard small,
+.toggleCard small {
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.split {
+  display: grid;
+  gap: 20px;
+}
+
+.stackOptions {
+  display: grid;
+  gap: 10px;
+}
+
+.toggleCard input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: #c8ced8;
+  transition: background 160ms ease;
+}
+
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.18);
+  transition: transform 160ms ease;
+}
+
+.toggleCard input:checked + .toggle {
+  background: var(--blue);
+}
+
+.toggleCard input:checked + .toggle::after {
+  transform: translateX(18px);
+}
+
+.toggleCard:has(input:focus-visible) {
+  outline: 3px solid rgba(0, 71, 187, 0.35);
+  outline-offset: 2px;
+}
+
+.orderList {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.orderList li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid rgba(2, 25, 75, 0.12);
+  border-radius: 14px;
+  background: white;
+}
+
+.orderIndex {
+  color: var(--blue);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.orderList strong {
+  color: var(--blue-dark);
+  font-size: 0.82rem;
+}
+
+.orderList li > div {
+  display: flex;
+  gap: 6px;
+}
+
+.orderList button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(2, 25, 75, 0.14);
+  border-radius: 10px;
+  background: var(--cream);
+  color: var(--blue-dark);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.orderList button:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.preview {
+  padding: clamp(24px, 5vw, 48px);
+  border-radius: 26px;
+  background: #0047bb;
+  color: white;
+}
+
+.preview > span {
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.preview h2 {
+  max-width: 760px;
+  margin: 14px 0;
+  font-size: clamp(2rem, 6vw, 4rem);
+}
+
+.preview p {
+  max-width: 720px;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.previewColor_midnight {
+  background: #02194b;
+}
+
+.previewColor_ocean {
+  background: #006b7d;
+}
+
+.actions {
+  position: sticky;
+  bottom: 18px;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(2, 25, 75, 0.15);
+  border-radius: 18px;
+  background: rgba(244, 239, 230, 0.94);
+  box-shadow: 0 18px 45px rgba(2, 25, 75, 0.15);
+  backdrop-filter: blur(14px);
+}
+
+.primary,
+.secondary {
+  min-height: 46px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.primary {
+  background: var(--blue);
+  color: white;
+}
+
+.secondary {
+  border: 1px solid rgba(2, 25, 75, 0.18);
+  background: white;
+  color: var(--blue-dark);
+}
+
+@media (min-width: 720px) {
+  .head {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .optionGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .visibilityGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .split {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

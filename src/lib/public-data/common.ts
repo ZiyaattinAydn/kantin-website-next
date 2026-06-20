@@ -5,7 +5,6 @@ import { fallbackCommonData } from "./fallbacks";
 import {
   arrayOfRecords,
   asRecord,
-  booleanValue,
   normaliseIssue,
   stringArray,
   stringValue,
@@ -14,10 +13,10 @@ import type {
   CommonPublicData,
   FooterNavigationGroup,
   PublicDataEnvelope,
-  SectionVisibility,
 } from "./types";
 import type { Branch } from "@/types/domain";
 import type { FooterLink, NavigationItem } from "@/types/content";
+import { parseSectionVisibility, parseThemeSettings } from "@/lib/theme/settings";
 
 function parsePrimaryNavigation(value: unknown): NavigationItem[] {
   return arrayOfRecords(value)
@@ -76,21 +75,6 @@ function mapBranch(row: {
   };
 }
 
-function parseVisibility(value: unknown): SectionVisibility {
-  const record = asRecord(value);
-  const fallback = fallbackCommonData.sectionVisibility;
-
-  return {
-    homeHero: booleanValue(record.homeHero, fallback.homeHero),
-    branches: booleanValue(record.branches, fallback.branches),
-    menu: booleanValue(record.menu, fallback.menu),
-    events: booleanValue(record.events, fallback.events),
-    merch: booleanValue(record.merch, fallback.merch),
-    memories: booleanValue(record.memories, fallback.memories),
-    instagram: booleanValue(record.instagram, fallback.instagram),
-    careers: booleanValue(record.careers, fallback.careers),
-  };
-}
 
 export async function getCommonPublicData(): Promise<PublicDataEnvelope<CommonPublicData>> {
   try {
@@ -175,7 +159,8 @@ export async function getCommonPublicData(): Promise<PublicDataEnvelope<CommonPu
           fallbackCommonData.footerContent.bottomLine,
         ),
       },
-      sectionVisibility: parseVisibility(settings.get("sections.visibility")),
+      sectionVisibility: parseSectionVisibility(settings.get("sections.visibility")),
+      themeSettings: parseThemeSettings(settings.get("theme.settings")),
     };
 
     return {

@@ -30,6 +30,7 @@ import {
 import { merchBundles, merchDoodles, merchProducts } from "@/data/merch";
 import { footerNavigation, primaryNavigation, siteIdentity } from "@/data/site";
 import type { CommonPublicData, HomePublicData, MenuPublicData } from "./types";
+import { DEFAULT_THEME_SETTINGS } from "@/lib/theme/settings";
 
 export const fallbackCommonData: CommonPublicData = {
   branches: branches.map((branch) => ({ ...branch, features: [...branch.features] })),
@@ -61,6 +62,10 @@ export const fallbackCommonData: CommonPublicData = {
     memories: true,
     instagram: true,
     careers: true,
+  },
+  themeSettings: {
+    ...DEFAULT_THEME_SETTINGS,
+    homeSectionOrder: [...DEFAULT_THEME_SETTINGS.homeSectionOrder],
   },
 };
 

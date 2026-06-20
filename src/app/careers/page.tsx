@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Ekibe Katıl",
   description:
     "Kantin Alsancak ve Atakent şubeleri için servis, mutfak, bar ve kasa ekip başvurusu.",
+  alternates: { canonical: "/careers" },
 };
 
 export default function CareersRoute() {

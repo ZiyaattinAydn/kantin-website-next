@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { PublicDataNotice } from "@/components/data-state/PublicDataNotice";
 import PublicPageShell from "@/components/layout/PublicPageShell";
 import MenuPageClient from "@/components/menu/MenuPageClient";
 import { getCommonPublicData } from "@/lib/public-data/common";
@@ -9,6 +8,7 @@ import { getMenuPublicData } from "@/lib/public-data/menu";
 export const metadata: Metadata = {
   title: "Şube Menüleri",
   description: "Kantin Alsancak ve Atakent şubelerine özel menüler.",
+  alternates: { canonical: "/menu" },
 };
 
 export const dynamic = "force-dynamic";
@@ -28,8 +28,7 @@ export default async function MenuPage({ searchParams }: MenuPageProps) {
   const initialBranch = requestedBranch === "atakent" ? "atakent" : "alsancak";
 
   return (
-    <PublicPageShell common={common}>
-      <PublicDataNotice issues={[...menu.issues, ...home.issues]} />
+    <PublicPageShell common={common} issues={[...menu.issues, ...home.issues]}>
       <MenuPageClient
         initialBranch={initialBranch}
         data={menu.data}

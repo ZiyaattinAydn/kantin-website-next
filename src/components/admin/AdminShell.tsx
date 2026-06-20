@@ -41,7 +41,8 @@ const groups = [
     label: "Site",
     links: [
       { href: "/admin/manage/branches", label: "Şubeler" },
-      { href: "/admin/manage/site-settings", label: "Site ayarları" },
+      { href: "/admin/theme", label: "Tasarım ayarları" },
+      { href: "/admin/manage/site-settings", label: "Gelişmiş site verileri" },
     ],
   },
 ] as const;

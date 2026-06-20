@@ -1,7 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import { getSiteUrl, isIndexableDeployment } from "@/lib/deployment/config";
 import "./globals.css";
 
+const siteUrl = getSiteUrl();
+const indexable = isIndexableDeployment();
+
 export const metadata: Metadata = {
+  metadataBase: siteUrl,
   title: {
     default: "kantin. — Savor the sip. Share the bite.",
     template: "%s — kantin.",
@@ -9,15 +14,40 @@ export const metadata: Metadata = {
   description:
     "Kantin. Alsancak ve Atakent şubeleri, şubeye özel menüler ve yaklaşan etkinlikler.",
   icons: { icon: "/assets/img/favicon.svg" },
-  robots: {
-    index: false,
-    follow: false,
-    googleBot: {
-      index: false,
-      follow: false,
-      noimageindex: true,
-    },
+  openGraph: {
+    type: "website",
+    locale: "tr_TR",
+    siteName: "kantin.",
+    title: "kantin. — Savor the sip. Share the bite.",
+    description:
+      "Kantin. Alsancak ve Atakent şubeleri, şubeye özel menüler ve yaklaşan etkinlikler.",
+    url: siteUrl,
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "kantin. — Savor the sip. Share the bite.",
+    description:
+      "Kantin. Alsancak ve Atakent şubeleri, şubeye özel menüler ve yaklaşan etkinlikler.",
+  },
+  robots: indexable
+    ? {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          noimageindex: false,
+        },
+      }
+    : {
+        index: false,
+        follow: false,
+        googleBot: {
+          index: false,
+          follow: false,
+          noimageindex: true,
+        },
+      },
 };
 
 export const viewport: Viewport = {

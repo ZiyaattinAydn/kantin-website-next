@@ -1,0 +1,22 @@
+# Faz 11 Kapanış Kontrol Listesi
+
+- [ ] Faz 11 patch'i proje köküne kopyalandı.
+- [ ] `npm ci` başarılı.
+- [ ] `npm run lint` başarılı.
+- [ ] `npx tsc --noEmit` başarılı.
+- [ ] `npm run build` başarılı.
+- [ ] Vercel Production Branch doğrulandı.
+- [ ] Dört production environment variable eklendi.
+- [ ] Secret/service role eklenmedi.
+- [ ] Production redeploy tamamlandı.
+- [ ] Supabase Site URL güncellendi.
+- [ ] Localhost ve production redirect URL'leri eklendi.
+- [ ] `/api/health/deployment` başarılı.
+- [ ] `/api/health/supabase` başarılı.
+- [ ] `/api/health/public-data` degraded=false.
+- [ ] `/robots.txt` production için doğru.
+- [ ] `/sitemap.xml` doğru.
+- [ ] `/admin` oturumsuz kullanıcıyı login'e yönlendiriyor.
+- [ ] Admin giriş ve çıkış canlı ortamda çalışıyor.
+- [ ] Public sitede fallback uyarısı görünmüyor.
+- [ ] Production verifier bütün kontrolleri geçti.

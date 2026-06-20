@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { PublicDataNotice } from "@/components/data-state/PublicDataNotice";
 import EventsPageClient from "@/components/events/EventsPageClient";
 import PublicPageShell from "@/components/layout/PublicPageShell";
 import { getCommonPublicData } from "@/lib/public-data/common";
@@ -8,6 +7,7 @@ import { getEventPublicData } from "@/lib/public-data/events";
 export const metadata: Metadata = {
   title: "Etkinlikler",
   description: "Kantin Alsancak ve Atakent şubelerindeki yaklaşan etkinlikler.",
+  alternates: { canonical: "/events" },
 };
 
 export const dynamic = "force-dynamic";
@@ -31,8 +31,7 @@ export default async function EventsPage() {
   }));
 
   return (
-    <PublicPageShell common={common}>
-      <PublicDataNotice issues={result.issues} />
+    <PublicPageShell common={common} issues={result.issues}>
       <EventsPageClient
         initialEvents={initialEvents}
         branchLabels={result.data.branchLabels}

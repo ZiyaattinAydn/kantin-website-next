@@ -43,6 +43,16 @@ export type SectionVisibility = {
   careers: boolean;
 };
 
+
+export type ThemeSettings = {
+  fontPreset: "brand" | "clean" | "editorial";
+  colorPreset: "kantin" | "midnight" | "ocean";
+  headingScale: "compact" | "balanced" | "expressive";
+  bodyScale: "compact" | "balanced" | "comfortable";
+  cardDensity: "compact" | "balanced" | "airy";
+  homeSectionOrder: Array<"menu" | "merch" | "memories" | "events" | "branches">;
+};
+
 export type CommonPublicData = {
   branches: Branch[];
   siteIdentity: SiteIdentityData;
@@ -51,6 +61,7 @@ export type CommonPublicData = {
   footerNavigation: FooterNavigationGroup[];
   footerContent: FooterContentData;
   sectionVisibility: SectionVisibility;
+  themeSettings: ThemeSettings;
 };
 
 export type HomeHeroData = {
