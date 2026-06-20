@@ -12,16 +12,15 @@ export type FooterLink = {
 
 export const siteIdentity = {
   name: "kantin.",
-  sloganLines: ["savor the sip,", "share the bite."],
+  slogan: "Savor the sip. Share the bite.",
+  sloganLines: ["Savor the sip.", "Share the bite."],
   instagramUrl: "https://www.instagram.com/kantinizmir/",
-  email: "hello@kantin.pub",
 } as const;
 
 export const primaryNavigation: NavigationItem[] = [
   { href: "/", label: "Ana sayfa", exact: true },
-  { href: "/events", label: "Etkinlikler" },
   { href: "/menu", label: "Menü" },
-  { href: "/#subeler", label: "Şubeler", exact: true },
+  { href: "/events", label: "Etkinlikler" },
 ];
 
 export const footerNavigation: ReadonlyArray<{
@@ -44,7 +43,6 @@ export const footerNavigation: ReadonlyArray<{
         label: "Instagram ↗",
         external: true,
       },
-      { href: `mailto:${siteIdentity.email}`, label: siteIdentity.email },
     ],
   },
 ];

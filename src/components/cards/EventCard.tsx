@@ -16,12 +16,22 @@ import {
   type KantinEvent,
 } from "@/lib/events";
 
+type BranchMap = Record<"alsancak" | "atakent" | "both", string>;
+
 type EventCardProps = {
   event: KantinEvent;
   variant: "home" | "list";
+  branchLabels?: BranchMap;
+  branchAddresses?: BranchMap;
+  instagramUrl?: string;
 };
 
-export default function EventCard({ event, variant }: EventCardProps) {
+export default function EventCard({
+  event,
+  variant,
+  branchLabels = eventBranchLabels,
+  branchAddresses = eventBranchAddresses,
+}: EventCardProps) {
   const externalLink = safeExternalUrl(event.link);
   const imageUrl = safeImageUrl(event.imageUrl);
 
@@ -44,7 +54,7 @@ export default function EventCard({ event, variant }: EventCardProps) {
         </div>
         <div className="event-content">
           <div className="event-tags">
-            <span>{eventBranchLabels[event.branch]}</span>
+            <span>{branchLabels[event.branch]}</span>
             <span>{formatEventTime(event.startAt)}</span>
           </div>
           <h3>{event.title}</h3>
@@ -61,7 +71,7 @@ export default function EventCard({ event, variant }: EventCardProps) {
     );
   }
 
-  const address = event.location || eventBranchAddresses[event.branch];
+  const address = event.location || branchAddresses[event.branch];
   const timeRange = `${formatEventTime(event.startAt)}${
     event.endAt ? `–${formatEventTime(event.endAt)}` : ""
   }`;
@@ -85,7 +95,7 @@ export default function EventCard({ event, variant }: EventCardProps) {
       ) : null}
       <div className={styles.listBody}>
         <div className="event-tags">
-          <span>{eventBranchLabels[event.branch]}</span>
+          <span>{branchLabels[event.branch]}</span>
           <span>{formatEventTime(event.startAt)}</span>
           <span>{address}</span>
         </div>
@@ -111,7 +121,11 @@ export default function EventCard({ event, variant }: EventCardProps) {
   );
 }
 
-export function EventsZeroState() {
+export function EventsZeroState({
+  instagramUrl = siteIdentity.instagramUrl,
+}: {
+  instagramUrl?: string;
+}) {
   return (
     <article className={styles.zeroState}>
       <div className={styles.zeroMark}>00</div>
@@ -126,7 +140,7 @@ export function EventsZeroState() {
       </div>
       <a
         className="button button-primary"
-        href={siteIdentity.instagramUrl}
+        href={instagramUrl}
         rel="noopener"
         target="_blank"
       >

@@ -1,33 +1,38 @@
 import Link from "next/link";
 import ActionLink from "@/components/ui/ActionLink";
 import AmbientDoodles from "@/components/effects/AmbientDoodles";
-import { homeHero } from "@/data/home";
+import { fallbackHomeData } from "@/lib/public-data/fallbacks";
+import type { HomeHeroData } from "@/lib/public-data/types";
 
 const marqueeItems = Array.from({ length: 4 }, (_, index) => index);
 
-export default function HomeHero() {
+export default function HomeHero({
+  data = fallbackHomeData.hero,
+}: {
+  data?: HomeHeroData;
+}) {
   return (
     <section className="hero dotted-paper">
       <AmbientDoodles />
       <div className="container hero-grid">
         <div className="hero-copy reveal">
-          <p className="eyebrow">{homeHero.eyebrow}</p>
+          <p className="eyebrow">{data.eyebrow}</p>
           <h1>
-            {homeHero.title[0]}
+            {data.title[0]}
             <br />
-            <span>{homeHero.title[1]}</span>
+            <span>{data.title[1]}</span>
           </h1>
-          <p className="hero-lead">{homeHero.description}</p>
+          <p className="hero-lead">{data.description}</p>
           <div className="hero-actions">
-            <ActionLink href={homeHero.primaryAction.href} variant="primary">
-              {homeHero.primaryAction.label} <span aria-hidden="true">↗</span>
+            <ActionLink href={data.primaryAction.href} variant="primary">
+              {data.primaryAction.label} <span aria-hidden="true">↗</span>
             </ActionLink>
-            <ActionLink href={homeHero.secondaryAction.href} variant="ghost">
-              {homeHero.secondaryAction.label}
+            <ActionLink href={data.secondaryAction.href} variant="ghost">
+              {data.secondaryAction.label}
             </ActionLink>
           </div>
           <div aria-label="Kantin özellikleri" className="hero-meta">
-            {homeHero.features.map((feature) => (
+            {data.features.map((feature) => (
               <Link className="hero-meta-link" href={feature.href} key={feature.label}>
                 <span>{feature.label}</span>
                 <span aria-hidden="true" className="hero-meta-arrow">↗</span>
@@ -61,7 +66,7 @@ export default function HomeHero() {
           {["first", "second"].map((group) => (
             <div key={group} className="marquee-group">
               {marqueeItems.map((item) => (
-                <span key={`${group}-${item}`}>{homeHero.marquee}</span>
+                <span key={`${group}-${item}`}>{data.marquee}</span>
               ))}
             </div>
           ))}

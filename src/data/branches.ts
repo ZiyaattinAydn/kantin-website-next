@@ -9,7 +9,7 @@ export const branches = [
     district: "Alsancak, Konak",
     city: "İzmir",
     mapsUrl:
-      "https://www.google.com/maps/search/?api=1&query=Kantin+Izmir+1464+Sokak+71A+Alsancak+Konak+Izmir",
+      "https://maps.app.goo.gl/qZYRVGAkhtbVA2Fu7?g_st=ic",
     features: ["Self-servis", "Bira", "Kahve Barı"],
     active: true,
     sortOrder: 1,
@@ -22,7 +22,7 @@ export const branches = [
     district: "Atakent, Karşıyaka",
     city: "İzmir",
     mapsUrl:
-      "https://www.google.com/maps/search/?api=1&query=Kantin+Atakent+2035+Sokak+6+Atakent+Karsiyaka+Izmir",
+      "https://maps.app.goo.gl/Q6522YB6XoKSReYw8?g_st=ipc",
     features: ["Kokteyl", "Grill", "Bahçe"],
     active: true,
     sortOrder: 2,

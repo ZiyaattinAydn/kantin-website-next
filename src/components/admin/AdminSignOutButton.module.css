@@ -1,0 +1,8 @@
+.button {
+  border: 0;
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}

@@ -1,6 +1,6 @@
 export const adminMarkup = String.raw`
 <section class="container admin-setup" data-admin-setup="" hidden="">
-<p class="eyebrow">Firebase henüz bağlı değil</p>
+<p class="eyebrow">Supabase henüz bağlı değil</p>
 <h1>Yönetici panelini<br/>iki şekilde kullanabilirsin.</h1>
 <div class="admin-option-grid">
 <article>
@@ -12,8 +12,8 @@ export const adminMarkup = String.raw`
 <article>
 <span>02</span>
 <h2>Canlı kullanım</h2>
-<p>Firebase Authentication ve Firestore kurulduğunda eklenen etkinlikler tüm ziyaretçilere görünür.</p>
-<a class="button button-ghost" href="/README.md">Kurulum adımlarını oku</a>
+<p>Supabase bağlantısı ve güvenli yönetici yetkilendirmesi backend aşamasında kurulacak.</p>
+<span class="button button-ghost" aria-disabled="true">Backend aşamasında</span>
 </article>
 </div>
 </section>

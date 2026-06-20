@@ -1,40 +1,42 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import AmbientDoodles from "@/components/effects/AmbientDoodles";
 import EventCard, { EventsZeroState } from "@/components/cards/EventCard";
 import { eventFilters } from "@/data/events";
 import styles from "./EventsPageClient.module.css";
 import {
-  loadPublishedEvents,
+  normalisePublishedEvents,
   type EventBranch,
-  type KantinEvent,
+  type RawEvent,
 } from "@/lib/events";
 
 type EventFilter = "all" | Exclude<EventBranch, "both">;
+type BranchMap = Record<"alsancak" | "atakent" | "both", string>;
 
-function matchesFilter(event: KantinEvent, filter: EventFilter): boolean {
+function matchesFilter(
+  event: ReturnType<typeof normalisePublishedEvents>[number],
+  filter: EventFilter,
+): boolean {
   return filter === "all" || event.branch === filter || event.branch === "both";
 }
 
-export default function EventsPageClient() {
+export default function EventsPageClient({
+  initialEvents,
+  branchLabels,
+  branchAddresses,
+  instagramUrl,
+}: {
+  initialEvents: RawEvent[];
+  branchLabels: BranchMap;
+  branchAddresses: BranchMap;
+  instagramUrl: string;
+}) {
   const [activeFilter, setActiveFilter] = useState<EventFilter>("all");
-  const [events, setEvents] = useState<KantinEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-
-    loadPublishedEvents().then((loadedEvents) => {
-      if (!active) return;
-      setEvents(loadedEvents);
-      setIsLoading(false);
-    });
-
-    return () => {
-      active = false;
-    };
-  }, []);
+  const events = useMemo(
+    () => normalisePublishedEvents(initialEvents),
+    [initialEvents],
+  );
 
   const visibleEvents = useMemo(
     () => events.filter((event) => matchesFilter(event, activeFilter)),
@@ -87,21 +89,18 @@ export default function EventsPageClient() {
             })}
           </div>
 
-          <div
-            aria-busy={isLoading}
-            aria-live="polite"
-            className={`${styles.list} dynamic-events-list`}
-          >
-            {isLoading ? (
-              <p className={styles.empty}>Etkinlik takvimi yükleniyor…</p>
-            ) : events.length === 0 ? (
-              <EventsZeroState />
+          <div aria-live="polite" className={`${styles.list} dynamic-events-list`}>
+            {events.length === 0 ? (
+              <EventsZeroState instagramUrl={instagramUrl} />
             ) : visibleEvents.length ? (
               visibleEvents.map((event, index) => (
                 <EventCard
                   key={event.id || `${event.title}-${index}`}
                   event={event}
                   variant="list"
+                  branchLabels={branchLabels}
+                  branchAddresses={branchAddresses}
+                  instagramUrl={instagramUrl}
                 />
               ))
             ) : (

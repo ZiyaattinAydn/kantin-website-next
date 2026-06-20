@@ -1,29 +1,39 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PublicEmptyState } from "@/components/data-state/PublicDataNotice";
 import {
   AlsancakMenuPanel,
   AtakentMenuPanel,
   MenuHero,
   MenuTruthNote,
 } from "./MenuSections";
-
-import { branchOptions, type MenuBranch } from "@/data/menu";
+import type { MenuPublicData } from "@/lib/public-data/types";
+import type { MerchBundle, MerchDoodle, MerchProductContent } from "@/types/content";
+import type { MenuBranch } from "@/data/menu";
 import styles from "./MenuPageClient.module.css";
-
 
 type MenuPageClientProps = {
   initialBranch: MenuBranch;
+  data: MenuPublicData;
+  merchProducts: MerchProductContent[];
+  merchBundles: MerchBundle[];
+  merchDoodles: MerchDoodle[];
 };
 
-export default function MenuPageClient({ initialBranch }: MenuPageClientProps) {
+export default function MenuPageClient({
+  initialBranch,
+  data,
+  merchProducts,
+  merchBundles,
+  merchDoodles,
+}: MenuPageClientProps) {
   const [activeBranch, setActiveBranch] = useState<MenuBranch>(initialBranch);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const selectorRef = useRef<HTMLDivElement | null>(null);
   const alsancakPanelRef = useRef<HTMLElement | null>(null);
   const atakentPanelRef = useRef<HTMLElement | null>(null);
   const shouldScrollAfterBranchChangeRef = useRef(false);
-
 
   const scrollToPanelStart = useCallback((branch: MenuBranch) => {
     const panel =
@@ -96,8 +106,8 @@ export default function MenuPageClient({ initialBranch }: MenuPageClientProps) {
     event.preventDefault();
     const direction = event.key === "ArrowRight" ? 1 : -1;
     const nextIndex =
-      (currentIndex + direction + branchOptions.length) % branchOptions.length;
-    const nextBranch = branchOptions[nextIndex].id;
+      (currentIndex + direction + data.branchOptions.length) % data.branchOptions.length;
+    const nextBranch = data.branchOptions[nextIndex].id;
 
     tabRefs.current[nextIndex]?.focus();
     activateBranch(nextBranch);
@@ -105,50 +115,68 @@ export default function MenuPageClient({ initialBranch }: MenuPageClientProps) {
 
   return (
     <>
-      <MenuHero />
+      <MenuHero data={data.menuHero} />
 
-      <div ref={selectorRef} className={styles.selectorWrap}>
-        <div
-          className={`container ${styles.selector}`}
-          role="tablist"
-          aria-label="Şube menüsü seçimi"
-        >
-          {branchOptions.map((branch, index) => {
-            const isActive = activeBranch === branch.id;
+      {!data.hasMenuData ? (
+        <section className="section dotted-paper">
+          <div className="container">
+            <PublicEmptyState
+              title="Menü şu anda yayında değil."
+              description="Aktif kategoriler ve ürünler yayınlandığında burada görünecek."
+            />
+          </div>
+        </section>
+      ) : (
+        <>
+          <div ref={selectorRef} className={styles.selectorWrap}>
+            <div
+              className={`container ${styles.selector}`}
+              role="tablist"
+              aria-label="Şube menüsü seçimi"
+            >
+              {data.branchOptions.map((branch, index) => {
+                const isActive = activeBranch === branch.id;
 
-            return (
-              <button
-                key={branch.id}
-                ref={(element) => {
-                  tabRefs.current[index] = element;
-                }}
-                id={`tab-${branch.id}`}
-                className={`${styles.tab}${isActive ? ` ${styles.active}` : ""}`}
-                type="button"
-                role="tab"
-                aria-controls={`panel-${branch.id}`}
-                aria-selected={isActive}
-                tabIndex={isActive ? 0 : -1}
-                onClick={() => activateBranch(branch.id)}
-                onKeyDown={(event) => handleTabKeyDown(event, index)}
-              >
-                <strong>{branch.label}</strong>
-                <small>{branch.description}</small>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+                return (
+                  <button
+                    key={branch.id}
+                    ref={(element) => {
+                      tabRefs.current[index] = element;
+                    }}
+                    id={`tab-${branch.id}`}
+                    className={`${styles.tab}${isActive ? ` ${styles.active}` : ""}`}
+                    type="button"
+                    role="tab"
+                    aria-controls={`panel-${branch.id}`}
+                    aria-selected={isActive}
+                    tabIndex={isActive ? 0 : -1}
+                    onClick={() => activateBranch(branch.id)}
+                    onKeyDown={(event) => handleTabKeyDown(event, index)}
+                  >
+                    <strong>{branch.label}</strong>
+                    <small>{branch.description}</small>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-      <AlsancakMenuPanel
-        panelRef={alsancakPanelRef}
-        hidden={activeBranch !== "alsancak"}
-      />
-      <AtakentMenuPanel
-        panelRef={atakentPanelRef}
-        hidden={activeBranch !== "atakent"}
-      />
-      <MenuTruthNote />
+          <AlsancakMenuPanel
+            panelRef={alsancakPanelRef}
+            hidden={activeBranch !== "alsancak"}
+            data={data}
+            merchProducts={merchProducts}
+            merchBundles={merchBundles}
+            merchDoodles={merchDoodles}
+          />
+          <AtakentMenuPanel
+            panelRef={atakentPanelRef}
+            hidden={activeBranch !== "atakent"}
+            data={data}
+          />
+          <MenuTruthNote />
+        </>
+      )}
     </>
   );
 }

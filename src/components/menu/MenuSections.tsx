@@ -1,30 +1,9 @@
 import type { RefObject } from "react";
 import AmbientDoodles from "@/components/effects/AmbientDoodles";
 import MenuMerchShowcase from "@/components/merch/MenuMerchShowcase";
-import {
-  alsancakBottleBeers,
-  alsancakDeliItems,
-  alsancakDraftBeers,
-  alsancakFryerItems,
-  alsancakIntro,
-  alsancakOvenItems,
-  alsancakWine,
-  atakentBottleBeers,
-  atakentBubbleCocktails,
-  atakentDessert,
-  atakentDraftBeers,
-  atakentGrillItems,
-  atakentHotItems,
-  atakentHouseCocktails,
-  atakentIntro,
-  atakentWines,
-  beerSalads,
-  cheesePortions,
-  coffeeExtras,
-  coffeeGroups,
-  menuHero,
-  sauceBar,
-} from "@/data/menu";
+import type { MenuPublicData } from "@/lib/public-data/types";
+import type { MerchBundle, MerchDoodle, MerchProductContent } from "@/types/content";
+import type { CoffeeMenuGroup } from "@/types/menu";
 import {
   AtakentFoodItem,
   BranchFoodItem,
@@ -37,7 +16,11 @@ import {
 
 type PanelProps = {
   hidden: boolean;
+  data: MenuPublicData;
   panelRef?: RefObject<HTMLElement | null>;
+  merchProducts?: MerchProductContent[];
+  merchBundles?: MerchBundle[];
+  merchDoodles?: MerchDoodle[];
 };
 
 function BranchIntro({
@@ -68,29 +51,29 @@ function BranchIntro({
   );
 }
 
-function CheeseFeature() {
+function CheeseFeature({ data }: { data: MenuPublicData["cheesePortions"] }) {
   return (
     <article className="branch-food-item deli-feature-item">
       <div>
-        <h4>{cheesePortions.feature.name}</h4>
-        <p>{cheesePortions.feature.description}</p>
+        <h4>{data.feature.name}</h4>
+        <p>{data.feature.description}</p>
       </div>
-      <strong>{cheesePortions.feature.price}</strong>
+      <strong>{data.feature.price}</strong>
       <div aria-label="Küp peynir porsiyon seçenekleri" className="cheese-portion-panel">
         <div className="cheese-portion-heading">
           <div>
             <span className="cheese-portion-kicker">Küp peynir porsiyonları</span>
-            <p>{cheesePortions.note}</p>
+            <p>{data.note}</p>
           </div>
           <div aria-label="Porsiyon fiyatları" className="cheese-portion-prices">
-            {cheesePortions.prices.map((item) => (
+            {data.prices.map((item) => (
               <span key={item.label}>{item.label}<strong>{item.price}</strong></span>
             ))}
           </div>
         </div>
         <div className="cheese-portion-options">
-          {cheesePortions.options.map((option) => (
-            <div key={option.name} className={`cheese-option${"mixed" in option ? " cheese-option-mixed" : ""}`}>
+          {data.options.map((option) => (
+            <div key={option.name} className={`cheese-option${option.mixed ? " cheese-option-mixed" : ""}`}>
               <b>{option.name}</b>
               <small>{option.detail}</small>
               <span>{option.portion}</span>
@@ -102,7 +85,7 @@ function CheeseFeature() {
   );
 }
 
-function BeerSalads() {
+function BeerSalads({ salads }: { salads: MenuPublicData["beerSalads"] }) {
   return (
     <>
       <div className="beer-salad-heading">
@@ -111,7 +94,7 @@ function BeerSalads() {
       </div>
       <div className="cute-note salad-note">İki salatayı aynı tabakta yarım + yarım olarak seçebilirsin ♡</div>
       <div className="beer-salad-grid">
-        {beerSalads.map((salad) => (
+        {salads.map((salad) => (
           <article key={salad.name} className="beer-salad-card">
             <div><h4>{salad.name}</h4><p>{salad.description}</p></div>
             <div aria-label={`${salad.name} porsiyon fiyatları`} className="portion-prices">
@@ -124,7 +107,7 @@ function BeerSalads() {
   );
 }
 
-function CoffeeGroup({ group }: { group: (typeof coffeeGroups)[number] }) {
+function CoffeeGroup({ group }: { group: CoffeeMenuGroup }) {
   return (
     <section className="coffee-menu-column">
       <div className="coffee-section-heading"><h4>{group.title}</h4>{group.subtitle ? <small>{group.subtitle}</small> : null}</div>
@@ -137,8 +120,9 @@ function CoffeeGroup({ group }: { group: (typeof coffeeGroups)[number] }) {
   );
 }
 
-function CoffeeBar() {
-  const [coffee, specials, nonCoffee] = coffeeGroups;
+function CoffeeBar({ data }: { data: MenuPublicData }) {
+  const [coffee, specials, nonCoffee] = data.coffeeGroups;
+  if (!coffee || !specials || !nonCoffee) return null;
 
   return (
     <section className="coffee-bar-section dotted-paper reveal" id="kahve-bari">
@@ -157,21 +141,21 @@ function CoffeeBar() {
           <div className="coffee-menu-column-stack"><CoffeeGroup group={specials} /><CoffeeGroup group={nonCoffee} /></div>
         </div>
         <section aria-label="Tatlılar, ekstralar ve alternatif sütler" className="coffee-extras-line">
-          {coffeeExtras.map((extra) => <div key={extra.label}><span><b>{extra.label}</b> · {extra.description}</span><strong>{extra.price}</strong></div>)}
+          {data.coffeeExtras.map((extra) => <div key={extra.label}><span><b>{extra.label}</b> · {extra.description}</span><strong>{extra.price}</strong></div>)}
         </section>
       </div>
     </section>
   );
 }
 
-export function MenuHero() {
+export function MenuHero({ data }: { data: MenuPublicData["menuHero"] }) {
   return (
     <section className="page-hero page-hero-menu dotted-paper">
       <AmbientDoodles />
       <div className="container page-hero-grid">
-        <div className="reveal"><p className="eyebrow">{menuHero.eyebrow}</p><h1>{menuHero.title}<span>.</span></h1><p>{menuHero.description}</p></div>
+        <div className="reveal"><p className="eyebrow">{data.eyebrow}</p><h1>{data.title}<span>.</span></h1><p>{data.description}</p></div>
         <div aria-hidden="true" className="page-hero-mark reveal reveal-delay-1">
-          <span>{menuHero.mark}</span>
+          <span>{data.mark}</span>
           <svg viewBox="0 0 320 270"><path d="M65 198c36-45 70-68 102-68 34 0 62 24 88 70" /><path d="M84 72h74l-14 126H98L84 72ZM173 88h79l-18 110h-45L173 88Z" /><path d="M95 122c18 9 35 9 52 0M184 137c20 8 39 8 59 0" /></svg>
         </div>
       </div>
@@ -179,43 +163,43 @@ export function MenuHero() {
   );
 }
 
-export function AlsancakMenuPanel({ hidden, panelRef }: PanelProps) {
+export function AlsancakMenuPanel({ hidden, panelRef, data, merchProducts, merchBundles, merchDoodles }: PanelProps) {
   return (
     <section ref={panelRef} aria-labelledby="tab-alsancak" className="branch-menu-panel alsancak-menu-panel" id="panel-alsancak" role="tabpanel" hidden={hidden}>
       <div className="container">
-        <BranchIntro {...alsancakIntro} />
+        <BranchIntro {...data.alsancakIntro} />
         <div className="alsancak-menu-grid">
-          <section className="menu-sheet-block reveal"><SheetTitle>Fıçı Biralar</SheetTitle><p className="draft-beer-note">Tüm fıçı biralar Mexican hazırlanabilir.</p><PriceTable headers={["Ürün", "20 cl", "50 cl", "66 cl"]} rows={alsancakDraftBeers} headClassName="dark-head" rowClassName="four-cols" /></section>
-          <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Şişe Biralar</SheetTitle><CompactList items={alsancakBottleBeers} className="bottle-grid-als" /></section>
+          <section className="menu-sheet-block reveal"><SheetTitle>Fıçı Biralar</SheetTitle><p className="draft-beer-note">Tüm fıçı biralar Mexican hazırlanabilir.</p><PriceTable headers={["Ürün", "20 cl", "50 cl", "66 cl"]} rows={data.alsancakDraftBeers} headClassName="dark-head" rowClassName="four-cols" /></section>
+          <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Şişe Biralar</SheetTitle><CompactList items={data.alsancakBottleBeers} className="bottle-grid-als" /></section>
           <div className="menu-sheet-column menu-sheet-column-right">
-            <section className="menu-sheet-block reveal"><SheetTitle>Şaraplar</SheetTitle><article className="editorial-item editorial-dark"><div><h4>{alsancakWine.name}</h4><p>{alsancakWine.description}</p></div><strong>{alsancakWine.price}<br /><small>{alsancakWine.priceDetail}</small></strong></article></section>
-            <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Fritöz</SheetTitle>{alsancakFryerItems.map((item) => <BranchFoodItem key={item.name} item={item} />)}</section>
-            <section className="menu-sheet-block reveal"><SheetTitle>Fırın</SheetTitle><div className="cute-note">Paylaşmaya hazır: bütün sandviçler ikiye bölünerek servis edilir ♡</div>{alsancakOvenItems.map((item) => <BranchFoodItem key={item.name} item={item} />)}</section>
+            <section className="menu-sheet-block reveal"><SheetTitle>Şaraplar</SheetTitle><article className="editorial-item editorial-dark"><div><h4>{data.alsancakWine.name}</h4><p>{data.alsancakWine.description}</p></div><strong>{data.alsancakWine.price}<br /><small>{data.alsancakWine.priceDetail}</small></strong></article></section>
+            <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Fritöz</SheetTitle>{data.alsancakFryerItems.map((item) => <BranchFoodItem key={item.name} item={item} />)}</section>
+            <section className="menu-sheet-block reveal"><SheetTitle>Fırın</SheetTitle><div className="cute-note">Paylaşmaya hazır: bütün sandviçler ikiye bölünerek servis edilir ♡</div>{data.alsancakOvenItems.map((item) => <BranchFoodItem key={item.name} item={item} />)}</section>
           </div>
           <div className="menu-sheet-column menu-sheet-column-left">
-            <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Deli + Salata</SheetTitle><CheeseFeature />{alsancakDeliItems.map((item) => <BranchFoodItem key={item.name} item={item} />)}<BeerSalads /></section>
+            <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Deli + Salata</SheetTitle><CheeseFeature data={data.cheesePortions} />{data.alsancakDeliItems.map((item) => <BranchFoodItem key={item.name} item={item} />)}<BeerSalads salads={data.beerSalads} /></section>
           </div>
         </div>
-        <aside className="sauce-bar reveal"><div><p className="menu-kicker">{sauceBar.kicker}</p><h3>{sauceBar.title}</h3></div><p>{sauceBar.items.join(" · ")}</p></aside>
-        <CoffeeBar />
-        <MenuMerchShowcase />
+        <aside className="sauce-bar reveal"><div><p className="menu-kicker">{data.sauceBar.kicker}</p><h3>{data.sauceBar.title}</h3></div><p>{data.sauceBar.items.join(" · ")}</p></aside>
+        <CoffeeBar data={data} />
+        <MenuMerchShowcase products={merchProducts} bundles={merchBundles} doodles={merchDoodles} />
       </div>
     </section>
   );
 }
 
-export function AtakentMenuPanel({ hidden, panelRef }: PanelProps) {
+export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
   return (
     <section ref={panelRef} aria-labelledby="tab-atakent" className="branch-menu-panel atakent-menu-panel" id="panel-atakent" role="tabpanel" hidden={hidden}>
       <div className="atakent-drinks">
         <div className="container">
-          <BranchIntro {...atakentIntro} light />
+          <BranchIntro {...data.atakentIntro} light />
           <div className="menu-editorial-grid">
-            <section className="menu-editorial-block reveal"><EditorialTitle>Fıçıdan</EditorialTitle><p className="draft-beer-note draft-beer-note-light">Tüm fıçı biralar Mexican hazırlanabilir.</p><PriceTable headers={["Ürün", "33 cl", "50 cl"]} rows={atakentDraftBeers} /></section>
-            <section className="menu-editorial-block reveal reveal-delay-1"><EditorialTitle>Bubble Kokteyller</EditorialTitle><EditorialItems items={atakentBubbleCocktails} /></section>
-            <section className="menu-editorial-block menu-editorial-wide reveal"><EditorialTitle>House Kokteyller</EditorialTitle><EditorialItems items={atakentHouseCocktails} className="cocktail-grid" /></section>
-            <section className="menu-editorial-block reveal"><EditorialTitle>Şişe Biralar</EditorialTitle><CompactList items={atakentBottleBeers} /></section>
-            <section className="menu-editorial-block reveal reveal-delay-1"><EditorialTitle>Şaraplar</EditorialTitle><PriceTable headers={["Şarap", "Kadeh", "Şişe"]} rows={atakentWines} headClassName="wine-head" /></section>
+            <section className="menu-editorial-block reveal"><EditorialTitle>Fıçıdan</EditorialTitle><p className="draft-beer-note draft-beer-note-light">Tüm fıçı biralar Mexican hazırlanabilir.</p><PriceTable headers={["Ürün", "33 cl", "50 cl"]} rows={data.atakentDraftBeers} /></section>
+            <section className="menu-editorial-block reveal reveal-delay-1"><EditorialTitle>Bubble Kokteyller</EditorialTitle><EditorialItems items={data.atakentBubbleCocktails} /></section>
+            <section className="menu-editorial-block menu-editorial-wide reveal"><EditorialTitle>House Kokteyller</EditorialTitle><EditorialItems items={data.atakentHouseCocktails} className="cocktail-grid" /></section>
+            <section className="menu-editorial-block reveal"><EditorialTitle>Şişe Biralar</EditorialTitle><CompactList items={data.atakentBottleBeers} /></section>
+            <section className="menu-editorial-block reveal reveal-delay-1"><EditorialTitle>Şaraplar</EditorialTitle><PriceTable headers={["Şarap", "Kadeh", "Şişe"]} rows={data.atakentWines} headClassName="wine-head" /></section>
           </div>
         </div>
       </div>
@@ -224,10 +208,10 @@ export function AtakentMenuPanel({ hidden, panelRef }: PanelProps) {
         <div className="container">
           <BranchIntro kicker="Atakent Aperitifs + Grill" titleLines={["Ortaya söyle"]} description="Izgara şişleri 17:00’dan itibaren servis edilir." />
           <div className="food-menu-layout">
-            <section className="food-column reveal"><div className="food-section-heading"><h3>Sıcaklar</h3></div>{atakentHotItems.map((item) => <AtakentFoodItem key={item.name} item={item} />)}</section>
-            <section className="food-column reveal reveal-delay-1"><div className="food-section-heading"><h3>Izgara Şişleri</h3><small>17:00’dan itibaren</small></div>{atakentGrillItems.map((item) => <AtakentFoodItem key={item.name} item={item} />)}</section>
+            <section className="food-column reveal"><div className="food-section-heading"><h3>Sıcaklar</h3></div>{data.atakentHotItems.map((item) => <AtakentFoodItem key={item.name} item={item} />)}</section>
+            <section className="food-column reveal reveal-delay-1"><div className="food-section-heading"><h3>Izgara Şişleri</h3><small>17:00’dan itibaren</small></div>{data.atakentGrillItems.map((item) => <AtakentFoodItem key={item.name} item={item} />)}</section>
           </div>
-          <section className="dessert-line reveal"><div><p className="menu-kicker">{atakentDessert.kicker}</p><h3>{atakentDessert.name}</h3><p>{atakentDessert.description}</p><small>{atakentDessert.allergens}</small></div><strong>{atakentDessert.price}</strong></section>
+          <section className="dessert-line reveal"><div><p className="menu-kicker">{data.atakentDessert.kicker}</p><h3>{data.atakentDessert.name}</h3><p>{data.atakentDessert.description}</p><small>{data.atakentDessert.allergens}</small></div><strong>{data.atakentDessert.price}</strong></section>
         </div>
       </div>
     </section>

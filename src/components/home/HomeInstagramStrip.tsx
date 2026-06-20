@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useCallback, useRef, useState, type UIEvent } from "react";
-import { instagramPosts } from "@/data/instagram";
-import { siteIdentity } from "@/data/site";
+import { PublicEmptyState } from "@/components/data-state/PublicDataNotice";
+import { fallbackHomeData } from "@/lib/public-data/fallbacks";
+import type { InstagramPost } from "@/types/content";
 import styles from "./HomeInstagramStrip.module.css";
 
 function prefersReducedMotion() {
@@ -12,7 +13,13 @@ function prefersReducedMotion() {
     : false;
 }
 
-export default function HomeInstagramStrip() {
+export default function HomeInstagramStrip({
+  posts = fallbackHomeData.instagramPosts,
+  instagramUrl = "https://www.instagram.com/kantinizmir/",
+}: {
+  posts?: InstagramPost[];
+  instagramUrl?: string;
+}) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -35,7 +42,7 @@ export default function HomeInstagramStrip() {
 
   const move = (direction: -1 | 1) => {
     const nextIndex = Math.min(
-      instagramPosts.length - 1,
+      posts.length - 1,
       Math.max(0, activeIndex + direction),
     );
     scrollToPost(nextIndex);
@@ -73,28 +80,30 @@ export default function HomeInstagramStrip() {
         </div>
 
         <div className={styles.headerActions}>
-          <div className={styles.controls} aria-label="Instagram gönderileri kontrolleri">
-            <button
-              aria-label="Önceki Instagram gönderisi"
-              disabled={activeIndex === 0}
-              onClick={() => move(-1)}
-              type="button"
-            >
-              ←
-            </button>
-            <button
-              aria-label="Sonraki Instagram gönderisi"
-              disabled={activeIndex === instagramPosts.length - 1}
-              onClick={() => move(1)}
-              type="button"
-            >
-              →
-            </button>
-          </div>
+          {posts.length ? (
+            <div className={styles.controls} aria-label="Instagram gönderileri kontrolleri">
+              <button
+                aria-label="Önceki Instagram gönderisi"
+                disabled={activeIndex === 0}
+                onClick={() => move(-1)}
+                type="button"
+              >
+                ←
+              </button>
+              <button
+                aria-label="Sonraki Instagram gönderisi"
+                disabled={activeIndex === posts.length - 1}
+                onClick={() => move(1)}
+                type="button"
+              >
+                →
+              </button>
+            </div>
+          ) : null}
 
           <a
             className={styles.instagramButton}
-            href={siteIdentity.instagramUrl}
+            href={instagramUrl}
             rel="noopener noreferrer"
             target="_blank"
           >
@@ -103,42 +112,48 @@ export default function HomeInstagramStrip() {
         </div>
       </div>
 
-      <div
-        ref={trackRef}
-        className={styles.track}
-        onScroll={handleScroll}
-        tabIndex={0}
-        aria-label="Kantin Instagram gönderileri"
-      >
-        {instagramPosts.map((post, index) => (
-          <article
-            key={post.id}
-            className={styles.card}
-            data-instagram-card
-            aria-label={`${index + 1}. gönderi: ${post.caption}`}
-          >
-            <a href={post.permalink} target="_blank" rel="noopener noreferrer">
-              <div className={styles.media}>
-                <Image
-                  fill
-                  alt={post.imageAlt}
-                  src={post.image}
-                  sizes="(max-width: 620px) 82vw, (max-width: 980px) 42vw, 300px"
-                  quality={90}
-                />
-                <span className={styles.index}>{String(index + 1).padStart(2, "0")}</span>
-              </div>
+      {posts.length ? (
+        <div
+          ref={trackRef}
+          className={styles.track}
+          onScroll={handleScroll}
+          tabIndex={0}
+          aria-label="Kantin Instagram gönderileri"
+        >
+          {posts.map((post, index) => (
+            <article
+              key={post.id}
+              className={styles.card}
+              data-instagram-card
+              aria-label={`${index + 1}. gönderi: ${post.caption}`}
+            >
+              <a href={post.permalink} target="_blank" rel="noopener noreferrer">
+                <div className={styles.media}>
+                  <Image
+                    fill
+                    alt={post.imageAlt}
+                    src={post.image}
+                    sizes="(max-width: 620px) 82vw, (max-width: 980px) 42vw, 300px"
+                    quality={90}
+                  />
+                  <span className={styles.index}>{String(index + 1).padStart(2, "0")}</span>
+                </div>
 
-              <div className={styles.copy}>
-                <span>{post.branch} · {post.publishedAt}</span>
-                <strong>{post.caption}</strong>
-                <small>Gönderiyi aç ↗</small>
-              </div>
-            </a>
-          </article>
-        ))}
-      </div>
-
+                <div className={styles.copy}>
+                  <span>{post.branch} · {post.publishedAt}</span>
+                  <strong>{post.caption}</strong>
+                  <small>Gönderiyi aç ↗</small>
+                </div>
+              </a>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <PublicEmptyState
+          title="Instagram alanı şu anda boş."
+          description="Yayınlanan gönderiler burada otomatik olarak listelenecek."
+        />
+      )}
     </section>
   );
 }

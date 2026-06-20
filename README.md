@@ -5,7 +5,7 @@ Kantin Alsancak ve Atakent şubeleri için geliştirilen Next.js, React ve TypeS
 ## Yerel çalışma
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -15,16 +15,18 @@ Tarayıcı: `http://localhost:3000`
 
 ```bash
 npm run lint
+npx tsc --noEmit
 npm run build
 ```
 
-Her teslimden önce iki komutun da hatasız tamamlanması beklenir.
+Her teslimden önce lint, TypeScript ve production build kontrollerinin hatasız tamamlanması beklenir.
 
 ## Sayfalar
 
 - `/` — Ana sayfa
 - `/menu` — Şubeye özel menüler
 - `/events` — Etkinlik listesi
+- `/careers` — Kariyer başvuru formu
 - `/admin` — Geçici etkinlik yönetimi
 
 ## Proje yapısı
@@ -85,7 +87,7 @@ Arayüze özel veri biçimleri `src/types/content.ts` ve `src/types/menu.ts` alt
 
 - `develop` branch'i Vercel Preview ortamına gider.
 - `main` production branch'idir ve şimdilik kullanılmaz.
-- `.env*`, `.vercel`, `.next` ve `node_modules` GitHub'a gönderilmez.
+- `.env*`, `.vercel`, `.next`, `node_modules` ve hesap kurtarma kodları GitHub'a gönderilmez.
 - Vercel ile ilgili mevcut proje dosyaları korunur.
 
 ## Backend yol haritası

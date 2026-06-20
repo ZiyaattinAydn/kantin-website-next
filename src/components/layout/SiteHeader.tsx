@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import { primaryNavigation } from "@/data/site";
 import type { NavigationItem } from "@/types/content";
 import styles from "./SiteHeader.module.css";
@@ -15,7 +16,11 @@ function isNavigationItemActive(pathname: string, item: NavigationItem) {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-export default function SiteHeader() {
+export default function SiteHeader({
+  navigation = primaryNavigation,
+}: {
+  navigation?: NavigationItem[];
+}) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -50,6 +55,52 @@ export default function SiteHeader() {
       openMenu();
     }
   };
+
+  const scrollToPageTop = useCallback(() => {
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (window.location.hash) {
+      window.history.replaceState(
+        window.history.state,
+        "",
+        `${window.location.pathname}${window.location.search}`,
+      );
+    }
+
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+    });
+  }, []);
+
+  const handleSamePageNavigation = useCallback(
+    (
+      event: ReactMouseEvent<HTMLAnchorElement>,
+      href: string,
+      restoreFocus = false,
+    ) => {
+      const isModifiedClick =
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey;
+
+      if (isModifiedClick || href.includes("#") || pathname !== href) {
+        closeMenu();
+        return;
+      }
+
+      event.preventDefault();
+      closeMenu(restoreFocus);
+      requestAnimationFrame(scrollToPageTop);
+    },
+    [closeMenu, pathname, scrollToPageTop],
+  );
+
 
   useEffect(() => {
     const updateViewportState = () => {
@@ -141,7 +192,12 @@ export default function SiteHeader() {
   return (
     <header className={`${styles.header}${isScrolled ? ` ${styles.scrolled}` : ""}`}>
       <div className={`container ${styles.navWrap}`}>
-        <Link className={styles.brand} href="/" aria-label="Kantin ana sayfa">
+        <Link
+          className={styles.brand}
+          href="/"
+          aria-label={pathname === "/" ? "Sayfanın en üstüne dön" : "Kantin ana sayfa"}
+          onClick={(event) => handleSamePageNavigation(event, "/")}
+        >
           kantin<span>.</span>
         </Link>
 
@@ -166,7 +222,7 @@ export default function SiteHeader() {
           aria-label="Ana navigasyon"
           aria-hidden={isMobile ? !isOpen : undefined}
         >
-          {primaryNavigation.map((item) => {
+          {navigation.map((item) => {
             const active = isNavigationItemActive(pathname, item);
 
             return (
@@ -175,7 +231,9 @@ export default function SiteHeader() {
                 className={`${styles.navLink}${active ? ` ${styles.active}` : ""}`}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                onClick={() => closeMenu()}
+                onClick={(event) =>
+                  handleSamePageNavigation(event, item.href, isMobile)
+                }
               >
                 {item.label}
               </Link>

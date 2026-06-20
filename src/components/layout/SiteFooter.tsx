@@ -1,10 +1,22 @@
 import Link from "next/link";
-import { branches } from "@/data/branches";
-import { footerNavigation, siteIdentity } from "@/data/site";
+import { fallbackCommonData } from "@/lib/public-data/fallbacks";
+import type { CommonPublicData } from "@/lib/public-data/types";
 import styles from "./SiteFooter.module.css";
 
-export default function SiteFooter() {
+export default function SiteFooter({
+  data = fallbackCommonData,
+}: {
+  data?: CommonPublicData;
+}) {
   const year = new Date().getFullYear();
+  const {
+    branches,
+    footerContent,
+    footerNavigation,
+    publicEmail,
+    siteIdentity,
+    sectionVisibility,
+  } = data;
 
   return (
     <footer className={styles.footer}>
@@ -24,13 +36,10 @@ export default function SiteFooter() {
       <div className={`container ${styles.topGrid}`}>
         <section className={styles.brandBlock} aria-labelledby="footer-brand-title">
           <Link className={styles.brand} href="/" aria-label="Kantin ana sayfa">
-            kantin<span>.</span>
+            {siteIdentity.name.replace(/\.$/, "")}<span>.</span>
           </Link>
-          <h2 id="footer-brand-title">İki şube, tek ruh.</h2>
-          <p className={styles.intro}>
-            Alsancak’ın sokak temposu, Atakent’in bahçe ve kokteyl ritmi.
-            İkisinde de hızlı servis, samimi ekip ve uzayan sohbetler.
-          </p>
+          <h2 id="footer-brand-title">{footerContent.title}</h2>
+          <p className={styles.intro}>{footerContent.intro}</p>
 
           <div className={styles.brandActions}>
             <a
@@ -41,8 +50,8 @@ export default function SiteFooter() {
             >
               Instagram’a git <span aria-hidden="true">↗</span>
             </a>
-            <a className={styles.secondaryAction} href={`mailto:${siteIdentity.email}`}>
-              Bize yaz
+            <a className={styles.secondaryAction} href={`mailto:${publicEmail}`}>
+              {publicEmail}
             </a>
           </div>
         </section>
@@ -105,29 +114,31 @@ export default function SiteFooter() {
                   </Link>
                 ),
               )}
-              {group.title === "Keşfet" ? <Link href="/#anilarimiz">Anılarımız</Link> : null}
+              {group.title === "Keşfet" && sectionVisibility.memories ? (
+                <Link href="/#anilarimiz">Anılarımız</Link>
+              ) : null}
             </nav>
           ))}
         </div>
 
-        <section className={styles.workCard} aria-labelledby="footer-work-title">
-          <div>
-            <p className={styles.label}>Ekibe katıl</p>
-            <h3 id="footer-work-title">Kantin’in bir parçası olmak ister misin?</h3>
-            <p>
-              Servis, mutfak, bar ve kasa ekipleri için vardiya tercihlerini belirleyip başvuru formunu doldur.
-            </p>
-          </div>
-          <Link href="/careers">
-            Başvuru formuna git <span aria-hidden="true">↗</span>
-          </Link>
-        </section>
+        {sectionVisibility.careers ? (
+          <section className={styles.workCard} aria-labelledby="footer-work-title">
+            <div>
+              <p className={styles.label}>Ekibe katıl</p>
+              <h3 id="footer-work-title">{footerContent.workTitle}</h3>
+              <p>{footerContent.workDescription}</p>
+            </div>
+            <Link href="/careers">
+              Başvuru formuna git <span aria-hidden="true">↗</span>
+            </Link>
+          </section>
+        ) : null}
       </div>
 
       <div className={`container ${styles.bottom}`}>
-        <span>© {year} kantin.</span>
+        <span>© {year} {siteIdentity.name}</span>
         <span>{siteIdentity.slogan}</span>
-        <span>İzmir’de iyi akşamlar için.</span>
+        <span>{footerContent.bottomLine}</span>
       </div>
     </footer>
   );

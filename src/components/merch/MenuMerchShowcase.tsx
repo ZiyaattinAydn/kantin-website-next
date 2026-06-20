@@ -3,15 +3,20 @@
 import { useCallback, useEffect, useState } from "react";
 import MerchCard from "@/components/cards/MerchCard";
 import MerchImageLightbox from "@/components/merch/MerchImageLightbox";
-import {
-  merchBundleOffers,
-  merchDoodles,
-  merchProducts,
-} from "@/data/merch";
+import { fallbackHomeData } from "@/lib/public-data/fallbacks";
+import type { MerchBundle, MerchDoodle, MerchProductContent } from "@/types/content";
 import { formatTry } from "@/lib/formatters";
-import type { MerchProductContent } from "@/types/content";
 
-export default function MenuMerchShowcase() {
+export default function MenuMerchShowcase({
+  products = fallbackHomeData.merchProducts,
+  bundles = fallbackHomeData.merchBundles,
+  doodles = fallbackHomeData.merchDoodles,
+}: {
+  products?: MerchProductContent[];
+  bundles?: MerchBundle[];
+  doodles?: MerchDoodle[];
+}) {
+  const merchBundleOffers = bundles.filter((bundle) => !bundle.name.startsWith("Oversize Tişört"));
   const [isOpen, setIsOpen] = useState(false);
   const [preview, setPreview] = useState<{
     product: MerchProductContent;
@@ -39,7 +44,7 @@ export default function MenuMerchShowcase() {
       <section className="alsancak-merch-section reveal" id="merch-drop">
       <div className="merch-panel-shell">
         <div aria-hidden="true" className="merch-doodle-stage">
-          {merchDoodles.slice(0, 8).map((doodle) => (
+          {doodles.slice(0, 8).map((doodle) => (
             <img key={doodle.src} alt="" className={`merch-doodle ${doodle.className}`} src={doodle.src} />
           ))}
           <svg className="merch-motion-path merch-motion-path-one" focusable="false" viewBox="0 0 280 130">
@@ -106,7 +111,7 @@ export default function MenuMerchShowcase() {
           <aside className="merch-price-card">
             <div className="merch-price-headline"><p className="eyebrow">Ürün listesi</p><h4>Fiyatlar + detaylar</h4></div>
             <div className="merch-price-list">
-              {merchProducts.map((product) => (
+              {products.map((product) => (
                 <MerchCard
                   key={product.id}
                   onPreview={product.id === "oversize-tshirt" ? undefined : openPreview}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   careerAvailabilityDays,
   careerBranches,
@@ -10,14 +10,8 @@ import {
   careersContactEmail,
   type CareerDepartmentId,
 } from "@/data/careers";
+import { STORAGE_BUCKETS, validateStorageFile } from "@/lib/supabase/storage";
 import styles from "./CareersPage.module.css";
-
-const MAX_CV_BYTES = 5 * 1024 * 1024;
-const ALLOWED_CV_TYPES = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
 
 const careerFormDoodles = [
   "/assets/img/merch/doodles/table-friends.png",
@@ -46,11 +40,16 @@ function getDepartment(id: string) {
 
 export default function CareersPage() {
   const formRef = useRef<HTMLFormElement>(null);
+  const formStartedAtRef = useRef(0);
   const [departmentId, setDepartmentId] = useState<CareerDepartmentId>("service");
   const [shiftId, setShiftId] = useState("morning");
   const [fileError, setFileError] = useState("");
   const [availabilityError, setAvailabilityError] = useState("");
-  const [mailtoUrl, setMailtoUrl] = useState("");
+  const [submissionState, setSubmissionState] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
+  const [submissionMessage, setSubmissionMessage] = useState("");
+  const [submissionReference, setSubmissionReference] = useState("");
   const [submittedName, setSubmittedName] = useState("");
 
   const selectedDepartment = useMemo(
@@ -58,45 +57,42 @@ export default function CareersPage() {
     [departmentId],
   );
 
+  useEffect(() => {
+    formStartedAtRef.current = Date.now();
+  }, []);
+
   const handleDepartmentChange = (nextDepartmentId: CareerDepartmentId) => {
     const nextDepartment = getDepartment(nextDepartmentId) ?? careerDepartments[0];
     setDepartmentId(nextDepartmentId);
     setShiftId(nextDepartment.shifts[0].id);
-    setMailtoUrl("");
+    setSubmissionState("idle");
+    setSubmissionMessage("");
   };
 
   const handleFileChange = (file: File | undefined) => {
-    setMailtoUrl("");
+    setSubmissionState("idle");
+    setSubmissionMessage("");
 
     if (!file) {
       setFileError("");
       return;
     }
 
-    const extensionAllowed = /\.(pdf|doc|docx)$/i.test(file.name);
-    const typeAllowed = !file.type || ALLOWED_CV_TYPES.includes(file.type);
-
-    if (!extensionAllowed || !typeAllowed) {
-      setFileError("CV dosyası PDF, DOC veya DOCX formatında olmalı.");
-      return;
-    }
-
-    if (file.size > MAX_CV_BYTES) {
-      setFileError("CV dosyası en fazla 5 MB olabilir.");
-      return;
-    }
-
-    setFileError("");
+    const validation = validateStorageFile(file, STORAGE_BUCKETS.careerCvs);
+    setFileError(validation.ok ? "" : validation.message);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setMailtoUrl("");
 
     const form = event.currentTarget;
     const formData = new FormData(form);
     const availability = formData.getAll("availability").map(String);
     const cv = formData.get("cv");
+
+    setSubmissionState("idle");
+    setSubmissionMessage("");
+    setSubmissionReference("");
 
     if (!availability.length) {
       setAvailabilityError("En az bir uygun gün seçmelisin.");
@@ -106,54 +102,65 @@ export default function CareersPage() {
 
     setAvailabilityError("");
 
-    if (cv instanceof File && cv.size) {
-      const extensionAllowed = /\.(pdf|doc|docx)$/i.test(cv.name);
-      const typeAllowed = !cv.type || ALLOWED_CV_TYPES.includes(cv.type);
-
-      if (!extensionAllowed || !typeAllowed || cv.size > MAX_CV_BYTES) {
-        handleFileChange(cv);
-        form.querySelector<HTMLInputElement>('input[name="cv"]')?.focus();
-        return;
-      }
+    if (!(cv instanceof File) || !cv.size) {
+      setFileError("CV dosyası zorunludur.");
+      form.querySelector<HTMLInputElement>('input[name="cv"]')?.focus();
+      return;
     }
 
-    const department = getDepartment(String(formData.get("department")));
-    const shift = department?.shifts.find(
-      (item) => item.id === formData.get("shift"),
-    );
-    const branch = careerBranches.find((item) => item.id === formData.get("branch"));
-    const employment = careerEmploymentTypes.find(
-      (item) => item.id === formData.get("employmentType"),
-    );
-    const fullName = String(formData.get("fullName") || "").trim();
+    const fileValidation = validateStorageFile(cv, STORAGE_BUCKETS.careerCvs);
+    if (!fileValidation.ok) {
+      setFileError(fileValidation.message);
+      form.querySelector<HTMLInputElement>('input[name="cv"]')?.focus();
+      return;
+    }
 
-    const body = [
-      "Kantin ekip başvurusu",
-      "",
-      `Ad soyad: ${fullName}`,
-      `Telefon: ${String(formData.get("phone") || "")}`,
-      `E-posta: ${String(formData.get("email") || "")}`,
-      `Şube: ${branch?.label ?? "-"}`,
-      `Çalışma alanı: ${department?.label ?? "-"}`,
-      `Çalışma biçimi: ${employment?.label ?? "-"}`,
-      `Vardiya: ${shift ? `${shift.label} (${shift.hours})` : "-"}`,
-      `Uygun günler: ${availability.join(", ")}`,
-      `Benzer iş deneyimi: ${String(formData.get("experience") || "-")}`,
-      "",
-      "Kısa tanıtım:",
-      String(formData.get("about") || "-"),
-      "",
-      cv instanceof File && cv.size
-        ? `CV dosyası: ${cv.name} — e-postaya manuel olarak eklenmeli.`
-        : "CV dosyası eklenmedi.",
-    ].join("\n");
+    setFileError("");
+    setSubmissionState("submitting");
+    formData.set("formStartedAt", String(formStartedAtRef.current));
+    formData.set("website", "");
 
-    const mailto = `mailto:${careersContactEmail}?subject=${encodeURIComponent(
-      `Kantin ekip başvurusu — ${fullName}`,
-    )}&body=${encodeURIComponent(body)}`;
+    try {
+      const response = await fetch("/api/careers/applications", {
+        method: "POST",
+        body: formData,
+        headers: { Accept: "application/json" },
+      });
+      const result = (await response.json()) as {
+        ok?: boolean;
+        field?: string;
+        message?: string;
+        reference?: string;
+      };
 
-    setSubmittedName(fullName);
-    setMailtoUrl(mailto);
+      if (!response.ok || !result.ok) {
+        setSubmissionState("error");
+        setSubmissionMessage(
+          result.message || "Başvuru gönderilemedi. Lütfen tekrar deneyin.",
+        );
+        if (result.field) {
+          form.querySelector<HTMLElement>(`[name="${result.field}"]`)?.focus();
+        }
+        return;
+      }
+
+      const fullName = String(formData.get("fullName") || "").trim();
+      setSubmittedName(fullName);
+      setSubmissionReference(result.reference || "");
+      setSubmissionMessage(result.message || "Başvurunuz başarıyla alındı.");
+      setSubmissionState("success");
+      form.reset();
+      setDepartmentId("service");
+      setShiftId("morning");
+      setAvailabilityError("");
+      setFileError("");
+      formStartedAtRef.current = Date.now();
+    } catch {
+      setSubmissionState("error");
+      setSubmissionMessage(
+        "Bağlantı kurulamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.",
+      );
+    }
   };
 
   return (
@@ -254,8 +261,8 @@ export default function CareersPage() {
             <p className="eyebrow">Genel başvuru</p>
             <h2 id="application-title">Kendinden biraz bahset.</h2>
             <p>
-              Formun ön yüz akışı hazır. Supabase bağlantısına geçtiğimizde başvurular güvenli
-              biçimde kaydedilecek ve CV dosyaları özel depolama alanına yüklenecek.
+              Alanını, vardiyanı ve uygun olduğun günleri seç; deneyimini kısaca paylaş
+              ve CV’ni ekleyerek başvurunu hazırla.
             </p>
 
             <div className={styles.processList}>
@@ -265,11 +272,15 @@ export default function CareersPage() {
             </div>
 
             <p className={styles.temporaryNote}>
-              Geçici başvuru adresi: <a href={`mailto:${careersContactEmail}`}>{careersContactEmail}</a>
+              Teknik sorun yaşarsan: <a href={`mailto:${careersContactEmail}`}>{careersContactEmail}</a>
             </p>
           </aside>
 
           <form ref={formRef} className={styles.form} onSubmit={handleSubmit} noValidate={false}>
+            <label className={styles.honeypot} aria-hidden="true">
+              Website
+              <input name="website" tabIndex={-1} autoComplete="off" />
+            </label>
             <fieldset className={styles.fieldset}>
               <legend>İletişim bilgileri</legend>
               <div className={styles.twoColumns}>
@@ -365,7 +376,8 @@ export default function CareersPage() {
                         value={day}
                         onChange={() => {
                           setAvailabilityError("");
-                          setMailtoUrl("");
+                          setSubmissionState("idle");
+                          setSubmissionMessage("");
                         }}
                       />
                       <span>{day}</span>
@@ -404,6 +416,7 @@ export default function CareersPage() {
                   type="file"
                   accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   onChange={(event) => handleFileChange(event.target.files?.[0])}
+                  required
                 />
               </label>
               {fileError ? <p className={styles.error}>{fileError}</p> : null}
@@ -411,26 +424,39 @@ export default function CareersPage() {
               <label className={styles.consent}>
                 <input name="consent" type="checkbox" required />
                 <span>
-                  Başvuru bilgilerimin işe alım süreci için değerlendirilmesini kabul ediyorum.
-                  KVKK metni backend aşamasında nihai haliyle eklenecek.
+                  Paylaştığım bilgilerin yalnızca işe alım değerlendirmesi amacıyla
+                  kullanılmasını kabul ediyorum.
                 </span>
               </label>
             </fieldset>
 
-            <button className={styles.submitButton} type="submit">
-              Başvuruyu hazırla <span aria-hidden="true">↗</span>
+            <button
+              className={styles.submitButton}
+              type="submit"
+              disabled={submissionState === "submitting"}
+              aria-busy={submissionState === "submitting"}
+            >
+              {submissionState === "submitting" ? "Başvuru gönderiliyor…" : "Başvuruyu gönder"}
+              <span aria-hidden="true">↗</span>
             </button>
 
-            {mailtoUrl ? (
+            {submissionState === "success" ? (
               <div className={styles.success} role="status">
                 <div>
-                  <strong>{submittedName}, formun hazır.</strong>
+                  <strong>{submittedName}, başvurun alındı.</strong>
                   <p>
-                    Backend henüz bağlı olmadığı için bilgiler kaydedilmedi. Aşağıdaki bağlantı geçici
-                    e-posta taslağını açar; CV dosyanı e-postaya manuel olarak eklemelisin.
+                    {submissionMessage} CV dosyan private olarak saklandı ve yalnız yetkili
+                    ekip tarafından görüntülenebilir.
+                    {submissionReference ? ` Referans: ${submissionReference}` : ""}
                   </p>
                 </div>
-                <a href={mailtoUrl}>E-posta taslağını aç ↗</a>
+              </div>
+            ) : null}
+
+            {submissionState === "error" ? (
+              <div className={styles.submissionError} role="alert">
+                <strong>Başvuru gönderilemedi.</strong>
+                <p>{submissionMessage}</p>
               </div>
             ) : null}
           </form>

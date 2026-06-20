@@ -14,7 +14,7 @@ export type CareerDepartment = {
   shifts: CareerShiftOption[];
 };
 
-export const careersContactEmail = "kariyer@kantinizmir.com";
+export const careersContactEmail = "hello@kantin.pub";
 
 export const careerBranches = [
   { id: "alsancak", label: "Alsancak" },

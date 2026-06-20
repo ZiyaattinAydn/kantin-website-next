@@ -1,26 +1,10 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import EventCard from "@/components/cards/EventCard";
 import AmbientDoodles from "@/components/effects/AmbientDoodles";
 import SectionHeader from "@/components/ui/SectionHeader";
-import { siteIdentity } from "@/data/site";
-import { loadPublishedEvents, type KantinEvent } from "@/lib/events";
+import type { EventPublicData } from "@/lib/public-data/types";
 
-export default function HomeEvents() {
-  const [events, setEvents] = useState<KantinEvent[]>([]);
-
-  useEffect(() => {
-    let active = true;
-
-    loadPublishedEvents().then((loadedEvents) => {
-      if (active) setEvents(loadedEvents.slice(0, 3));
-    });
-
-    return () => {
-      active = false;
-    };
-  }, []);
+export default function HomeEvents({ data }: { data: EventPublicData }) {
+  const events = data.events.slice(0, 3);
 
   return (
     <section className="section dotted-paper home-events-illustrated" id="etkinlikler">
@@ -46,6 +30,9 @@ export default function HomeEvents() {
                 key={event.id || `${event.title}-${index}`}
                 event={event}
                 variant="home"
+                branchLabels={data.branchLabels}
+                branchAddresses={data.branchAddresses}
+                instagramUrl={data.instagramUrl}
               />
             ))
           ) : (
@@ -57,7 +44,7 @@ export default function HomeEvents() {
               </div>
               <a
                 className="text-link"
-                href={siteIdentity.instagramUrl}
+                href={data.instagramUrl}
                 rel="noopener"
                 target="_blank"
               >

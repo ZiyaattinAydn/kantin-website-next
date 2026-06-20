@@ -1,8 +1,14 @@
 import MenuCard from "@/components/cards/MenuCard";
+import { PublicEmptyState } from "@/components/data-state/PublicDataNotice";
 import SectionHeader from "@/components/ui/SectionHeader";
-import { homeMenuBranches } from "@/data/home";
+import { fallbackHomeData } from "@/lib/public-data/fallbacks";
+import type { HomeMenuBranch } from "@/types/content";
 
-export default function HomeMenuBranches() {
+export default function HomeMenuBranches({
+  branches = fallbackHomeData.menuBranches,
+}: {
+  branches?: HomeMenuBranch[];
+}) {
   return (
     <section className="section section-blue" id="menuler">
       <div className="container">
@@ -20,11 +26,18 @@ export default function HomeMenuBranches() {
           }
         />
 
-        <div className="home-menu-branches">
-          {homeMenuBranches.map((branch) => (
-            <MenuCard key={branch.slug} branch={branch} />
-          ))}
-        </div>
+        {branches.length ? (
+          <div className="home-menu-branches">
+            {branches.map((branch) => (
+              <MenuCard key={branch.slug} branch={branch} />
+            ))}
+          </div>
+        ) : (
+          <PublicEmptyState
+            title="Şube menüleri şu anda yayında değil."
+            description="Aktif menü kartları yayınlandığında burada görünecek."
+          />
+        )}
       </div>
     </section>
   );

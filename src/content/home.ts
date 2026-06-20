@@ -47,13 +47,13 @@ export type LocationBranch = {
 
 export const homeHero = {
   eyebrow: "Alsancak · Atakent · İzmir",
-  title: ["Yudumunu al.", "Lokmanı paylaş."],
+  title: ["Savor the sip.", "Share the bite."],
   description:
     "İki şube, iki farklı menü. Alsancak’ta self-servis sokak pub ruhu; Atakent’te bahçe, kokteyller ve daha geniş mutfak seçkisi.",
   primaryAction: { href: "/menu", label: "Şubeni ve menünü seç" },
   secondaryAction: { href: "#subeler", label: "Konumlara bak" },
   features: ["Şubeye özel menü", "Paylaşmalık tabaklar", "İyi müzik"],
-  marquee: "SAVOR THE SIP · SHARE THE BITE",
+  marquee: "Savor the sip. Share the bite.",
 } as const;
 
 export const homeMenuBranches: HomeMenuBranch[] = [
@@ -97,7 +97,7 @@ export const locationBranches: LocationBranch[] = [
     title: "1464. Sokak No:71/A",
     address: "Alsancak, Konak / İzmir",
     mapsUrl:
-      "https://www.google.com/maps/search/?api=1&query=Kantin+Izmir+1464+Sokak+71A+Alsancak+Konak+Izmir",
+      "https://maps.app.goo.gl/qZYRVGAkhtbVA2Fu7?g_st=ic",
     images: [
       { src: "/assets/img/branches/alsancak-1.jpg", width: 1080, height: 1350 },
       { src: "/assets/img/branches/alsancak-2.jpg", width: 1080, height: 1350 },
@@ -111,7 +111,7 @@ export const locationBranches: LocationBranch[] = [
     title: "2035 Sokak No:6",
     address: "Atakent, Karşıyaka / İzmir",
     mapsUrl:
-      "https://www.google.com/maps/search/?api=1&query=Kantin+Atakent+2035+Sokak+6+Atakent+Karsiyaka+Izmir",
+      "https://maps.app.goo.gl/Q6522YB6XoKSReYw8?g_st=ipc",
     images: [
       { src: "/assets/img/branches/atakent-1.webp", width: 841, height: 1155 },
       { src: "/assets/img/branches/atakent-2.webp", width: 773, height: 1143 },

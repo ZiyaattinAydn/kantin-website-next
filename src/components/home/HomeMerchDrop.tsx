@@ -11,11 +11,22 @@ import {
   type KeyboardEvent,
   type PointerEvent,
 } from "react";
-import { merchBundles, merchDoodles, merchSideProducts } from "@/data/merch";
+import { fallbackHomeData } from "@/lib/public-data/fallbacks";
+import type { MerchBundle, MerchDoodle } from "@/types/content";
 import { formatTry } from "@/lib/formatters";
 import type { MerchProductContent } from "@/types/content";
 
-export default function HomeMerchDrop() {
+export default function HomeMerchDrop({
+  products = fallbackHomeData.merchProducts,
+  bundles = fallbackHomeData.merchBundles,
+  doodles = fallbackHomeData.merchDoodles,
+}: {
+  products?: MerchProductContent[];
+  bundles?: MerchBundle[];
+  doodles?: MerchDoodle[];
+}) {
+  const merchSideProducts = products.filter((product) => product.id !== "oversize-tshirt");
+  const shirt = products.find((product) => product.id === "oversize-tshirt");
   const [isOpen, setIsOpen] = useState(false);
   const [preview, setPreview] = useState<{
     product: MerchProductContent;
@@ -85,6 +96,8 @@ export default function HomeMerchDrop() {
     stage.style.setProperty("--parallax-y", "0px");
   };
 
+  if (!products.length && !bundles.length) return null;
+
   return (
     <>
       <section className="section merch-drop-section home-merch-cartoon" id="merch-drop">
@@ -98,7 +111,7 @@ export default function HomeMerchDrop() {
           aria-hidden="true"
           className="merch-doodle-stage home-merch-doodles"
         >
-          {merchDoodles.map((doodle) => (
+          {doodles.map((doodle) => (
             <img
               key={doodle.src}
               alt=""
@@ -190,7 +203,7 @@ export default function HomeMerchDrop() {
                   <figure className="merch-face merch-face-front">
                     <img
                       alt="Ön yüzünde küçük mavi k. logosu bulunan krem oversize tişört."
-                      src="/assets/img/merch/tee-front.jpg"
+                      src={shirt?.image ?? "/assets/img/merch/tee-front.jpg"}
                     />
                     <figcaption>
                       <span className="merch-face-label">Kapalı görünüm</span>
@@ -234,7 +247,7 @@ export default function HomeMerchDrop() {
                 <p className="home-merch-card-kicker">Bundle fırsatları</p>
                 <h3>Birlikte alınca daha iyi.</h3>
                 <div className="home-merch-bundle-lines">
-                  {merchBundles.map((bundle) => (
+                  {bundles.map((bundle) => (
                     <div key={bundle.name}>
                       <span>{bundle.name}</span>
                       <strong>{formatTry(bundle.price)}</strong>

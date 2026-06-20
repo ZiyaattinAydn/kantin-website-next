@@ -125,8 +125,8 @@ export const cheesePortions = {
   },
   note: "Tulum, eski kaşar veya yarım yarım karışık olarak hazırlanabilir.",
   prices: [
-    { label: "Yarım", price: "₺50" },
-    { label: "Tam", price: "₺100" },
+    { label: "Yarım", price: "₺75" },
+    { label: "Tam", price: "₺150" },
   ],
   options: [
     {
@@ -136,7 +136,7 @@ export const cheesePortions = {
     },
     {
       name: "Eski Kaşar Peyniri",
-      detail: "Antep Fıstığı Ezmesi · Stracciatella Peyniri · Mortadella · Roka",
+      detail: "Eski kaşar peyniri",
       portion: "Yarım: 6 küp · Tam: 12 küp",
     },
     {

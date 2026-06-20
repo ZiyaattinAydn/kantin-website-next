@@ -1,25 +1,34 @@
 import type { ReactNode } from "react";
 import PublicEnhancements from "@/components/effects/PublicEnhancements";
+import { PublicDataNotice } from "@/components/data-state/PublicDataNotice";
+import { getCommonPublicData } from "@/lib/public-data/common";
+import type { CommonPublicData, PublicDataEnvelope } from "@/lib/public-data/types";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import styles from "./PublicPageShell.module.css";
 
 type PublicPageShellProps = {
   children: ReactNode;
+  common?: PublicDataEnvelope<CommonPublicData>;
 };
 
-export default function PublicPageShell({ children }: PublicPageShellProps) {
+export default async function PublicPageShell({ children, common }: PublicPageShellProps) {
+  const resolvedCommon = common ?? (await getCommonPublicData());
+
   return (
     <>
       <a className={styles.skipLink} href="#main">
         İçeriğe geç
       </a>
 
-      <SiteHeader />
+      <SiteHeader navigation={resolvedCommon.data.primaryNavigation} />
 
-      <main id="main">{children}</main>
+      <main id="main">
+        <PublicDataNotice issues={resolvedCommon.issues} />
+        {children}
+      </main>
 
-      <SiteFooter />
+      <SiteFooter data={resolvedCommon.data} />
       <PublicEnhancements />
     </>
   );

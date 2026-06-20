@@ -5,7 +5,6 @@ export const siteIdentity = {
   slogan: "Savor the sip. Share the bite.",
   sloganLines: ["Savor the sip.", "Share the bite."],
   instagramUrl: "https://www.instagram.com/kantinizmir/",
-  email: "hello@kantin.pub",
 } as const;
 
 export const primaryNavigation: NavigationItem[] = [
@@ -34,7 +33,6 @@ export const footerNavigation: ReadonlyArray<{
         label: "Instagram ↗",
         external: true,
       },
-      { href: `mailto:${siteIdentity.email}`, label: siteIdentity.email },
     ],
   },
 ];

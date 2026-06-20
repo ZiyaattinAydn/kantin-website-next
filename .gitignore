@@ -29,4 +29,9 @@ yarn-error.log*
 
 # Environment variables and local service metadata
 .env*
+!.env.example
 .vercel/
+
+# Private account recovery credentials
+/vercel kodları/
+**/recovery-codes.txt
