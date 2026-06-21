@@ -1,13 +1,16 @@
 {
   "name": "kantin-website-next",
-  "version": "0.1.0",
+  "version": "1.0.0-rc.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "verify:production": "node scripts/verify-production.mjs"
+    "verify:production": "node scripts/verify-production.mjs",
+    "check": "npm run lint && tsc --noEmit && npm run build",
+    "preflight": "node scripts/project-preflight.mjs",
+    "verify:deployment": "node scripts/verify-deployment.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

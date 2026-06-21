@@ -1,155 +1,125 @@
 # Kantin Website
 
-Kantin Alsancak ve Atakent şubeleri için geliştirilen Next.js, React ve TypeScript tabanlı web sitesi.
+Kantin Alsancak ve Atakent şubeleri için geliştirilen, canlı içerik yönetimi ve yönetici paneli bulunan Next.js web uygulaması.
 
-## Yerel çalışma
+**Sürüm:** `1.0.0-rc.1`  
+**Durum:** Özellik geliştirme tamamlandı; Preview ortamı Supabase ile doğrulandı. Production'a geçiş için `develop -> main` birleştirmesi ve son kapanış kontrolleri bekleniyor.
+
+## Teknoloji yığını
+
+- Next.js 16 App Router
+- React 19
+- TypeScript
+- CSS Modules + global tasarım tokenları
+- Supabase Postgres, Auth, Storage ve Row Level Security
+- Vercel Preview / Production deployment
+
+## Hazır özellikler
+
+- Responsive ana sayfa, şube menüleri, etkinlikler, merch, galeri, Instagram alanı ve detaylı footer
+- Supabase canlı veri katmanı ve bağlantı hatasında doğrulanmış statik fallback
+- Kariyer başvurusu, spam önleme ve private CV yükleme
+- Supabase Auth ile rol kontrollü yönetici girişi
+- Menü, kategori, fiyat/varyant, etkinlik, merch, Instagram, şube, site ayarı, medya ve kariyer CRUD
+- Kontrollü tema, bölüm görünürlüğü ve ana sayfa sıralaması
+- RLS politikaları, public/private Storage bucket'ları ve admin işlem kayıtları
+- Preview/Production health endpoint'leri, robots.txt, sitemap.xml ve deployment doğrulama scriptleri
+
+## Hızlı başlangıç
 
 ```bash
 npm ci
+cp .env.example .env.local
 npm run dev
 ```
 
-Tarayıcı: `http://localhost:3000`
+Windows'ta `.env.example` dosyasını `.env.local` adıyla kopyalayıp Supabase değerlerini elle doldurabilirsin.
 
-## Kalite kontrolleri
+Yerel adres: `http://localhost:3000`
+
+## Gerekli environment variable'lar
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://PROJE_REFERANSI.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+SITE_ENV=development
+```
+
+Projede `service_role`, `sb_secret_...` veya database password kullanılmaz. `.env.local` Git'e gönderilmez.
+
+## Kalite komutları
 
 ```bash
 npm run lint
 npx tsc --noEmit
 npm run build
+npm run preflight
 ```
 
-Her teslimden önce lint, TypeScript ve production build kontrollerinin hatasız tamamlanması beklenir.
+Tek komutla lint + TypeScript + production build:
 
-## Sayfalar
-
-- `/` — Ana sayfa
-- `/menu` — Şubeye özel menüler
-- `/events` — Etkinlik listesi
-- `/careers` — Kariyer başvuru formu
-- `/admin` — Geçici etkinlik yönetimi
-
-## Proje yapısı
-
-```text
-src/
-├─ app/                 Next.js sayfaları ve metadata
-├─ components/
-│  ├─ cards/            Tekrar kullanılabilir kartlar
-│  ├─ effects/          Görsel efekt ve reveal davranışları
-│  ├─ events/           Etkinlik sayfasına özel bileşenler
-│  ├─ home/             Ana sayfa bölümleri
-│  ├─ layout/           Header, footer ve sayfa kabuğu
-│  ├─ menu/             Menü sayfası bölümleri
-│  ├─ merch/            Merch alanına özel etkileşimler
-│  └─ ui/               Ortak buton ve bölüm başlıkları
-├─ content/             Geçici admin HTML içeriği
-├─ data/                Site, şube, menü, merch ve etkinlik verileri
-├─ lib/                 Veri dönüştürme ve yardımcı fonksiyonlar
-├─ styles/              Global tasarım tokenları ve sayfa stilleri
-└─ types/               Domain, içerik ve menü TypeScript modelleri
+```bash
+npm run check
 ```
 
-## Veri katmanı
+Canlı Preview veya Production deployment kontrolü:
 
-Arayüz metinleri ve statik veriler component dosyalarının dışında tutulur:
+```bash
+npm run verify:deployment -- https://SITE-ADRESI preview
+npm run verify:deployment -- https://SITE-ADRESI production
+```
 
-- `src/data/branches.ts` — Şubelerin tek doğruluk kaynağı
-- `src/data/menu.ts` — Menü içerikleri ve şube seçimi
-- `src/data/merch.ts` — Merch ürünleri, bundle fiyatları ve doodle görselleri
-- `src/data/events.ts` — Etkinlik filtreleri, şube etiketleri ve adresleri
-- `src/data/home.ts` — Ana sayfaya özel içerikler
-- `src/data/site.ts` — Navigasyon, footer ve site kimliği
+Production'a özel eski komut da korunur:
 
-Etkinliklerin geçici çalışma verisi `public/data/events.json` dosyasındadır. Supabase bağlantısından sonra bu dosyanın yerini veritabanı sorguları alacaktır.
+```bash
+npm run verify:production -- https://SITE-ADRESI
+```
 
-## TypeScript modelleri
+## Ana rotalar
 
-`src/types/domain.ts` içinde backend ve yönetici paneline temel olacak modeller bulunur:
+| Rota | Açıklama |
+|---|---|
+| `/` | Ana sayfa |
+| `/menu?sube=alsancak` | Alsancak menüsü |
+| `/menu?sube=atakent` | Atakent menüsü |
+| `/events` | Etkinlikler |
+| `/careers` | Kariyer başvurusu |
+| `/admin/login` | Yönetici girişi |
+| `/admin` | Yönetici dashboard |
+| `/admin/manage/[resource]` | CRUD modülleri |
+| `/admin/media` | Medya kütüphanesi |
+| `/admin/applications` | Kariyer başvuruları |
+| `/admin/theme` | Kontrollü tema yönetimi |
 
-- `Branch`
-- `Category`
-- `MenuItem`
-- `Event`
-- `MerchProduct`
+## Veritabanı kurulumu
 
-Arayüze özel veri biçimleri `src/types/content.ts` ve `src/types/menu.ts` altında ayrılmıştır. Böylece veritabanı modelleri ile ekranda kullanılan sunum modelleri birbirine karışmaz.
+Migration dosyaları `supabase/migrations/` altında kronolojik sıradadır. Yeni bir projede sırayla uygulanmalı, ardından `supabase/seed.sql` çalıştırılmalıdır.
 
-## Ortak componentler
+Doğrulama sorguları `supabase/verification/` altındadır. Manuel ve yalnızca gerektiğinde kullanılacak işlemler `supabase/manual/` klasöründedir.
 
-- `ActionLink` — Ortak link/buton varyantları
-- `SectionHeader` — Tekrarlanan bölüm başlıkları
-- `MenuCard` — Ana sayfadaki şube menüsü kartları
-- `EventCard` — Ana sayfa ve etkinlik listesi varyantları
-- `MerchCard` — Ana sayfa ve menü detay varyantları
+## Deployment düzeni
 
-## Yayın düzeni
+- `develop`: Vercel Preview
+- `main`: Vercel Production
+- Preview ortamı `SITE_ENV=preview` ve `noindex` kullanır.
+- Production ortamı `SITE_ENV=production` ile indexlenebilir.
+- Production'a geçmeden önce `docs/deployment/production-kapanis.md` izlenmelidir.
 
-- `develop` branch'i Vercel Preview ortamına gider.
-- `main` production branch'idir ve şimdilik kullanılmaz.
-- `.env*`, `.vercel`, `.next`, `node_modules` ve hesap kurtarma kodları GitHub'a gönderilmez.
-- Vercel ile ilgili mevcut proje dosyaları korunur.
+## Dokümantasyon
 
-## Backend yol haritası
+- [Proje durumu](docs/PROJECT_STATUS.md)
+- [Admin kullanım rehberi](docs/operations/admin-kullanim-rehberi.md)
+- [Bakım ve yedekleme](docs/operations/bakim-ve-yedekleme.md)
+- [Bug/debugging rehberi](docs/debugging/bug-debugging-rehberi.md)
+- [Final QA kontrol listesi](docs/testing/final-qa-kontrol-listesi.md)
+- [Production kapanış rehberi](docs/deployment/production-kapanis.md)
+- [Güvenlik ve kişisel veri notları](docs/security/guvenlik-ve-kisisel-veri.md)
+- [Sürüm notları](CHANGELOG.md)
 
-1. Tasarım ve içeriklerin son kontrollerini tamamla.
-2. Supabase tablolarını domain modellerine göre oluştur.
-3. Menü, etkinlik, merch, şube ve form verilerini Supabase'e taşı.
-4. Supabase Authentication ile yönetici girişini kur.
-5. Admin panelinde ekleme, güncelleme, silme ve görsel yükleme işlemlerini bağla.
-6. Demo/Firebase uyumluluk katmanını kaldır.
+## Bilinen açık maddeler
 
-Mevcut admin sayfası geçici demo/Firebase uyumluluk katmanını kullanır. Gerçek yönetici sistemi Supabase aşamasında geliştirilecektir.
-
-## 4. gün — ilk tasarım paketi
-
-Tamamlanan düzenlemeler:
-
-- Marka sloganı tüm görünür alanlarda `Savor the sip. Share the bite.` olarak standartlaştırıldı.
-- Header navigasyonu sadeleştirildi: “Menü” bağlantısı korundu; yinelenen “Şubeler” ve “Şubeni seç” yönlendirmeleri kaldırıldı.
-- Header logosu Kantin marka mavisine geçirildi.
-- Şube değişiminde seçilen menünün başlangıcına, hareket azaltma tercihine saygılı yumuşak geçiş eklendi.
-- Menü sonundaki “Şube seçimine dön” bağlantısı kaldırıldı.
-- Alsancak menüsünün mobil akışı bira, şarap, fritöz, fırın, deli + salata, sos, kahve ve merch sırasına getirildi.
-- Ana sayfa hero etiketleri gerçek bağlantılara dönüştürülerek hover, focus ve dokunma durumları geliştirildi.
-- Reveal animasyonları mobil için kısaltıldı ve görünmeyen/kapalı içeriklerin gereksiz gözlemlenmesi önlendi.
-
-## 4. gün — Merch görsel önizleme paketi
-
-- Ana sayfadaki tote çanta ve baseball şapka görselleri büyütülebilir hale getirildi.
-- Menü sayfasındaki aynı ürünlere küçük görsel önizleme düğmeleri eklendi.
-- Ortak `MerchImageLightbox` bileşeni ile iki sayfada aynı erişilebilir modal kullanıldı.
-- Modal arka plana tıklama, Escape tuşu, kapatma düğmesi ve klavye odak döngüsünü destekler.
-- Modal açıkken sayfa kaydırması kilitlenir; kapatıldığında odak açan ürüne geri döner.
-- Mobil ekranlarda dialog düzeni tek sütuna geçer ve ekran yüksekliğine göre kaydırılabilir.
-
-## 4. gün — ana sayfa fotoğraf değerlendirmesi
-
-- Mevcut iki Alsancak ve iki Atakent fotoğrafı geçici kullanım için yeterli bulundu; yeni çekimler gelene kadar korundu.
-- Menü kartları ile şube kartlarında masaüstü ve mobil kadraj odakları yeniden ayarlandı.
-- Atakent görsellerinin ışık farkı hafif parlaklık/kontrast dengesiyle eşitlendi.
-- Şube fotoğraflarındaki mavi alt zemin kaynaklı solukluk kaldırıldı; çok hafif marka tonu katmanı korundu.
-- Dosya boyutları mevcut kullanım için kabul edilebilir olduğundan yeniden sıkıştırma yapılmadı; gelecekteki yüksek kaliteli çekimler doğrudan aynı veri alanlarından değiştirilebilir.
-
-### 4. Gün — İllüstratif beyaz alan düzenlemesi
-- Ana sayfadaki etkinlik alanı, okunabilirliği bozmayan noktalı zemin ve seçili Kantin karikatürleriyle zenginleştirildi.
-- Tüm karikatürleri her alana yığmak yerine etkinlik bölümüne özel düşük yoğunluklu bir doodle preset'i tanımlandı.
-- Mobil görünümde illüstrasyon sayısı ve boyutları azaltıldı; `prefers-reduced-motion` desteği korundu.
-- Etkinlik kartlarına hafif yarı saydam zemin verilerek arka plan çizimleri üzerinde metin kontrastı güvenceye alındı.
-
-## 4. Gün — Anılarımız bölümü
-
-- Ana sayfaya `Anılarımız` başlıklı fotoğraf ve marka hikâyesi bölümü eklendi.
-- Aralık 2023 Alsancak başlangıcı ile Atakent Bubble Bar hikâyesi iki ayrı editorial kartta anlatıldı.
-- Ekip, mutfak, self-servis akışı ve sokak atmosferini gösteren 8 fotoğraf WebP formatında optimize edilerek kullanıldı.
-- Masaüstünde düzensiz editorial grid, tablette iki sütun ve mobilde tek sütun galeri düzeni hazırlandı.
-- Marka mavisi, krem noktalı zemin ve kontrollü karikatür dokusu mevcut tasarım sistemiyle korundu.
-
-
-## 4. Gün — Anılarımız galeri lightbox güncellemesi
-
-- Servis tepsisi taşıyan ekip fotoğrafı alt galeriye eklendi.
-- Anılarımız bölümündeki ana fotoğraf ve tüm küçük galeri görselleri tıklanabilir hale getirildi.
-- Fotoğraflar açıklama, kategori ve büyük görselle erişilebilir bir modal içinde açılıyor.
-- Modal Escape tuşu, arka plana tıklama, kapatma düğmesi, odak döngüsü ve mobil kaydırma desteği içeriyor.
-- Açıklama kapatıldığında klavye odağı fotoğrafı açan düğmeye geri dönüyor.
+- `develop` Preview doğrulandı; final `main` Production promotion henüz yapılmadı.
+- Etkinlik tablosunda yayınlanmış kayıt yoksa etkinlik sayfası kontrollü boş durum gösterir.
+- `npm audit` iki moderate uyarı bildiriyor; otomatik `--force` düzeltmesi uyumsuz Next.js downgrade önerdiği için uygulanmadı. Ayrıntı proje durum belgesinde kayıtlıdır.
+- İçerik ve görsel kalite çalışmaları yönetici panelinden sürdürülebilir; yeni özellik geliştirme şu aşamada kapalıdır.
