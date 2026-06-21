@@ -175,3 +175,30 @@
     padding: 42px clamp(28px, 4vw, 64px) 100px;
   }
 }
+
+/* Keep the admin wordmark visually consistent with the public header. */
+.mobileHeader :global(.brand),
+.brandRow :global(.brand) {
+  font-size: 2.3rem;
+  line-height: 1;
+}
+
+.mobileHeader :global(.brand),
+.mobileHeader :global(.brand span) {
+  color: var(--blue);
+}
+
+.brandRow :global(.brand),
+.brandRow :global(.brand span) {
+  color: white;
+}
+
+@media (max-width: 380px) {
+  .mobileHeader {
+    padding-inline: 14px;
+  }
+
+  .mobileHeader :global(.brand) {
+    font-size: 2rem;
+  }
+}

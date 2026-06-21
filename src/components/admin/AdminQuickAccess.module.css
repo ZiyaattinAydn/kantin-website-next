@@ -1,0 +1,70 @@
+.link {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 980;
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: #061a4b;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 12px 30px rgba(2, 25, 75, 0.25);
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.link svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.link:hover {
+  background: var(--blue, #0047bb);
+  box-shadow: 0 14px 34px rgba(0, 71, 187, 0.28);
+  transform: translateY(-2px);
+}
+
+.link:focus-visible {
+  outline-color: rgba(0, 71, 187, 0.72);
+  outline-offset: 4px;
+}
+
+@media (max-width: 480px) {
+  .link {
+    width: 48px;
+    min-height: 48px;
+    padding: 0;
+  }
+
+  .link span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link {
+    transition: none;
+  }
+}

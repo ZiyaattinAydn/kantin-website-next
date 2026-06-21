@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import AdminQuickAccess from "@/components/admin/AdminQuickAccess";
 import PublicEnhancements from "@/components/effects/PublicEnhancements";
 import { PublicDataNotice } from "@/components/data-state/PublicDataNotice";
 import { getCommonPublicData } from "@/lib/public-data/common";
@@ -40,6 +41,7 @@ export default async function PublicPageShell({ children, common, issues = [] }:
       </main>
 
       <SiteFooter data={resolvedCommon.data} />
+      <AdminQuickAccess />
       <PublicEnhancements />
     </div>
   );
