@@ -39,6 +39,7 @@ export async function updateApplicationAction(formData: FormData): Promise<never
       .from("job_applications")
       .update({ status, admin_notes: adminNotes || null })
       .eq("id", id)
+      .eq("privacy_status", "active")
       .select("full_name")
       .single();
     if (error) throw new Error(error.message);
@@ -54,6 +55,77 @@ export async function updateApplicationAction(formData: FormData): Promise<never
     destination = `/admin/applications?edit=${id}&notice=${encodeURIComponent("Başvuru güncellendi.")}`;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Başvuru güncellenemedi.";
+    destination = `/admin/applications?edit=${id}&error=${encodeURIComponent(message)}`;
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/applications");
+  redirect(destination);
+}
+
+export async function anonymizeApplicationAction(formData: FormData): Promise<never> {
+  await requireAdmin();
+  const id = text(formData, "id");
+  const confirmation = text(formData, "confirmation");
+  let destination: string;
+
+  try {
+    if (!id) throw new Error("Başvuru bulunamadı.");
+    if (confirmation !== "ANONIMLESTIR") {
+      throw new Error("Onay alanına ANONIMLESTIR yazılmalı.");
+    }
+
+    const supabase = await createClient();
+    const { data: beginRow, error: beginError } = await supabase
+      .rpc("begin_job_application_anonymization", { p_application_id: id })
+      .single();
+    if (beginError || !beginRow) {
+      throw new Error(beginError?.message || "Anonimleştirme başlatılamadı.");
+    }
+
+    const hasStorageReference = Boolean(beginRow.bucket_name || beginRow.object_path);
+    if (hasStorageReference) {
+      if (beginRow.bucket_name !== "career-cvs" || !beginRow.object_path) {
+        await supabase.rpc("cancel_job_application_anonymization", {
+          p_application_id: id,
+          p_reason: "invalid_cv_storage_reference",
+        });
+        throw new Error("CV Storage bağlantısı güvenli değil; işlem durduruldu.");
+      }
+
+      const { error: removeError } = await supabase.storage
+        .from(beginRow.bucket_name)
+        .remove([beginRow.object_path]);
+      if (removeError) {
+        const { error: cancelError } = await supabase.rpc(
+          "cancel_job_application_anonymization",
+          {
+            p_application_id: id,
+            p_reason: "cv_storage_delete_failed",
+          },
+        );
+        if (cancelError) {
+          throw new Error("CV silinemedi ve anonimleştirme kilidi geri alınamadı; işlemi tekrar dene.");
+        }
+        throw new Error("CV Storage dosyası silinemedi; başvuru değiştirilmedi.");
+      }
+    }
+
+    const { data: completed, error: completeError } = await supabase.rpc(
+      "complete_job_application_anonymization",
+      { p_application_id: id },
+    );
+    if (completeError || completed !== true) {
+      throw new Error(
+        "CV silindi ancak anonimleştirme tamamlanamadı. Başvuru beklemede; işlemi tekrar çalıştır.",
+      );
+    }
+
+    destination = "/admin/applications?notice=" + encodeURIComponent(
+      "CV silindi ve başvuru geri döndürülemez biçimde anonimleştirildi.",
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Başvuru anonimleştirilemedi.";
     destination = `/admin/applications?edit=${id}&error=${encodeURIComponent(message)}`;
   }
 

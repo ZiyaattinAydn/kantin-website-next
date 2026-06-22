@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 import { getEventPublicData } from "./events";
 import { fallbackHomeData } from "./fallbacks";
@@ -12,6 +13,8 @@ import {
   resolveMediaUrl,
   stringArray,
   stringValue,
+  type PublicMediaRow,
+  type TableRow,
 } from "./helpers";
 import type {
   HomeHeroData,
@@ -229,28 +232,97 @@ function parseDoodles(value: Record<string, unknown> | undefined): MerchDoodle[]
     .filter((item) => item.src && item.className);
 }
 
-export async function getHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>> {
+export function mergeMenuBranchesWithAdmin(
+  branches: HomeMenuBranch[],
+  rows: Array<Pick<
+    TableRow<"branches">,
+    "slug" | "name" | "short_description" | "features"
+  >>,
+): HomeMenuBranch[] {
+  const rowsBySlug = new Map(rows.map((row) => [row.slug, row]));
+
+  return branches.map((branch) => {
+    const row = rowsBySlug.get(branch.slug);
+    if (!row) return branch;
+
+    return {
+      ...branch,
+      name: row.name,
+      description: row.short_description ?? branch.description,
+      tags: [...row.features],
+    };
+  });
+}
+
+export function mergeLocationsWithAdmin(
+  branches: LocationBranch[],
+  rows: Array<Pick<
+    TableRow<"branches">,
+    "slug" | "address_line" | "district" | "city" | "short_description" | "maps_url"
+  >>,
+): LocationBranch[] {
+  const rowsBySlug = new Map(rows.map((row) => [row.slug, row]));
+
+  return branches.map((branch) => {
+    const row = rowsBySlug.get(branch.slug);
+    if (!row) return branch;
+
+    return {
+      ...branch,
+      title: row.address_line,
+      address: `${row.district} / ${row.city}`,
+      description: row.short_description ?? undefined,
+      mapsUrl: row.maps_url,
+    };
+  });
+}
+
+async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>> {
   try {
     const client = createPublicClient();
-    const [blocks, productsResult, productLinksResult, instagramResult, mediaResult, branchesResult, eventEnvelope] =
+    const [blocks, productsResult, productLinksResult, instagramResult, branchesResult, eventEnvelope] =
       await Promise.all([
         getPageBlocks(client, "home"),
-        client.from("merch_products").select("*").order("sort_order"),
-        client.from("merch_product_branches").select("*").order("sort_order"),
-        client.from("instagram_posts").select("*").order("sort_order"),
-        client.from("media").select("*"),
-        client.from("branches").select("*").order("sort_order"),
+        client
+          .from("merch_products")
+          .select("id, slug, product_type, name, price_cents, description, detail, image_media_id, metadata, is_active, sort_order")
+          .order("sort_order"),
+        client
+          .from("merch_product_branches")
+          .select("merch_product_id, branch_id, is_available, sort_order")
+          .order("sort_order"),
+        client
+          .from("instagram_posts")
+          .select("id, external_id, image_media_id, branch_id, metadata, image_alt, caption, published_at, permalink")
+          .order("sort_order"),
+        client
+          .from("branches")
+          .select("id, slug, name, short_description, address_line, district, city, maps_url, features")
+          .order("sort_order"),
         getEventPublicData(),
       ]);
 
     if (productsResult.error) throw productsResult.error;
     if (productLinksResult.error) throw productLinksResult.error;
     if (instagramResult.error) throw instagramResult.error;
-    if (mediaResult.error) throw mediaResult.error;
     if (branchesResult.error) throw branchesResult.error;
 
+    const mediaIds = [...new Set([
+      ...(productsResult.data ?? []).map((product) => product.image_media_id),
+      ...(instagramResult.data ?? []).map((post) => post.image_media_id),
+    ].filter((id): id is string => Boolean(id)))];
+    let mediaRows: PublicMediaRow[] = [];
+    if (mediaIds.length) {
+      const mediaResult = await client
+        .from("media")
+        .select("id, source, bucket_name, object_path, external_url, local_path, alt_text, width, height")
+        .in("id", mediaIds);
+      if (mediaResult.error) throw mediaResult.error;
+      mediaRows = mediaResult.data ?? [];
+    }
+
     const mediaByUuid = new Map(
-      (mediaResult.data ?? []).map((media) => [media.id, media]),
+      mediaRows.map((media) => [media.id, media]),
     );
     const branchByUuid = new Map(
       (branchesResult.data ?? []).map((branch) => [branch.id, branch]),
@@ -347,8 +419,15 @@ export async function getHomePublicData(): Promise<PublicDataEnvelope<HomePublic
       },
     );
 
-    const menuBranches = parseMenuBranches(blocks.get("menu-branches"));
-    const locationBranches = parseLocations(blocks.get("locations"));
+    const branchRows = branchesResult.data ?? [];
+    const menuBranches = mergeMenuBranchesWithAdmin(
+      parseMenuBranches(blocks.get("menu-branches")),
+      branchRows,
+    );
+    const locationBranches = mergeLocationsWithAdmin(
+      parseLocations(blocks.get("locations")),
+      branchRows,
+    );
     const memoryPhotos = parseMemoryPhotos(blocks.get("memories-gallery"));
     const doodles = parseDoodles(blocks.get("merch-doodles"));
 
@@ -379,3 +458,5 @@ export async function getHomePublicData(): Promise<PublicDataEnvelope<HomePublic
     };
   }
 }
+
+export const getHomePublicData = cache(loadHomePublicData);

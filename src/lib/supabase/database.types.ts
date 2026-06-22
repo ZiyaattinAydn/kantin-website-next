@@ -789,12 +789,20 @@ export type Database = {
           availability_days: string[];
           experience: string | null;
           introduction: string;
-          cv_media_id: string;
+          cv_media_id: string | null;
           consent_given: boolean;
           consented_at: string;
           consent_version: string;
           status: Database["public"]["Enums"]["job_application_status"];
           admin_notes: string | null;
+          privacy_status: Database["public"]["Enums"]["job_application_privacy_status"];
+          retention_until: string;
+          archived_at: string | null;
+          anonymization_started_at: string | null;
+          anonymized_at: string | null;
+          anonymized_by: string | null;
+          cv_deleted_at: string | null;
+          anonymization_error: string | null;
           submission_token: string;
           submission_fingerprint: string | null;
           source_ip_hash: string | null;
@@ -815,12 +823,20 @@ export type Database = {
           availability_days: string[];
           experience?: string | null;
           introduction: string;
-          cv_media_id: string;
+          cv_media_id?: string | null;
           consent_given: boolean;
           consented_at: string;
           consent_version: string;
           status?: Database["public"]["Enums"]["job_application_status"];
           admin_notes?: string | null;
+          privacy_status?: Database["public"]["Enums"]["job_application_privacy_status"];
+          retention_until?: string;
+          archived_at?: string | null;
+          anonymization_started_at?: string | null;
+          anonymized_at?: string | null;
+          anonymized_by?: string | null;
+          cv_deleted_at?: string | null;
+          anonymization_error?: string | null;
           submission_token?: string;
           submission_fingerprint?: string | null;
           source_ip_hash?: string | null;
@@ -841,12 +857,20 @@ export type Database = {
           availability_days?: string[];
           experience?: string | null;
           introduction?: string;
-          cv_media_id?: string;
+          cv_media_id?: string | null;
           consent_given?: boolean;
           consented_at?: string;
           consent_version?: string;
           status?: Database["public"]["Enums"]["job_application_status"];
           admin_notes?: string | null;
+          privacy_status?: Database["public"]["Enums"]["job_application_privacy_status"];
+          retention_until?: string;
+          archived_at?: string | null;
+          anonymization_started_at?: string | null;
+          anonymized_at?: string | null;
+          anonymized_by?: string | null;
+          cv_deleted_at?: string | null;
+          anonymization_error?: string | null;
           submission_token?: string;
           submission_fingerprint?: string | null;
           source_ip_hash?: string | null;
@@ -855,6 +879,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "job_applications_anonymized_by_fkey";
+            columns: ["anonymized_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "job_applications_preferred_branch_id_fkey";
             columns: ["preferred_branch_id"];
@@ -1178,6 +1209,23 @@ export type Database = {
         Args: { p_session_id: string; p_upload_token: string };
         Returns: boolean;
       };
+      begin_job_application_anonymization: {
+        Args: { p_application_id: string };
+        Returns: {
+          application_id: string;
+          media_id: string | null;
+          bucket_name: string | null;
+          object_path: string | null;
+        }[];
+      };
+      cancel_job_application_anonymization: {
+        Args: { p_application_id: string; p_reason: string };
+        Returns: boolean;
+      };
+      complete_job_application_anonymization: {
+        Args: { p_application_id: string };
+        Returns: boolean;
+      };
       is_admin: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
@@ -1203,6 +1251,7 @@ export type Database = {
       menu_category_display: "price_table" | "compact" | "cards" | "editorial" | "feature" | "coffee" | "custom";
       inventory_status: "available" | "limited" | "out_of_stock" | "discontinued";
       job_application_status: "new" | "reviewing" | "contacted" | "rejected" | "hired" | "archived";
+      job_application_privacy_status: "active" | "anonymization_pending" | "anonymized";
       employment_type: "full_time" | "part_time";
       job_department: "service" | "kitchen" | "bar" | "cashier";
       shift_preference: "morning" | "evening" | "flexible";

@@ -32,6 +32,7 @@ export default function LocationCard({ branch }: { branch: LocationBranch }) {
           <p className="eyebrow">{branch.eyebrow}</p>
           <h3>{branch.title}</h3>
           <p>{branch.address}</p>
+          {branch.description ? <p>{branch.description}</p> : null}
         </div>
         <div className="branch-actions">
           <ActionLink href={branch.mapsUrl} variant="primary" external>

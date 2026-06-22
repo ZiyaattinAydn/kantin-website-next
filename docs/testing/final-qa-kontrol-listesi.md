@@ -7,6 +7,10 @@
 - [ ] `npx tsc --noEmit`
 - [ ] `npm run build`
 - [ ] `npm run preflight`
+- [ ] `npm run test:unit:coverage`
+- [ ] Yerel Docker/Supabase ile `npm run test:db`
+- [ ] Yerel Supabase ve TEST admin hesabıyla `npm run test:e2e`
+- [ ] Tam yerel regresyon için `npm run verify:local`
 - [ ] `npm audit` sonucu incelendi; otomatik `--force` uygulanmadı
 
 ## Public sayfalar
@@ -42,6 +46,9 @@
 - [ ] Çok uzun metin
 - [ ] Yavaş bağlantı/loading
 - [ ] Yayından kaldırılmış/pasif içerik public görünmüyor
+- [ ] `site_pages` SEO değişiklikleri public metadata'ya yansıyor
+- [ ] Menü ürünü görseli doğru şube panelinde ve alt metinle görünüyor
+- [ ] Şube adresi, harita, telefon, e-posta ve çalışma saati public kartlara yansıyor
 
 ## Kariyer ve güvenlik
 
@@ -52,6 +59,12 @@
 - [ ] Başvuru public okunamıyor
 - [ ] CV public URL ile açılamıyor
 - [ ] Admin signed URL ile CV indirebiliyor
+- [ ] Retention tarihi dolan aktif başvuru admin ekranında uyarılıyor
+- [ ] Arşivlenmemiş başvuru anonimleştirilemiyor
+- [ ] Yanlış onay metni anonimleştirme başlatmıyor
+- [ ] CV Storage silme hatası başvuruyu değiştirmiyor ve kilidi geri alıyor
+- [ ] Tamamlanan anonimleştirme PII/hash/admin notu/CV kaydını temizliyor
+- [ ] Bekleyen veya anonimleştirilmiş kayıtta CV endpoint'i `410` dönüyor
 
 ## Admin
 
@@ -60,9 +73,20 @@
 - [ ] Admin giriş/çıkış
 - [ ] Faz 9 TEST CRUD kayıtları
 - [ ] Görsel yükleme ve kullanılma kontrolü
+- [ ] Kullanılan medya arşivlenemiyor; bağlı admin kayıtları listeleniyor
+- [ ] JSON içerik bloğundaki doğrudan medya yolu kullanım sayısına dahil
+- [ ] Arşivlenmiş medya seçim listesinde yok ve yeniden yayına alınabiliyor
+- [ ] Kalıcı silme yalnız bağlantısız TEST_ Storage medyasında açılıyor
 - [ ] Tema ayarı ve güvenli varsayılana dönüş
 - [ ] Mobil admin navigasyonu
 - [ ] İşlem logları oluşuyor
+- [ ] Generic CRUD 25 kayıttan sonra önceki/sonraki sayfa bağlantılarını gösteriyor
+- [ ] Medya arama ve aktif/arşiv filtresi sayfalar arasında korunuyor
+- [ ] Kariyer arama, durum, privacy ve retention filtreleri server-side sonuç veriyor
+- [ ] Kariyer listesi tam tanıtım/admin notunu yalnız İncele açıldığında okuyor
+- [ ] Generic CRUD geçersiz UUID, select, slug, e-posta, HTTPS, negatif fiyat ve ondalıklı sıra değerini DB'ye gitmeden reddediyor
+- [ ] JSON editörü bozuk sözdiziminde kaydı engelliyor ve biçimlendirme eylemi geçerli JSON'u okunabilir hale getiriyor
+- [ ] JSON şema hatası doğru alanı işaretliyor; çalışma saatleri, içerik bloğu ve kontrollü tema ayarları kaynak kuralına göre doğrulanıyor
 
 ## Deployment
 
@@ -74,6 +98,7 @@
 - [ ] robots.txt ve sitemap
 - [ ] Production'da fallback uyarısı yok
 - [ ] Admin canlı adreste çalışıyor
+- [ ] Otomatik testler Preview/Production URL'sine karşı çalıştırılmadı
 
 ## Teslim
 

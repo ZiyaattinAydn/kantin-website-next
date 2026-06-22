@@ -201,6 +201,13 @@
   line-height: 1.55;
 }
 
+.branchDescription {
+  margin: 12px 0 0;
+  color: var(--ink);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
 .featureList {
   display: flex;
   flex-wrap: wrap;
@@ -226,6 +233,28 @@
   color: var(--muted);
   font-size: 0.82rem;
   line-height: 1.5;
+}
+
+.hoursNote p {
+  margin: 0;
+}
+
+.hoursNote p + p {
+  margin-top: 4px;
+}
+
+.branchContacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 14px;
+}
+
+.branchContacts a {
+  color: var(--blue);
+  font-size: 0.8rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .branchActions {

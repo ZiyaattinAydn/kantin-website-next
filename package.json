@@ -7,6 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:unit": "vitest run",
+    "test:unit:coverage": "vitest run --coverage",
+    "test:db": "node scripts/assert-local-test-target.mjs --require-supabase && supabase test db",
+    "test:e2e": "node scripts/assert-local-test-target.mjs --require-supabase && playwright test",
+    "test:security": "npm run test:unit && npm run test:db",
+    "test:all": "npm run lint && tsc --noEmit && npm run test:unit && npm run test:db && npm run test:e2e",
+    "verify:local": "node scripts/assert-local-test-target.mjs --require-supabase && npm run test:all",
     "verify:production": "node scripts/verify-production.mjs",
     "check": "npm run lint && tsc --noEmit && npm run build",
     "preflight": "node scripts/project-preflight.mjs",
@@ -20,11 +27,19 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.9",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
-    "typescript": "^5"
+    "jsdom": "^29.1.1",
+    "supabase": "^2.107.0",
+    "typescript": "^5",
+    "vitest": "^4.1.9"
   }
 }

@@ -96,6 +96,11 @@ export type HomePublicData = {
   eventData: EventPublicData;
 };
 
+export type MerchPublicData = Pick<
+  HomePublicData,
+  "merchDoodles" | "merchProducts" | "merchBundles"
+>;
+
 export type BranchIntroData = {
   kicker: string;
   titleLines: string[];
@@ -127,8 +132,20 @@ export type MenuHeroData = {
   mark: string;
 };
 
+export type MenuItemImageData = {
+  itemId: string;
+  slug: string;
+  name: string;
+  branch: "alsancak" | "atakent";
+  imageUrl: string;
+  imageAlt: string;
+  width: number;
+  height: number;
+};
+
 export type MenuPublicData = {
   hasMenuData: boolean;
+  itemImages: MenuItemImageData[];
   branchOptions: Array<{ id: "alsancak" | "atakent"; label: string; description: string }>;
   menuHero: MenuHeroData;
   alsancakIntro: BranchIntroData;

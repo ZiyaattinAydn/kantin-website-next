@@ -1,13 +1,15 @@
-import type { Metadata } from "next";
 import CareersPage from "@/components/careers/CareersPage";
 import PublicPageShell from "@/components/layout/PublicPageShell";
+import { getPagePublicMetadata } from "@/lib/public-data/metadata";
 
-export const metadata: Metadata = {
-  title: "Ekibe Katıl",
-  description:
-    "Kantin Alsancak ve Atakent şubeleri için servis, mutfak, bar ve kasa ekip başvurusu.",
-  alternates: { canonical: "/careers" },
-};
+export function generateMetadata() {
+  return getPagePublicMetadata("careers", {
+    title: "Ekibe Katıl",
+    description:
+      "Kantin Alsancak ve Atakent şubeleri için servis, mutfak, bar ve kasa ekip başvurusu.",
+    canonical: "/careers",
+  });
+}
 
 export default function CareersRoute() {
   return (

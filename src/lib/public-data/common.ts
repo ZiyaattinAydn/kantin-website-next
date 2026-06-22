@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 import { fallbackCommonData } from "./fallbacks";
 import {
@@ -17,6 +18,23 @@ import type {
 import type { Branch } from "@/types/domain";
 import type { FooterLink, NavigationItem } from "@/types/content";
 import { parseSectionVisibility, parseThemeSettings } from "@/lib/theme/settings";
+
+export function parseOpeningHours(value: unknown): string[] {
+  const record = asRecord(value);
+  const notice = stringValue(record.notice) || stringValue(record.note);
+  const items = Array.isArray(record.items) ? record.items : [];
+  const lines = items
+    .map((item) => {
+      if (typeof item === "string") return item.trim();
+      const row = asRecord(item);
+      const label = stringValue(row.label) || stringValue(row.day);
+      const hours = stringValue(row.hours) || stringValue(row.value);
+      return label && hours ? `${label}: ${hours}` : hours;
+    })
+    .filter(Boolean);
+
+  return [...new Set([notice, ...lines].filter(Boolean))];
+}
 
 function parsePrimaryNavigation(value: unknown): NavigationItem[] {
   return arrayOfRecords(value)
@@ -46,7 +64,7 @@ function parseFooterNavigation(value: unknown): FooterNavigationGroup[] {
     .filter((group) => group.title && group.links.length);
 }
 
-function mapBranch(row: {
+export function mapBranch(row: {
   slug: string;
   code: string;
   name: string;
@@ -54,6 +72,10 @@ function mapBranch(row: {
   district: string;
   city: string;
   maps_url: string;
+  short_description: string | null;
+  phone: string | null;
+  public_email: string | null;
+  opening_hours: unknown;
   features: string[];
   is_active: boolean;
   sort_order: number;
@@ -69,6 +91,10 @@ function mapBranch(row: {
     district: row.district,
     city: row.city,
     mapsUrl: row.maps_url,
+    shortDescription: row.short_description ?? undefined,
+    phone: row.phone ?? undefined,
+    publicEmail: row.public_email ?? undefined,
+    openingHours: parseOpeningHours(row.opening_hours),
     features: [...row.features],
     active: row.is_active,
     sortOrder: row.sort_order,
@@ -76,11 +102,14 @@ function mapBranch(row: {
 }
 
 
-export async function getCommonPublicData(): Promise<PublicDataEnvelope<CommonPublicData>> {
+async function loadCommonPublicData(): Promise<PublicDataEnvelope<CommonPublicData>> {
   try {
     const client = createPublicClient();
     const [branchesResult, settingsResult] = await Promise.all([
-      client.from("branches").select("*").order("sort_order"),
+      client
+        .from("branches")
+        .select("slug, code, name, address_line, district, city, maps_url, short_description, phone, public_email, opening_hours, features, is_active, sort_order")
+        .order("sort_order"),
       client
         .from("site_settings")
         .select("key, value")
@@ -179,3 +208,5 @@ export async function getCommonPublicData(): Promise<PublicDataEnvelope<CommonPu
     };
   }
 }
+
+export const getCommonPublicData = cache(loadCommonPublicData);

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import AdminJsonField from "./AdminJsonField";
+import AdminPagination from "./AdminPagination";
 import ConfirmSubmitButton from "./ConfirmSubmitButton";
 import styles from "./AdminResource.module.css";
 import {
@@ -7,6 +9,7 @@ import {
   saveAdminResource,
 } from "@/lib/admin/resource-actions";
 import type { AdminOptionsMap } from "@/lib/admin/options";
+import type { AdminPagination as PaginationData } from "@/lib/admin/pagination";
 import type { AdminField, AdminResource } from "@/lib/admin/resources";
 import {
   displayValue,
@@ -49,21 +52,34 @@ function fieldOptions(field: AdminField, options: AdminOptionsMap) {
 
 function FieldControl({
   field,
+  error,
+  errorField,
   record,
   options,
 }: {
   field: AdminField;
+  error?: string;
+  errorField?: string;
   record: Record<string, unknown> | null;
   options: AdminOptionsMap;
 }) {
   const value = fieldDefault(field, record);
   const isWide = field.type === "textarea" || field.type === "json";
+  const invalid = errorField === field.name;
+  const errorId = invalid ? `${field.name}-error` : undefined;
 
   if (field.type === "checkbox") {
     return (
       <label className={styles.checkbox}>
-        <input defaultChecked={Boolean(value)} name={field.name} type="checkbox" />
+        <input
+          aria-describedby={errorId}
+          aria-invalid={invalid}
+          defaultChecked={Boolean(value)}
+          name={field.name}
+          type="checkbox"
+        />
         <span>{field.label}</span>
+        {invalid && error ? <small className={styles.fieldError} id={errorId}>{error}</small> : null}
       </label>
     );
   }
@@ -72,18 +88,32 @@ function FieldControl({
     id: field.name,
     name: field.name,
     required: field.required,
+    "aria-describedby": errorId,
+    "aria-invalid": invalid,
   };
 
   return (
     <label className={`${styles.field} ${isWide ? styles.fieldWide : ""}`} htmlFor={field.name}>
       <span>{field.label}</span>
-      {field.type === "textarea" || field.type === "json" ? (
+      {field.type === "json" ? (
+        <AdminJsonField
+          defaultValue={String(value)}
+          describedBy={errorId}
+          id={field.name}
+          invalid={invalid}
+          name={field.name}
+          placeholder={field.placeholder}
+          required={field.required}
+          rows={field.rows ?? 10}
+        />
+      ) : field.type === "textarea" ? (
         <textarea
           {...common}
           defaultValue={String(value)}
+          maxLength={10_000}
           placeholder={field.placeholder}
-          rows={field.rows ?? (field.type === "json" ? 10 : 4)}
-          spellCheck={field.type !== "json"}
+          rows={field.rows ?? 4}
+          spellCheck
         />
       ) : field.type === "select" || field.type === "foreign" ? (
         <select {...common} defaultValue={String(value)}>
@@ -100,12 +130,16 @@ function FieldControl({
           {...common}
           defaultValue={String(value)}
           inputMode={field.type === "money" || field.type === "number" ? "decimal" : undefined}
+          maxLength={field.type === "string-array" ? 6_000 : field.type === "text" ? 500 : undefined}
           min={field.type === "money" || field.type === "number" ? 0 : undefined}
+          pattern={field.name === "slug" ? "[a-z0-9]+(?:-[a-z0-9]+)*" : undefined}
           placeholder={field.placeholder}
           step={field.type === "money" ? "0.01" : field.type === "number" ? "1" : undefined}
           type={
             field.type === "datetime"
               ? "datetime-local"
+              : field.name === "public_email"
+                ? "email"
               : field.type === "url"
                 ? "url"
                 : field.type === "number" || field.type === "money"
@@ -115,6 +149,7 @@ function FieldControl({
         />
       )}
       {field.help ? <small>{field.help}</small> : null}
+      {invalid && error ? <small className={styles.fieldError} id={errorId}>{error}</small> : null}
     </label>
   );
 }
@@ -144,28 +179,26 @@ export default function AdminResourceEditor({
   rows,
   record,
   options,
+  pagination,
   search,
   notice,
   error,
+  errorField,
   showNew,
 }: {
   resource: AdminResource;
   rows: Record<string, unknown>[];
   record: Record<string, unknown> | null;
   options: AdminOptionsMap;
+  pagination: PaginationData;
   search: string;
   notice?: string;
   error?: string;
+  errorField?: string;
   showNew: boolean;
 }) {
   const editorOpen = showNew || Boolean(record);
-  const visibleRows = search
-    ? rows.filter((row) =>
-        resource.searchFields.some((field) =>
-          String(row[field] ?? "").toLocaleLowerCase("tr-TR").includes(search.toLocaleLowerCase("tr-TR")),
-        ),
-      )
-    : rows;
+  const visibleRows = rows;
 
   return (
     <section className={styles.page}>
@@ -202,7 +235,7 @@ export default function AdminResourceEditor({
         <div className={styles.panel}>
           <div className={styles.panelTitle}>
             <h2>Kayıtlar</h2>
-            <span>{visibleRows.length} / {rows.length}</span>
+            <span>{visibleRows.length} / {pagination.total}</span>
           </div>
           {visibleRows.length ? (
             <div className={styles.tableWrap}>
@@ -238,6 +271,11 @@ export default function AdminResourceEditor({
           ) : (
             <p className={styles.empty}>Bu filtreyle eşleşen kayıt yok.</p>
           )}
+          <AdminPagination
+            basePath={`/admin/manage/${resource.key}`}
+            pagination={pagination}
+            query={{ q: search || undefined }}
+          />
         </div>
 
         {editorOpen ? (
@@ -252,7 +290,14 @@ export default function AdminResourceEditor({
               <input name="_id" type="hidden" value={record && typeof record.id === "string" ? record.id : ""} />
               <div className={styles.formGrid}>
                 {resource.fields.map((field) => (
-                  <FieldControl field={field} key={field.name} options={options} record={record} />
+                  <FieldControl
+                    error={error}
+                    errorField={errorField}
+                    field={field}
+                    key={field.name}
+                    options={options}
+                    record={record}
+                  />
                 ))}
               </div>
               <div className={styles.formActions}>

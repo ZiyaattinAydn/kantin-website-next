@@ -18,6 +18,10 @@ Kantin Alsancak ve Atakent şubeleri için geliştirilen, canlı içerik yöneti
 
 - Responsive ana sayfa, şube menüleri, etkinlikler, merch, galeri, Instagram alanı ve detaylı footer
 - Supabase canlı veri katmanı ve bağlantı hatasında doğrulanmış statik fallback
+- Admin kontrollü sayfa SEO'su, menü ürün görselleri ve public şube iletişim/saat bilgileri
+- FK ve JSON içerik yollarını izleyen güvenli medya arşivleme/geri alma akışı
+- Kariyer başvurularında 180 gün retention incelemesi ve private CV silmeli iki aşamalı anonimleştirme
+- Request-level public veri deduplication ve 25 kayıtlı server-side admin pagination
 - Kariyer başvurusu, spam önleme ve private CV yükleme
 - Supabase Auth ile rol kontrollü yönetici girişi
 - Menü, kategori, fiyat/varyant, etkinlik, merch, Instagram, şube, site ayarı, medya ve kariyer CRUD
@@ -56,6 +60,20 @@ npx tsc --noEmit
 npm run build
 npm run preflight
 ```
+
+Otomatik regresyon testleri:
+
+```bash
+npm run test:unit
+npm run test:unit:coverage
+npm run test:db
+npm run test:e2e
+npm run verify:local
+```
+
+`test:db` ve `test:e2e` yalnız yerel Supabase yığını kabul eder. Docker Desktop açıkken `npx supabase start` ile yerel servisler başlatılmalı; `NEXT_PUBLIC_SUPABASE_URL`, `PLAYWRIGHT_BASE_URL` ve test anahtarları komut ortamında açıkça yerel değerlere ayarlanmalıdır. Uzak Preview veya Production URL'leri güvenlik kontrolü tarafından reddedilir.
+
+Test katmanları ve gerekli process değişkenleri için [Faz 14A test stratejisine](docs/testing/faz-14a-test-stratejisi.md) bak.
 
 Tek komutla lint + TypeScript + production build:
 
@@ -113,6 +131,8 @@ Doğrulama sorguları `supabase/verification/` altındadır. Manuel ve yalnızca
 - [Bakım ve yedekleme](docs/operations/bakim-ve-yedekleme.md)
 - [Bug/debugging rehberi](docs/debugging/bug-debugging-rehberi.md)
 - [Final QA kontrol listesi](docs/testing/final-qa-kontrol-listesi.md)
+- [Faz 14A otomatik test stratejisi](docs/testing/faz-14a-test-stratejisi.md)
+- [Faz 14F tipli CRUD ve kontrollü formlar](docs/testing/faz-14f-typed-crud-ve-kontrollu-formlar.md)
 - [Production kapanış rehberi](docs/deployment/production-kapanis.md)
 - [Güvenlik ve kişisel veri notları](docs/security/guvenlik-ve-kisisel-veri.md)
 - [Sürüm notları](CHANGELOG.md)

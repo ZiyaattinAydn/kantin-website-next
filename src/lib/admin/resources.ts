@@ -4,6 +4,10 @@ import type { Database } from "@/lib/supabase/database.types";
 
 export type AdminTable = keyof Database["public"]["Tables"];
 
+export type AdminColumn<Table extends AdminTable> = Table extends AdminTable
+  ? Extract<keyof Database["public"]["Tables"][Table]["Row"], string>
+  : never;
+
 export type AdminFieldType =
   | "text"
   | "textarea"
@@ -27,8 +31,8 @@ export type AdminOptionSource =
   | "events"
   | "merch-products";
 
-export type AdminField = {
-  name: string;
+export type AdminField<Table extends AdminTable = AdminTable> = {
+  name: AdminColumn<Table>;
   label: string;
   type: AdminFieldType;
   required?: boolean;
@@ -41,25 +45,29 @@ export type AdminField = {
   placeholder?: string;
 };
 
-export type AdminResource = {
+type AdminResourceFor<Table extends AdminTable> = {
   key: string;
-  table: AdminTable;
+  table: Table;
   title: string;
   singular: string;
   description: string;
   group: "menu" | "events" | "merch" | "content" | "site";
-  fields: readonly AdminField[];
-  listFields: readonly string[];
-  labelField: string;
-  searchFields: readonly string[];
-  orderField: string;
+  fields: readonly AdminField<Table>[];
+  listFields: readonly AdminColumn<Table>[];
+  labelField: AdminColumn<Table>;
+  searchFields: readonly AdminColumn<Table>[];
+  orderField: AdminColumn<Table>;
   allowCreate?: boolean;
   allowArchive?: boolean;
   allowHardDeleteTest?: boolean;
   testFields?: readonly string[];
-  activeField?: "is_active" | "is_available";
-  statusField?: "status";
+  activeField?: Extract<AdminColumn<Table>, "is_active" | "is_available">;
+  statusField?: Extract<AdminColumn<Table>, "status">;
 };
+
+export type AdminResource = {
+  [Table in AdminTable]: AdminResourceFor<Table>;
+}[AdminTable];
 
 const contentStatusOptions = [
   { value: "draft", label: "Taslak" },

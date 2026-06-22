@@ -1,14 +1,16 @@
-import type { Metadata } from "next";
 import EventsPageClient from "@/components/events/EventsPageClient";
 import PublicPageShell from "@/components/layout/PublicPageShell";
 import { getCommonPublicData } from "@/lib/public-data/common";
 import { getEventPublicData } from "@/lib/public-data/events";
+import { getPagePublicMetadata } from "@/lib/public-data/metadata";
 
-export const metadata: Metadata = {
-  title: "Etkinlikler",
-  description: "Kantin Alsancak ve Atakent şubelerindeki yaklaşan etkinlikler.",
-  alternates: { canonical: "/events" },
-};
+export function generateMetadata() {
+  return getPagePublicMetadata("events", {
+    title: "Etkinlikler",
+    description: "Kantin Alsancak ve Atakent şubelerindeki yaklaşan etkinlikler.",
+    canonical: "/events",
+  });
+}
 
 export const dynamic = "force-dynamic";
 

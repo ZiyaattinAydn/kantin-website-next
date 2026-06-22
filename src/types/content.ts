@@ -41,6 +41,7 @@ export type LocationBranch = {
   eyebrow: string;
   title: string;
   address: string;
+  description?: string;
   mapsUrl: string;
   images: ImageAsset[];
   delayClass?: string;

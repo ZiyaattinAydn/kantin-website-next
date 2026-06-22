@@ -14,6 +14,17 @@ const required = [
   "package.json",
   "package-lock.json",
   ".env.example",
+  "vitest.config.ts",
+  "playwright.config.ts",
+  "scripts/assert-local-test-target.mjs",
+  "src/lib/admin/pagination.ts",
+  "src/lib/public-data/merch.ts",
+  "supabase/config.toml",
+  "supabase/tests/rls_policies.test.sql",
+  "supabase/tests/storage_policies.test.sql",
+  "supabase/tests/career_rpc.test.sql",
+  "supabase/tests/career_retention.test.sql",
+  "supabase/tests/admin_audit.test.sql",
   "src/app/page.tsx",
   "src/app/menu/page.tsx",
   "src/app/events/page.tsx",
@@ -29,6 +40,7 @@ const required = [
   "supabase/migrations/20260620050000_admin_auth_hardening.sql",
   "supabase/migrations/20260620060000_admin_crud_support.sql",
   "supabase/migrations/20260620070000_controlled_theme_settings.sql",
+  "supabase/migrations/20260622080000_career_retention_anonymization.sql",
 ];
 
 const missing = required.filter((file) => !exists(file));

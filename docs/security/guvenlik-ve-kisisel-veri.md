@@ -21,7 +21,8 @@ Bu belge teknik çalışma notudur; hukuki danışmanlık yerine geçmez.
 - CV indirme yalnız kısa süreli signed URL ile yapılır.
 - Ham IP ve user-agent saklanmaz; spam kontrolünde hash kullanılır.
 - Gereksiz kişisel veri admin notlarına yazılmamalıdır.
-- İşleme amacı ve saklama süresi sona erdiğinde başvuru ve CV için silme/anonimleştirme prosedürü uygulanmalıdır.
+- Varsayılan retention inceleme süresi 180 gündür; bu tarih otomatik silme yapmaz.
+- İşleme amacı veya saklama süresi sona erdiğinde [iki aşamalı CV silme ve anonimleştirme prosedürü](kariyer-retention-anonimlestirme.md) uygulanır.
 
 ## Operasyon
 

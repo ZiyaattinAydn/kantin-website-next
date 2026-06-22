@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 import { fallbackMenuData } from "./fallbacks";
 import {
@@ -7,10 +8,16 @@ import {
   formatTryFromCents,
   getPageBlocks,
   normaliseIssue,
+  resolveMediaUrl,
   stringValue,
+  type PublicMediaRow,
   type TableRow,
 } from "./helpers";
-import type { PublicDataEnvelope, MenuPublicData } from "./types";
+import type {
+  MenuItemImageData,
+  MenuPublicData,
+  PublicDataEnvelope,
+} from "./types";
 import type {
   CoffeeMenuGroup,
   CompactMenuItem,
@@ -21,11 +28,65 @@ import type {
 
 type BranchSlug = "alsancak" | "atakent";
 
+type MenuItemRow = Pick<
+  TableRow<"menu_items">,
+  | "id"
+  | "category_id"
+  | "slug"
+  | "name"
+  | "description"
+  | "detail"
+  | "highlight_text"
+  | "allergen_text"
+  | "badges"
+  | "image_media_id"
+  | "metadata"
+  | "sort_order"
+>;
+type MenuItemBranchRow = Pick<
+  TableRow<"menu_item_branches">,
+  "id" | "menu_item_id" | "branch_id" | "price_cents" | "price_label" | "price_note" | "sort_order"
+>;
+type MenuItemVariantRow = Pick<
+  TableRow<"menu_item_variants">,
+  "menu_item_branch_id" | "label" | "price_cents" | "sort_order"
+>;
+
 type MenuEntry = {
-  item: TableRow<"menu_items">;
-  link: TableRow<"menu_item_branches">;
-  variants: TableRow<"menu_item_variants">[];
+  item: MenuItemRow;
+  link: MenuItemBranchRow;
+  variants: MenuItemVariantRow[];
 };
+
+export function mapMenuItemImages(
+  client: Parameters<typeof resolveMediaUrl>[0],
+  entries: Array<{
+    item: Pick<TableRow<"menu_items">, "id" | "slug" | "name" | "image_media_id">;
+    branch: BranchSlug;
+  }>,
+  mediaRows: PublicMediaRow[],
+): MenuItemImageData[] {
+  const mediaById = new Map(mediaRows.map((media) => [media.id, media]));
+
+  return entries.flatMap(({ item, branch }) => {
+    const media = item.image_media_id
+      ? mediaById.get(item.image_media_id)
+      : undefined;
+    const imageUrl = resolveMediaUrl(client, media);
+    if (!media || !imageUrl) return [];
+
+    return [{
+      itemId: item.id,
+      slug: item.slug,
+      name: item.name,
+      branch,
+      imageUrl,
+      imageAlt: media.alt_text ?? item.name,
+      width: media.width ?? 960,
+      height: media.height ?? 720,
+    }];
+  });
+}
 
 function withHighlightPlaceholder(description: string | null, highlight: string | null) {
   if (!description) return undefined;
@@ -81,36 +142,57 @@ function editorialFromEntry(entry: MenuEntry): EditorialMenuItem {
   };
 }
 
-export async function getMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>> {
+async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>> {
   try {
     const client = createPublicClient();
     const [
       blocks,
       branchesResult,
       categoriesResult,
-      categoryLinksResult,
       itemsResult,
       itemLinksResult,
       variantsResult,
     ] = await Promise.all([
       getPageBlocks(client, "menu"),
-      client.from("branches").select("*").order("sort_order"),
-      client.from("menu_categories").select("*").order("sort_order"),
-      client.from("menu_category_branches").select("*").order("sort_order"),
-      client.from("menu_items").select("*").order("sort_order"),
-      client.from("menu_item_branches").select("*").order("sort_order"),
-      client.from("menu_item_variants").select("*").order("sort_order"),
+      client.from("branches").select("id, slug, name, short_description").order("sort_order"),
+      client.from("menu_categories").select("id, slug, metadata").order("sort_order"),
+      client
+        .from("menu_items")
+        .select("id, category_id, slug, name, description, detail, highlight_text, allergen_text, badges, image_media_id, metadata, sort_order")
+        .order("sort_order"),
+      client
+        .from("menu_item_branches")
+        .select("id, menu_item_id, branch_id, price_cents, price_label, price_note, sort_order")
+        .order("sort_order"),
+      client
+        .from("menu_item_variants")
+        .select("menu_item_branch_id, label, price_cents, sort_order")
+        .order("sort_order"),
     ]);
 
     for (const result of [
       branchesResult,
       categoriesResult,
-      categoryLinksResult,
       itemsResult,
       itemLinksResult,
       variantsResult,
     ]) {
       if (result.error) throw result.error;
+    }
+
+    const mediaIds = [...new Set(
+      (itemsResult.data ?? [])
+        .map((item) => item.image_media_id)
+        .filter((id): id is string => Boolean(id)),
+    )];
+    const mediaRows: PublicMediaRow[] = [];
+    if (mediaIds.length) {
+      const mediaResult = await client
+        .from("media")
+        .select("id, source, bucket_name, object_path, external_url, local_path, alt_text, width, height")
+        .in("id", mediaIds);
+      if (mediaResult.error) throw mediaResult.error;
+      mediaRows.push(...(mediaResult.data ?? []));
     }
 
     const branchByUuid = new Map(
@@ -122,7 +204,7 @@ export async function getMenuPublicData(): Promise<PublicDataEnvelope<MenuPublic
     const itemByUuid = new Map(
       (itemsResult.data ?? []).map((item) => [item.id, item]),
     );
-    const variantsByLink = new Map<string, TableRow<"menu_item_variants">[]>();
+    const variantsByLink = new Map<string, MenuItemVariantRow[]>();
 
     for (const variant of variantsResult.data ?? []) {
       const variants = variantsByLink.get(variant.menu_item_branch_id) ?? [];
@@ -241,20 +323,25 @@ export async function getMenuPublicData(): Promise<PublicDataEnvelope<MenuPublic
     const hasMenuData = entries.length > 0;
     const data: MenuPublicData = {
       hasMenuData,
+      itemImages: mapMenuItemImages(client, entries, mediaRows),
       branchOptions: [
         {
           id: "alsancak",
           label:
             branchesBySlug.get("alsancak")?.name ??
             fallbackMenuData.branchOptions[0].label,
-          description: "Self-servis · kokteyl yok",
+          description:
+            branchesBySlug.get("alsancak")?.short_description ??
+            "Self-servis · kokteyl yok",
         },
         {
           id: "atakent",
           label:
             branchesBySlug.get("atakent")?.name ??
             fallbackMenuData.branchOptions[1].label,
-          description: "Bubble kokteyl · grill",
+          description:
+            branchesBySlug.get("atakent")?.short_description ??
+            "Bubble kokteyl · grill",
         },
       ],
       menuHero: {
@@ -409,3 +496,5 @@ export async function getMenuPublicData(): Promise<PublicDataEnvelope<MenuPublic
     };
   }
 }
+
+export const getMenuPublicData = cache(loadMenuPublicData);

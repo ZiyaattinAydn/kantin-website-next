@@ -1,9 +1,10 @@
 import "server-only";
 
+import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 import { normalisePublishedEvents, type KantinEvent, type RawEvent } from "@/lib/events";
 import { fallbackCommonData } from "./fallbacks";
-import { normaliseIssue, resolveMediaUrl } from "./helpers";
+import { normaliseIssue, resolveMediaUrl, type PublicMediaRow } from "./helpers";
 import type { EventPublicData, PublicDataEnvelope } from "./types";
 
 function fallbackBranchMaps() {
@@ -28,28 +29,49 @@ function fallbackBranchMaps() {
   };
 }
 
-export async function getEventPublicData(): Promise<PublicDataEnvelope<EventPublicData>> {
+async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData>> {
   const fallbackMaps = fallbackBranchMaps();
 
   try {
     const client = createPublicClient();
-    const [eventsResult, linksResult, branchesResult, mediaResult] = await Promise.all([
-      client.from("events").select("*").order("start_at"),
-      client.from("event_branches").select("*").order("sort_order"),
-      client.from("branches").select("*").order("sort_order"),
-      client.from("media").select("*"),
+    const [eventsResult, linksResult, branchesResult] = await Promise.all([
+      client
+        .from("events")
+        .select("id, title, description, start_at, end_at, venue_name, location_text, external_url, image_media_id")
+        .order("start_at"),
+      client
+        .from("event_branches")
+        .select("event_id, branch_id, sort_order")
+        .order("sort_order"),
+      client
+        .from("branches")
+        .select("id, slug, name, address_line, district, city")
+        .order("sort_order"),
     ]);
 
     if (eventsResult.error) throw eventsResult.error;
     if (linksResult.error) throw linksResult.error;
     if (branchesResult.error) throw branchesResult.error;
-    if (mediaResult.error) throw mediaResult.error;
+    const mediaIds = [...new Set(
+      (eventsResult.data ?? [])
+        .map((event) => event.image_media_id)
+        .filter((id): id is string => Boolean(id)),
+    )];
+    let mediaRows: PublicMediaRow[] = [];
+    if (mediaIds.length) {
+      const mediaResult = await client
+        .from("media")
+        .select("id, source, bucket_name, object_path, external_url, local_path, alt_text, width, height")
+        .in("id", mediaIds);
+      if (mediaResult.error) throw mediaResult.error;
+      mediaRows = mediaResult.data ?? [];
+    }
 
     const branchByUuid = new Map(
       (branchesResult.data ?? []).map((branch) => [branch.id, branch]),
     );
     const mediaByUuid = new Map(
-      (mediaResult.data ?? []).map((media) => [media.id, media]),
+      mediaRows.map((media) => [media.id, media]),
     );
     const branchIdsByEvent = new Map<string, string[]>();
 
@@ -129,3 +151,5 @@ export async function getEventPublicData(): Promise<PublicDataEnvelope<EventPubl
     };
   }
 }
+
+export const getEventPublicData = cache(loadEventPublicData);

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
 import { logAdminAction } from "@/lib/admin/audit";
+import { loadMediaUsageMap } from "@/lib/admin/media-usage";
 import { createClient } from "@/lib/supabase/server";
 import {
   PUBLIC_IMAGE_BUCKETS,
@@ -90,6 +91,9 @@ export async function uploadAdminMedia(formData: FormData): Promise<never> {
   }
 
   revalidatePath("/admin/media");
+  revalidatePath("/");
+  revalidatePath("/menu");
+  revalidatePath("/events");
   redirect(destination);
 }
 
@@ -101,6 +105,23 @@ export async function archiveAdminMedia(formData: FormData): Promise<never> {
   try {
     if (!id) throw new Error("Medya kaydı bulunamadı.");
     const supabase = await createClient();
+    const { data: media, error: mediaError } = await supabase
+      .from("media")
+      .select("id, title, kind, bucket_name, object_path, external_url, local_path, status, is_active")
+      .eq("id", id)
+      .single();
+    if (mediaError) throw new Error(mediaError.message);
+    if (!media.is_active || media.status === "archived") {
+      throw new Error("Medya kaydı zaten arşivde.");
+    }
+
+    const usages = (await loadMediaUsageMap(supabase, [media])).get(id) ?? [];
+    if (usages.length) {
+      throw new Error(
+        `Bu medya ${usages.length} içerikte kullanılıyor. Önce medya kütüphanesindeki kullanım bağlantılarını kaldır.`,
+      );
+    }
+
     const { data, error } = await supabase
       .from("media")
       .update({ status: "archived", is_active: false })
@@ -121,6 +142,43 @@ export async function archiveAdminMedia(formData: FormData): Promise<never> {
   }
 
   revalidatePath("/admin/media");
+  revalidatePath("/");
+  revalidatePath("/menu");
+  revalidatePath("/events");
+  redirect(destination);
+}
+
+export async function restoreAdminMedia(formData: FormData): Promise<never> {
+  const admin = await requireAdmin();
+  const id = text(formData, "id");
+  let destination: string;
+
+  try {
+    if (!id) throw new Error("Medya kaydı bulunamadı.");
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("media")
+      .update({ status: "published", is_active: true })
+      .eq("id", id)
+      .select("title")
+      .single();
+    if (error) throw new Error(error.message);
+    await logAdminAction({
+      actorId: admin.userId,
+      action: "media_restore",
+      entityType: "media",
+      entityId: id,
+      entityLabel: data.title,
+    });
+    destination = "/admin/media?notice=Medya kaydı yeniden yayına alındı.";
+  } catch (error) {
+    destination = `/admin/media?error=${encodeURIComponent(message(error))}`;
+  }
+
+  revalidatePath("/admin/media");
+  revalidatePath("/");
+  revalidatePath("/menu");
+  revalidatePath("/events");
   redirect(destination);
 }
 
@@ -138,15 +196,8 @@ export async function deleteTestAdminMedia(formData: FormData): Promise<never> {
       throw new Error("Yalnız TEST_ adlı Storage görselleri kalıcı silinebilir.");
     }
 
-    const referenceQueries = [
-      supabase.from("menu_items").select("id", { count: "exact", head: true }).eq("image_media_id", id),
-      supabase.from("events").select("id", { count: "exact", head: true }).eq("image_media_id", id),
-      supabase.from("merch_products").select("id", { count: "exact", head: true }).eq("image_media_id", id),
-      supabase.from("instagram_posts").select("id", { count: "exact", head: true }).eq("image_media_id", id),
-      supabase.from("job_applications").select("id", { count: "exact", head: true }).eq("cv_media_id", id),
-    ];
-    const references = await Promise.all(referenceQueries);
-    if (references.some((result) => (result.count ?? 0) > 0)) {
+    const usages = (await loadMediaUsageMap(supabase, [media])).get(id) ?? [];
+    if (usages.length) {
       throw new Error("Bu medya bir içerikte kullanılıyor; önce içerik bağlantısını kaldır.");
     }
 
@@ -171,5 +222,8 @@ export async function deleteTestAdminMedia(formData: FormData): Promise<never> {
   }
 
   revalidatePath("/admin/media");
+  revalidatePath("/");
+  revalidatePath("/menu");
+  revalidatePath("/events");
   redirect(destination);
 }

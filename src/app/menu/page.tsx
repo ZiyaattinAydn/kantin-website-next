@@ -1,15 +1,17 @@
-import type { Metadata } from "next";
 import PublicPageShell from "@/components/layout/PublicPageShell";
 import MenuPageClient from "@/components/menu/MenuPageClient";
 import { getCommonPublicData } from "@/lib/public-data/common";
-import { getHomePublicData } from "@/lib/public-data/home";
+import { getMenuMerchPublicData } from "@/lib/public-data/merch";
 import { getMenuPublicData } from "@/lib/public-data/menu";
+import { getPagePublicMetadata } from "@/lib/public-data/metadata";
 
-export const metadata: Metadata = {
-  title: "Şube Menüleri",
-  description: "Kantin Alsancak ve Atakent şubelerine özel menüler.",
-  alternates: { canonical: "/menu" },
-};
+export function generateMetadata() {
+  return getPagePublicMetadata("menu", {
+    title: "Şube Menüleri",
+    description: "Kantin Alsancak ve Atakent şubelerine özel menüler.",
+    canonical: "/menu",
+  });
+}
 
 export const dynamic = "force-dynamic";
 
@@ -18,23 +20,23 @@ type MenuPageProps = {
 };
 
 export default async function MenuPage({ searchParams }: MenuPageProps) {
-  const [params, common, menu, home] = await Promise.all([
+  const [params, common, menu, merch] = await Promise.all([
     searchParams,
     getCommonPublicData(),
     getMenuPublicData(),
-    getHomePublicData(),
+    getMenuMerchPublicData(),
   ]);
   const requestedBranch = Array.isArray(params.sube) ? params.sube[0] : params.sube;
   const initialBranch = requestedBranch === "atakent" ? "atakent" : "alsancak";
 
   return (
-    <PublicPageShell common={common} issues={[...menu.issues, ...home.issues]}>
+    <PublicPageShell common={common} issues={[...menu.issues, ...merch.issues]}>
       <MenuPageClient
         initialBranch={initialBranch}
         data={menu.data}
-        merchProducts={home.data.merchProducts}
-        merchBundles={home.data.merchBundles}
-        merchDoodles={home.data.merchDoodles}
+        merchProducts={merch.data.merchProducts}
+        merchBundles={merch.data.merchBundles}
+        merchDoodles={merch.data.merchDoodles}
       />
     </PublicPageShell>
   );

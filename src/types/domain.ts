@@ -14,6 +14,10 @@ export type Branch = {
   district: string;
   city: string;
   mapsUrl: string;
+  shortDescription?: string;
+  phone?: string;
+  publicEmail?: string;
+  openingHours?: readonly string[];
   features: readonly string[];
   active: boolean;
   sortOrder: number;

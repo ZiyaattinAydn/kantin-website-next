@@ -25,7 +25,13 @@ export async function loadAdminOptions(sources: readonly AdminOptionSource[]): P
       return;
     }
     if (source === "media") {
-      const { data } = await supabase.from("media").select("id, title, alt_text, local_path, object_path, source, is_active").eq("kind", "image").order("sort_order");
+      const { data } = await supabase
+        .from("media")
+        .select("id, title, alt_text, local_path, object_path, source")
+        .eq("kind", "image")
+        .eq("is_active", true)
+        .eq("status", "published")
+        .order("sort_order");
       result[source] = (data ?? []).map((row) => ({
         value: row.id,
         label: row.title || row.alt_text || row.local_path || row.object_path || `${row.source} görsel`,

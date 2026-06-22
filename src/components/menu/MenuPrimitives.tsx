@@ -4,6 +4,36 @@ import type {
   FoodMenuItem,
   PriceTableRow,
 } from "@/types/menu";
+import type { MenuItemImageData } from "@/lib/public-data/types";
+import styles from "./MenuItemImages.module.css";
+
+export function MenuItemImages({ items }: { items: MenuItemImageData[] }) {
+  if (!items.length) return null;
+
+  return (
+    <section className={styles.section} aria-label="Görselli menü ürünleri">
+      <div className={styles.head}>
+        <p className="menu-kicker">Menüden seçkiler</p>
+        <span>{items.length} ürün</span>
+      </div>
+      <div className={styles.grid}>
+        {items.map((item) => (
+          <figure className={styles.card} key={`${item.branch}-${item.itemId}`}>
+            <img
+              alt={item.imageAlt}
+              decoding="async"
+              height={item.height}
+              loading="lazy"
+              src={item.imageUrl}
+              width={item.width}
+            />
+            <figcaption>{item.name}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export function SheetTitle({ children }: { children: React.ReactNode }) {
   return (

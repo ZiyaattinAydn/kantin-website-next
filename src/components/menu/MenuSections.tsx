@@ -10,6 +10,7 @@ import {
   CompactList,
   EditorialItems,
   EditorialTitle,
+  MenuItemImages,
   PriceTable,
   SheetTitle,
 } from "./MenuPrimitives";
@@ -168,6 +169,7 @@ export function AlsancakMenuPanel({ hidden, panelRef, data, merchProducts, merch
     <section ref={panelRef} aria-labelledby="tab-alsancak" className="branch-menu-panel alsancak-menu-panel" id="panel-alsancak" role="tabpanel" hidden={hidden}>
       <div className="container">
         <BranchIntro {...data.alsancakIntro} />
+        <MenuItemImages items={data.itemImages.filter((item) => item.branch === "alsancak")} />
         <div className="alsancak-menu-grid">
           <section className="menu-sheet-block reveal"><SheetTitle>Fıçı Biralar</SheetTitle><p className="draft-beer-note">Tüm fıçı biralar Mexican hazırlanabilir.</p><PriceTable headers={["Ürün", "20 cl", "50 cl", "66 cl"]} rows={data.alsancakDraftBeers} headClassName="dark-head" rowClassName="four-cols" /></section>
           <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Şişe Biralar</SheetTitle><CompactList items={data.alsancakBottleBeers} className="bottle-grid-als" /></section>
@@ -194,6 +196,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
       <div className="atakent-drinks">
         <div className="container">
           <BranchIntro {...data.atakentIntro} light />
+          <MenuItemImages items={data.itemImages.filter((item) => item.branch === "atakent")} />
           <div className="menu-editorial-grid">
             <section className="menu-editorial-block reveal"><EditorialTitle>Fıçıdan</EditorialTitle><p className="draft-beer-note draft-beer-note-light">Tüm fıçı biralar Mexican hazırlanabilir.</p><PriceTable headers={["Ürün", "33 cl", "50 cl"]} rows={data.atakentDraftBeers} /></section>
             <section className="menu-editorial-block reveal reveal-delay-1"><EditorialTitle>Bubble Kokteyller</EditorialTitle><EditorialItems items={data.atakentBubbleCocktails} /></section>

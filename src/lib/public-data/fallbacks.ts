@@ -110,6 +110,7 @@ export const fallbackHomeData: HomePublicData = {
 
 export const fallbackMenuData: MenuPublicData = {
   hasMenuData: true,
+  itemImages: [],
   branchOptions: branchOptions.map((branch) => ({ ...branch })),
   menuHero: { ...menuHero },
   alsancakIntro: { ...alsancakIntro, titleLines: [...alsancakIntro.titleLines] },

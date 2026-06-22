@@ -4,6 +4,18 @@ import type { Database, Json } from "@/lib/supabase/database.types";
 export type PublicSupabaseClient = SupabaseClient<Database>;
 export type TableName = keyof Database["public"]["Tables"];
 export type TableRow<T extends TableName> = Database["public"]["Tables"][T]["Row"];
+export type PublicMediaRow = Pick<
+  TableRow<"media">,
+  | "id"
+  | "source"
+  | "bucket_name"
+  | "object_path"
+  | "external_url"
+  | "local_path"
+  | "alt_text"
+  | "width"
+  | "height"
+>;
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -57,7 +69,7 @@ export function formatDisplayDate(date: string, explicit?: unknown): string {
 
 export function resolveMediaUrl(
   client: PublicSupabaseClient,
-  media: TableRow<"media"> | null | undefined,
+  media: PublicMediaRow | null | undefined,
 ): string | null {
   if (!media) return null;
   if (media.source === "local") return media.local_path;

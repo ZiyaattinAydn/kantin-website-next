@@ -24,12 +24,25 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+
   experimental: {
-    serverActions: { bodySizeLimit: "10mb" },
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
   },
+
   images: {
     qualities: [75, 90, 92],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "ezvdflmqftishnoirebe.supabase.co",
+        port: "",
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
   },
+
   async headers() {
     return [
       {

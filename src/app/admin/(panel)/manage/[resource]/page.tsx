@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import AdminResourceEditor from "@/components/admin/crud/AdminResourceEditor";
 import { firstString } from "@/lib/admin/format";
+import { normaliseAdminSearch, parseAdminPage } from "@/lib/admin/pagination";
 import { loadAdminOptions } from "@/lib/admin/options";
 import { loadAdminResourceRecord, loadAdminResourceRows } from "@/lib/admin/resource-data";
 import { getAdminResource } from "@/lib/admin/resources";
@@ -13,8 +14,10 @@ type PageProps = {
     edit?: string | string[];
     new?: string | string[];
     q?: string | string[];
+    page?: string | string[];
     notice?: string | string[];
     error?: string | string[];
+    field?: string | string[];
   }>;
 };
 
@@ -24,9 +27,11 @@ export default async function AdminResourcePage({ params, searchParams }: PagePr
   if (!resource) notFound();
 
   const editId = firstString(query.edit);
+  const search = normaliseAdminSearch(firstString(query.q));
+  const page = parseAdminPage(firstString(query.page));
   const sources = resource.fields.flatMap((field) => field.optionSource ? [field.optionSource] : []);
-  const [rows, record, options] = await Promise.all([
-    loadAdminResourceRows(resource),
+  const [list, record, options] = await Promise.all([
+    loadAdminResourceRows(resource, { page, search }),
     editId ? loadAdminResourceRecord(resource, editId) : Promise.resolve(null),
     loadAdminOptions(sources),
   ]);
@@ -34,12 +39,14 @@ export default async function AdminResourcePage({ params, searchParams }: PagePr
   return (
     <AdminResourceEditor
       error={firstString(query.error)}
+      errorField={firstString(query.field)}
       notice={firstString(query.notice)}
       options={options}
+      pagination={list.pagination}
       record={record}
       resource={resource}
-      rows={rows}
-      search={firstString(query.q) ?? ""}
+      rows={list.rows}
+      search={search}
       showNew={firstString(query.new) === "1"}
     />
   );

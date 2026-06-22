@@ -15,10 +15,13 @@ export async function GET(
   const supabase = await createClient();
   const { data: application, error: applicationError } = await supabase
     .from("job_applications")
-    .select("id, full_name, cv_media_id")
+    .select("id, full_name, cv_media_id, privacy_status")
     .eq("id", id)
     .single();
   if (applicationError || !application) return NextResponse.json({ ok: false, error: "Başvuru bulunamadı." }, { status: 404 });
+  if (application.privacy_status !== "active" || !application.cv_media_id) {
+    return NextResponse.json({ ok: false, error: "CV erişimi bu başvuru için kapalı." }, { status: 410 });
+  }
 
   const { data: media, error: mediaError } = await supabase
     .from("media")

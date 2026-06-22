@@ -73,15 +73,35 @@ export default function SiteFooter({
                 {branch.district} / {branch.city}
               </address>
 
+              {branch.shortDescription ? (
+                <p className={styles.branchDescription}>{branch.shortDescription}</p>
+              ) : null}
+
               <div className={styles.featureList} aria-label={`${branch.name} özellikleri`}>
                 {branch.features.map((feature) => (
                   <span key={feature}>{feature}</span>
                 ))}
               </div>
 
-              <p className={styles.hoursNote}>
-                Güncel çalışma saatleri ve duyurular için Instagram hesabımızı takip et.
-              </p>
+              <div className={styles.hoursNote}>
+                {(branch.openingHours?.length
+                  ? branch.openingHours
+                  : ["Güncel çalışma saatleri ve duyurular için Instagram hesabımızı takip et."]
+                ).map((line) => <p key={line}>{line}</p>)}
+              </div>
+
+              {branch.phone || branch.publicEmail ? (
+                <div className={styles.branchContacts}>
+                  {branch.phone ? (
+                    <a href={`tel:${branch.phone.replace(/[^+\d]/g, "")}`}>
+                      {branch.phone}
+                    </a>
+                  ) : null}
+                  {branch.publicEmail ? (
+                    <a href={`mailto:${branch.publicEmail}`}>{branch.publicEmail}</a>
+                  ) : null}
+                </div>
+              ) : null}
 
               <div className={styles.branchActions}>
                 <a href={branch.mapsUrl} target="_blank" rel="noopener noreferrer">

@@ -34,3 +34,9 @@ Faz 9 sonrasında:
 - admin CRUD işlemleri loglanır,
 - test kayıtları için güvenli cleanup SQL'i kullanılabilir,
 - Faz 9 destek tablosu gerekirse ayrı rollback dosyasıyla kaldırılabilir.
+
+## Faz 14D migration
+
+`migrations/20260622080000_career_retention_anonymization.sql`
+
+Bu migration kariyer başvurularına 180 günlük retention inceleme tarihi, gizlilik durumları ve admin-only iki aşamalı anonimleştirme RPC'leri ekler. Migration kendi başına CV veya aday verisi silmez. Uygulamadan önce yerel Supabase üzerinde `supabase/tests/career_retention.test.sql` ve yalnız `TEST_` başvurusu ile doğrulanmalıdır.

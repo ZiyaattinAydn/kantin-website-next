@@ -10,6 +10,9 @@
 
 # Tests
 /coverage
+/playwright-report/
+/test-results/
+/.vitest/
 
 # Next.js generated output
 /.next/

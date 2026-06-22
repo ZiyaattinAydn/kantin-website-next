@@ -1,0 +1,39 @@
+.control {
+  display: grid;
+  gap: 8px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.toolbar button {
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--white);
+  color: var(--blue);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.valid,
+.invalid {
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.valid {
+  color: #08713f;
+}
+
+.invalid {
+  color: #a12626;
+}

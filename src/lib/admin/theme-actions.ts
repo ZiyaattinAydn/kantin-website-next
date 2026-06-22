@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
 import { logAdminAction } from "@/lib/admin/audit";
+import { upsertAdminRows } from "@/lib/admin/resource-repository";
+import type { AdminMutationPayload } from "@/lib/admin/resource-validation";
 import { createClient } from "@/lib/supabase/server";
-import type { Json } from "@/lib/supabase/database.types";
 import {
   BODY_SCALES,
   CARD_DENSITIES,
@@ -33,7 +34,7 @@ function allowedValue<T extends readonly string[]>(
   allowed: T,
   fallback: T[number],
 ): T[number] {
-  return allowed.includes(value as T[number]) ? (value as T[number]) : fallback;
+  return allowed.find((candidate) => candidate === value) ?? fallback;
 }
 
 function parseOrder(formData: FormData): HomeSectionKey[] {
@@ -105,33 +106,46 @@ export async function saveThemeSettings(formData: FormData): Promise<never> {
           careers: checked(formData, "visibility.careers"),
         };
 
-    const supabase = await createClient();
-    const { error } = await supabase.from("site_settings").upsert(
-      [
-        {
-          key: "theme.settings",
-          value: theme as unknown as Json,
-          description:
-            "Kontrollü font, renk, başlık, gövde, kart yoğunluğu ve ana sayfa sıralama ayarları.",
-          is_public: true,
-          status: "published",
-          is_active: true,
-          sort_order: 9,
+    const settingsRows: AdminMutationPayload[] = [
+      {
+        key: "theme.settings",
+        value: {
+          fontPreset: theme.fontPreset,
+          colorPreset: theme.colorPreset,
+          headingScale: theme.headingScale,
+          bodyScale: theme.bodyScale,
+          cardDensity: theme.cardDensity,
+          homeSectionOrder: [...theme.homeSectionOrder],
         },
-        {
-          key: "sections.visibility",
-          value: visibility as unknown as Json,
-          description: "Public site bölüm görünürlükleri.",
-          is_public: true,
-          status: "published",
-          is_active: true,
-          sort_order: 5,
+        description:
+          "Kontrollü font, renk, başlık, gövde, kart yoğunluğu ve ana sayfa sıralama ayarları.",
+        is_public: true,
+        status: "published",
+        is_active: true,
+        sort_order: 9,
+      },
+      {
+        key: "sections.visibility",
+        value: {
+          homeHero: visibility.homeHero,
+          branches: visibility.branches,
+          menu: visibility.menu,
+          events: visibility.events,
+          merch: visibility.merch,
+          memories: visibility.memories,
+          instagram: visibility.instagram,
+          careers: visibility.careers,
         },
-      ] as never,
-      { onConflict: "key" },
-    );
+        description: "Public site bölüm görünürlükleri.",
+        is_public: true,
+        status: "published",
+        is_active: true,
+        sort_order: 5,
+      },
+    ];
 
-    if (error) throw new Error(error.message);
+    const supabase = await createClient();
+    await upsertAdminRows(supabase, "site_settings", settingsRows, "key");
 
     await logAdminAction({
       actorId: admin.userId,

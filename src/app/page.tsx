@@ -1,5 +1,4 @@
 import { Fragment } from "react";
-import type { Metadata } from "next";
 import HomeEvents from "@/components/home/HomeEvents";
 import HomeHero from "@/components/home/HomeHero";
 import HomeLocations from "@/components/home/HomeLocations";
@@ -9,11 +8,14 @@ import HomeMerchDrop from "@/components/home/HomeMerchDrop";
 import PublicPageShell from "@/components/layout/PublicPageShell";
 import { getCommonPublicData } from "@/lib/public-data/common";
 import { getHomePublicData } from "@/lib/public-data/home";
+import { getPagePublicMetadata } from "@/lib/public-data/metadata";
 
-export const metadata: Metadata = {
-  title: "kantin. — Savor the sip. Share the bite.",
-  alternates: { canonical: "/" },
-};
+export function generateMetadata() {
+  return getPagePublicMetadata("home", {
+    title: "kantin. — Savor the sip. Share the bite.",
+    canonical: "/",
+  });
+}
 
 export const dynamic = "force-dynamic";
 
