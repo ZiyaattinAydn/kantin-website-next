@@ -44,6 +44,11 @@ function resourcePath(resourceKey: string, params?: Record<string, string>) {
   return `/admin/manage/${resourceKey}${search.size ? `?${search.toString()}` : ""}`;
 }
 
+function adminPath(params?: Record<string, string>) {
+  const search = new URLSearchParams(params);
+  return `/admin${search.size ? `?${search.toString()}` : ""}`;
+}
+
 function isTestRecord(resource: AdminResource, row: Record<string, unknown>): boolean {
   const fields = resource.testFields ?? [];
   return fields.some((field) => {
@@ -62,7 +67,7 @@ export async function saveAdminResource(formData: FormData): Promise<never> {
   const resourceKey = textValue(formData, "_resource");
   const id = textValue(formData, "_id");
   const resource = getAdminResource(resourceKey);
-  if (!resource) redirect("/admin?error=Geçersiz yönetim modülü.");
+  if (!resource) redirect(adminPath({ error: "Geçersiz yönetim modülü." }));
 
   await requireAdmin();
   let destination: string;
@@ -102,7 +107,7 @@ export async function archiveAdminResource(formData: FormData): Promise<never> {
   const id = textValue(formData, "_id");
   const resource = getAdminResource(resourceKey);
   if (!resource || !id || !resource.allowArchive) {
-    redirect("/admin?error=Geçersiz arşivleme isteği.");
+    redirect(adminPath({ error: "Geçersiz arşivleme isteği." }));
   }
 
   await requireAdmin();
@@ -135,7 +140,7 @@ export async function deleteTestAdminResource(formData: FormData): Promise<never
   const id = textValue(formData, "_id");
   const resource = getAdminResource(resourceKey);
   if (!resource || !id || !resource.allowHardDeleteTest) {
-    redirect("/admin?error=Kalıcı silme bu modülde kapalı.");
+    redirect(adminPath({ error: "Kalıcı silme bu modülde kapalı." }));
   }
 
   await requireAdmin();

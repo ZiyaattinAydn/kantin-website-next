@@ -10,7 +10,11 @@ import {
 } from "@/lib/admin/resource-actions";
 import type { AdminOptionsMap } from "@/lib/admin/options";
 import type { AdminPagination as PaginationData } from "@/lib/admin/pagination";
-import type { AdminField, AdminResource } from "@/lib/admin/resources";
+import {
+  isAdminInternalFieldName,
+  type AdminField,
+  type AdminResource,
+} from "@/lib/admin/resources";
 import {
   displayValue,
   formatAdminDate,
@@ -199,6 +203,15 @@ export default function AdminResourceEditor({
 }) {
   const editorOpen = showNew || Boolean(record);
   const visibleRows = rows;
+  const visibleListFields = resource.listFields.filter(
+    (fieldName) => !isAdminInternalFieldName(fieldName),
+  );
+  const visibleFormFields = resource.fields.filter(
+    (field) => !isAdminInternalFieldName(field.name),
+  );
+  const internalFormFields = resource.fields.filter((field) =>
+    isAdminInternalFieldName(field.name),
+  );
 
   return (
     <section className={styles.page}>
@@ -242,7 +255,7 @@ export default function AdminResourceEditor({
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    {resource.listFields.map((fieldName) => (
+                    {visibleListFields.map((fieldName) => (
                       <th key={fieldName}>
                         {resource.fields.find((field) => field.name === fieldName)?.label ?? fieldName}
                       </th>
@@ -253,7 +266,7 @@ export default function AdminResourceEditor({
                 <tbody>
                   {visibleRows.map((row) => (
                     <tr key={String(row.id)}>
-                      {resource.listFields.map((fieldName) => (
+                      {visibleListFields.map((fieldName) => (
                         <td key={fieldName}>
                           {listDisplay(resource, fieldName, row[fieldName], options)}
                         </td>
@@ -288,8 +301,16 @@ export default function AdminResourceEditor({
             <form action={saveAdminResource} className={styles.form}>
               <input name="_resource" type="hidden" value={resource.key} />
               <input name="_id" type="hidden" value={record && typeof record.id === "string" ? record.id : ""} />
+              {internalFormFields.map((field) => (
+                <input
+                  key={field.name}
+                  name={field.name}
+                  type="hidden"
+                  value={String(fieldDefault(field, record))}
+                />
+              ))}
               <div className={styles.formGrid}>
-                {resource.fields.map((field) => (
+                {visibleFormFields.map((field) => (
                   <FieldControl
                     error={error}
                     errorField={errorField}

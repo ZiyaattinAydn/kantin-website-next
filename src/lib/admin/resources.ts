@@ -21,6 +21,10 @@ export type AdminFieldType =
   | "string-array"
   | "foreign";
 
+export function isAdminInternalFieldName(name: string): boolean {
+  return name === "sort_order";
+}
+
 export type AdminOptionSource =
   | "branches"
   | "categories"
@@ -81,7 +85,7 @@ const resources: readonly AdminResource[] = [
     table: "menu_categories",
     title: "Menü kategorileri",
     singular: "kategori",
-    description: "Kategori adları, görünüm tipi, sıralama ve yayın durumu.",
+    description: "Kategori adları, görünüm tipi ve yayın durumu.",
     group: "menu",
     listFields: ["name", "slug", "display_type", "status", "is_active", "sort_order"],
     labelField: "name",
@@ -123,7 +127,7 @@ const resources: readonly AdminResource[] = [
     table: "menu_category_branches",
     title: "Kategori - şube ilişkileri",
     singular: "kategori şube ilişkisi",
-    description: "Kategorilerin Alsancak ve Atakent görünürlüğünü ve sırasını yönet.",
+    description: "Kategorilerin Alsancak ve Atakent görünürlüğünü yönet.",
     group: "menu",
     listFields: ["category_id", "branch_id", "display_name", "is_active", "sort_order"],
     labelField: "display_name",
@@ -354,7 +358,7 @@ const resources: readonly AdminResource[] = [
     table: "instagram_posts",
     title: "Instagram gönderileri",
     singular: "Instagram gönderisi",
-    description: "Gönderi bağlantısı, görsel, açıklama, tarih ve sıralama.",
+    description: "Gönderi bağlantısı, görsel, açıklama ve yayın tarihi.",
     group: "content",
     listFields: ["caption", "published_at", "branch_id", "status", "is_active", "sort_order"],
     labelField: "caption",

@@ -23,6 +23,11 @@ function message(error: unknown) {
   return error instanceof Error ? error.message.slice(0, 220) : "Medya işlemi tamamlanamadı.";
 }
 
+function mediaPath(params?: Record<string, string>) {
+  const search = new URLSearchParams(params);
+  return `/admin/media${search.size ? `?${search.toString()}` : ""}`;
+}
+
 function extension(name: string) {
   return name.split(".").pop()?.toLowerCase() || "bin";
 }
@@ -116,9 +121,9 @@ export async function uploadAdminMedia(formData: FormData): Promise<never> {
       throw new Error(recordError?.message || "Medya DB kaydı oluşturulamadı.");
     }
 
-    destination = "/admin/media?notice=Görsel başarıyla yüklendi.";
+    destination = mediaPath({ notice: "Görsel başarıyla yüklendi." });
   } catch (error) {
-    destination = `/admin/media?error=${encodeURIComponent(message(error))}`;
+    destination = mediaPath({ error: message(error) });
   }
 
   revalidateMediaSurfaces();
@@ -155,9 +160,9 @@ export async function updateAdminMedia(formData: FormData): Promise<never> {
       .single();
 
     if (error || !data) throw new Error(error?.message || "Medya ayarları güncellenemedi.");
-    destination = `/admin/media?edit=${encodeURIComponent(id)}&notice=Medya ayarları güncellendi.`;
+    destination = mediaPath({ edit: id, notice: "Medya ayarları güncellendi." });
   } catch (error) {
-    destination = `/admin/media?edit=${encodeURIComponent(id)}&error=${encodeURIComponent(message(error))}`;
+    destination = mediaPath({ edit: id, error: message(error) });
   }
 
   revalidateMediaSurfaces();
@@ -180,9 +185,9 @@ export async function archiveAdminMedia(formData: FormData): Promise<never> {
       .single();
     if (error || !data) throw new Error(error?.message || "Medya arşivlenemedi.");
 
-    destination = "/admin/media?notice=Medya arşivlendi ve public görünümlerden kaldırıldı.";
+    destination = mediaPath({ notice: "Medya arşivlendi ve public görünümlerden kaldırıldı." });
   } catch (error) {
-    destination = `/admin/media?error=${encodeURIComponent(message(error))}`;
+    destination = mediaPath({ error: message(error) });
   }
 
   revalidateMediaSurfaces();
@@ -205,9 +210,9 @@ export async function restoreAdminMedia(formData: FormData): Promise<never> {
       .single();
     if (error || !data) throw new Error(error?.message || "Medya geri alınamadı.");
 
-    destination = "/admin/media?notice=Medya yeniden yayına alındı.";
+    destination = mediaPath({ notice: "Medya yeniden yayına alındı." });
   } catch (error) {
-    destination = `/admin/media?error=${encodeURIComponent(message(error))}`;
+    destination = mediaPath({ error: message(error) });
   }
 
   revalidateMediaSurfaces();
@@ -279,9 +284,9 @@ export async function deleteAdminMedia(formData: FormData): Promise<never> {
       );
     }
 
-    destination = "/admin/media?notice=Görsel Storage ve veritabanından kalıcı olarak silindi.";
+    destination = mediaPath({ notice: "Görsel Storage ve veritabanından kalıcı olarak silindi." });
   } catch (error) {
-    destination = `/admin/media?error=${encodeURIComponent(message(error))}`;
+    destination = mediaPath({ error: message(error) });
   }
 
   revalidateMediaSurfaces();

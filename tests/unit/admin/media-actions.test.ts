@@ -68,8 +68,11 @@ describe("admin medya eylemleri", () => {
     const formData = new FormData();
     formData.set("id", TEST_MEDIA.id);
 
+    const expectedNotice = new URLSearchParams({
+      notice: "Medya arşivlendi ve public görünümlerden kaldırıldı.",
+    });
     await expect(archiveAdminMedia(formData)).rejects.toThrow(
-      "REDIRECT:/admin/media?notice=",
+      `REDIRECT:/admin/media?${expectedNotice.toString()}`,
     );
     expect(rpc).toHaveBeenCalledWith("set_admin_media_state", {
       p_media_id: TEST_MEDIA.id,
@@ -384,8 +387,11 @@ describe("admin medya eylemleri", () => {
     const formData = new FormData();
     formData.set("id", TEST_MEDIA.id);
 
+    const expectedNotice = new URLSearchParams({
+      notice: "Görsel Storage ve veritabanından kalıcı olarak silindi.",
+    });
     await expect(deleteAdminMedia(formData)).rejects.toThrow(
-      "REDIRECT:/admin/media?notice=",
+      `REDIRECT:/admin/media?${expectedNotice.toString()}`,
     );
     expect(remove).toHaveBeenCalledWith([TEST_MEDIA.object_path]);
     expect(rpc).toHaveBeenCalledWith("complete_admin_media_delete", {

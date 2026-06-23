@@ -162,9 +162,9 @@ export default async function AdminMediaPage({ searchParams }: Props) {
       {firstString(params.notice) ? <p className={styles.notice}>{firstString(params.notice)}</p> : null}
       {firstString(params.error) ? <p className={styles.error}>{firstString(params.error)}</p> : null}
 
-      <div className={`${styles.layout} ${styles.layoutWithEditor}`}>
+      <div className={`${styles.layout} ${styles.layoutWithEditor} ${mediaStyles.mediaLayout}`}>
         <div className={styles.panel}>
-          <form className={styles.search} method="get">
+          <form className={`${styles.search} ${mediaStyles.mediaSearch}`} method="get">
             <input defaultValue={q} name="q" placeholder="Medya ara…" type="search" />
             <select defaultValue={statusFilter} name="status">
               <option value="all">Tüm durumlar</option>
@@ -229,14 +229,14 @@ export default async function AdminMediaPage({ searchParams }: Props) {
                         <small>{row.alt_text || "Alt metin yok"}</small>
                         <code>{row.object_path || row.local_path || row.external_url || "—"}</code>
                       </td>
-                      <td>
+                      <td data-label="Durum">
                         <span className={row.is_active && row.status === "published" ? mediaStyles.statusActive : mediaStyles.statusPassive}>
                           {row.is_active && row.status === "published" ? "Public" : "Public değil"}
                         </span>
                         <small className={mediaStyles.statusMeta}>{row.status} · {row.source}</small>
                         {pendingDelete ? <small className={mediaStyles.pendingDelete}>Silme bekliyor</small> : null}
                       </td>
-                      <td>
+                      <td data-label="Kullanım">
                         <span className={usages.length ? mediaStyles.usageBusy : mediaStyles.usageFree}>
                           {usages.length ? `${usages.length} bağlantı` : "Kullanılmıyor"}
                         </span>
@@ -254,11 +254,10 @@ export default async function AdminMediaPage({ searchParams }: Props) {
                           </details>
                         ) : null}
                       </td>
-                      <td>
+                      <td data-label="Güncelleme">
                         {formatAdminDate(row.updated_at)}
-                        <small className={mediaStyles.statusMeta}>Sıra: {row.sort_order}</small>
                       </td>
-                      <td className={mediaStyles.actions}>
+                      <td className={mediaStyles.actions} data-label="İşlemler">
                         {!pendingDelete ? (
                           <Link className={styles.secondary} href={editHref}>Düzenle</Link>
                         ) : null}
@@ -327,7 +326,7 @@ export default async function AdminMediaPage({ searchParams }: Props) {
           />
         </div>
 
-        <aside className={`${styles.panel} ${styles.editorPanel}`}>
+        <aside className={`${styles.panel} ${styles.editorPanel} ${mediaStyles.mediaEditor}`}>
           {selectedRow ? (
             <>
               <div className={styles.panelTitle}>
@@ -370,10 +369,7 @@ export default async function AdminMediaPage({ searchParams }: Props) {
                       <input defaultChecked={selectedRow.is_active} name="is_active" type="checkbox" />
                       <span>Aktif</span>
                     </label>
-                    <label className={styles.field}>
-                      <span>Sıra</span>
-                      <input defaultValue={selectedRow.sort_order} min={0} name="sort_order" required type="number" />
-                    </label>
+                    <input name="sort_order" type="hidden" value={selectedRow.sort_order} />
                     <div className={mediaStyles.readOnlySource}>
                       <strong>Dosya kaynağı değiştirilemez</strong>
                       <span>{selectedRow.source} · {selectedRow.bucket_name || "bucket yok"}</span>

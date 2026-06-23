@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Admin işlem geri bildirimi ve sadeleştirme
+
+- Medya yükleme, güncelleme, arşivleme, geri alma ve kalıcı silme sonrasındaki Türkçe başarı/hata mesajları `URLSearchParams` ile güvenli biçimde encode ediliyor; başarılı veritabanı işleminden sonra `This page couldn’t load` ekranına düşme sorunu giderildi.
+- Generic admin tablolarında teknik `sort_order` alanı form ve liste görünümünden kaldırıldı; mevcut değer hidden sistem alanı olarak korunuyor ve veritabanı sıralama davranışı bozulmuyor.
+- Medya kütüphanesindeki görünür sıra numarası ve sıra girişi kaldırıldı.
+- Medya yönetimi dar iki kolon yerine güvenli tek kolon düzene geçirildi; 899 px altında kayıtlar okunabilir kart görünümüne dönüşüyor ve aksiyonlar mobil genişliğe uyarlanıyor.
+- Türkçe yönlendirme kodlaması, teknik alan gizleme ve medya responsive kontratı için yeni unit testler eklendi.
+
 ### Birleşik fiyat yönetimi
 
 - Admin paneline `/admin/pricing` altında ürün odaklı tek fiyat yönetimi ekranı eklendi.
@@ -16,7 +24,7 @@
 - Kariyer başvuru formu kendi stacking context'ine alındı; hareketli karikatürler form kartının arkasında kalırken parallax davranışı korundu.
 - Public medya adaptörleri yalnız `published + is_active` kayıtları okuyacak şekilde güçlendirildi.
 - Home content block içindeki Storage görsel yolları aktif medya allowlist'iyle doğrulanıyor; arşivlenen galeri/konum/şube görselleri raw URL üzerinden yeniden görünmüyor.
-- Medya kütüphanesine ad, alt metin, yayın durumu, aktiflik ve sıralama düzenleme ekranı eklendi.
+- Medya kütüphanesine ad, alt metin, yayın durumu ve aktiflik düzenleme ekranı eklendi.
 - Bağlantılı medya public görünümden kaldırılabilecek şekilde arşivlenebilir; kalıcı silme yalnız bağlantısız, arşivlenmiş Storage görsellerine açıldı.
 - Storage silme ile DB silme arasındaki yarım kalmış işlemler `_admin_delete` işareti ve güvenli yeniden deneme akışıyla yönetiliyor.
 - Medya güncelleme ve kalıcı silme işlemleri admin yetkili, auditli RPC'lere taşındı; public route revalidation kapsamı genişletildi.
