@@ -15,7 +15,100 @@ export type PublicMediaRow = Pick<
   | "alt_text"
   | "width"
   | "height"
+  | "status"
+  | "is_active"
 >;
+
+
+export const PUBLIC_MEDIA_SELECT =
+  "id, source, bucket_name, object_path, external_url, local_path, alt_text, width, height, status, is_active" as const;
+
+export function isPublicMedia(
+  media: PublicMediaRow | null | undefined,
+): media is PublicMediaRow {
+  return Boolean(media && media.status === "published" && media.is_active);
+}
+
+export async function getPublicMediaRows(
+  client: PublicSupabaseClient,
+  mediaIds: string[],
+): Promise<PublicMediaRow[]> {
+  if (!mediaIds.length) return [];
+
+  const { data, error } = await client
+    .from("media")
+    .select(PUBLIC_MEDIA_SELECT)
+    .in("id", mediaIds)
+    .eq("status", "published")
+    .eq("is_active", true);
+
+  if (error) throw error;
+  return ((data ?? []) as PublicMediaRow[]).filter(isPublicMedia);
+}
+
+export async function getPublicMediaReferenceSet(
+  client: PublicSupabaseClient,
+): Promise<ReadonlySet<string>> {
+  const { data, error } = await client
+    .from("media")
+    .select(PUBLIC_MEDIA_SELECT)
+    .eq("kind", "image")
+    .eq("status", "published")
+    .eq("is_active", true);
+
+  if (error) throw error;
+
+  const references = new Set<string>();
+  for (const media of ((data ?? []) as PublicMediaRow[]).filter(isPublicMedia)) {
+    for (const value of [
+      media.id,
+      media.local_path,
+      media.external_url,
+      media.object_path,
+    ]) {
+      if (typeof value === "string" && value.trim()) references.add(value.trim());
+    }
+
+    if (media.source === "storage" && media.bucket_name && media.object_path) {
+      const publicUrl = client.storage
+        .from(media.bucket_name)
+        .getPublicUrl(media.object_path).data.publicUrl;
+      references.add(publicUrl);
+
+      try {
+        references.add(new URL(publicUrl).pathname);
+      } catch {
+        // Supabase public URL üretimi normalde mutlak URL döndürür.
+      }
+    }
+  }
+
+  return references;
+}
+
+function withoutSearchOrHash(value: string): string {
+  const queryIndex = value.indexOf("?");
+  const hashIndex = value.indexOf("#");
+  const end = [queryIndex, hashIndex]
+    .filter((index) => index >= 0)
+    .reduce((minimum, index) => Math.min(minimum, index), value.length);
+  return value.slice(0, end);
+}
+
+export function isAllowedPublicMediaReference(
+  reference: string | null | undefined,
+  activeReferences: ReadonlySet<string>,
+): boolean {
+  const value = reference?.trim();
+  if (!value) return false;
+
+  // Paketle birlikte gelen public dosyalar medya yaşam döngüsüne bağlı değildir.
+  if (value.startsWith("/") && !value.startsWith("/storage/v1/object/public/")) {
+    return true;
+  }
+
+  return activeReferences.has(value) || activeReferences.has(withoutSearchOrHash(value));
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -68,7 +161,7 @@ export function resolveMediaUrl(
   client: PublicSupabaseClient,
   media: PublicMediaRow | null | undefined,
 ): string | null {
-  if (!media) return null;
+  if (!isPublicMedia(media)) return null;
   if (media.source === "local") return media.local_path;
   if (media.source === "external") return media.external_url;
 

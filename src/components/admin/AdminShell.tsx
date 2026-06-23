@@ -21,8 +21,9 @@ const groups = [
       { href: "/admin/manage/menu-categories", label: "Kategoriler" },
       { href: "/admin/manage/menu-category-branches", label: "Kategori şubeleri" },
       { href: "/admin/manage/menu-items", label: "Ürünler" },
-      { href: "/admin/manage/menu-item-branches", label: "Şube fiyatları" },
-      { href: "/admin/manage/menu-item-variants", label: "Fiyat varyantları" },
+      { href: "/admin/pricing", label: "Fiyat yönetimi" },
+      { href: "/admin/manage/menu-item-branches", label: "Gelişmiş şube fiyatları" },
+      { href: "/admin/manage/menu-item-variants", label: "Gelişmiş varyantlar" },
     ],
   },
   {

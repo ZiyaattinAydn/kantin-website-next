@@ -2,7 +2,7 @@ begin;
 
 set local search_path = public, extensions;
 
-select plan(34);
+select plan(50);
 
 select ok(
   to_regprocedure(expected.signature) is not null,
@@ -16,7 +16,11 @@ from (
     ('public.set_admin_media_state(uuid,text)', 'medya durum RPC'),
     ('public.begin_test_admin_media_delete(uuid)', 'TEST medya silme başlangıç RPC'),
     ('public.cancel_test_admin_media_delete(uuid,public.content_status,boolean,text)', 'TEST medya silme geri alma RPC'),
-    ('public.complete_test_admin_media_delete(uuid)', 'TEST medya silme tamamlama RPC')
+    ('public.complete_test_admin_media_delete(uuid)', 'TEST medya silme tamamlama RPC'),
+    ('public.update_admin_media_metadata(uuid,text,text,public.content_status,boolean,integer)', 'medya metadata güncelleme RPC'),
+    ('public.begin_admin_media_delete(uuid)', 'medya silme başlangıç RPC'),
+    ('public.cancel_admin_media_delete(uuid,text)', 'medya silme geri alma RPC'),
+    ('public.complete_admin_media_delete(uuid)', 'medya silme tamamlama RPC')
 ) as expected(signature, label);
 
 select ok(
@@ -35,7 +39,11 @@ from (
     ('public.set_admin_media_state(uuid,text)', 'medya durum RPC'),
     ('public.begin_test_admin_media_delete(uuid)', 'TEST medya silme başlangıç RPC'),
     ('public.cancel_test_admin_media_delete(uuid,public.content_status,boolean,text)', 'TEST medya silme geri alma RPC'),
-    ('public.complete_test_admin_media_delete(uuid)', 'TEST medya silme tamamlama RPC')
+    ('public.complete_test_admin_media_delete(uuid)', 'TEST medya silme tamamlama RPC'),
+    ('public.update_admin_media_metadata(uuid,text,text,public.content_status,boolean,integer)', 'medya metadata güncelleme RPC'),
+    ('public.begin_admin_media_delete(uuid)', 'medya silme başlangıç RPC'),
+    ('public.cancel_admin_media_delete(uuid,text)', 'medya silme geri alma RPC'),
+    ('public.complete_admin_media_delete(uuid)', 'medya silme tamamlama RPC')
 ) as expected(signature, label);
 
 select ok(
@@ -50,7 +58,11 @@ from (
     ('public.set_admin_media_state(uuid,text)', 'medya durum RPC'),
     ('public.begin_test_admin_media_delete(uuid)', 'TEST medya silme başlangıç RPC'),
     ('public.cancel_test_admin_media_delete(uuid,public.content_status,boolean,text)', 'TEST medya silme geri alma RPC'),
-    ('public.complete_test_admin_media_delete(uuid)', 'TEST medya silme tamamlama RPC')
+    ('public.complete_test_admin_media_delete(uuid)', 'TEST medya silme tamamlama RPC'),
+    ('public.update_admin_media_metadata(uuid,text,text,public.content_status,boolean,integer)', 'medya metadata güncelleme RPC'),
+    ('public.begin_admin_media_delete(uuid)', 'medya silme başlangıç RPC'),
+    ('public.cancel_admin_media_delete(uuid,text)', 'medya silme geri alma RPC'),
+    ('public.complete_admin_media_delete(uuid)', 'medya silme tamamlama RPC')
 ) as expected(signature, label);
 
 select ok(
@@ -65,7 +77,11 @@ from (
     ('public.set_admin_media_state(uuid,text)', 'medya durum RPC'),
     ('public.begin_test_admin_media_delete(uuid)', 'TEST medya silme başlangıç RPC'),
     ('public.cancel_test_admin_media_delete(uuid,public.content_status,boolean,text)', 'TEST medya silme geri alma RPC'),
-    ('public.complete_test_admin_media_delete(uuid)', 'TEST medya silme tamamlama RPC')
+    ('public.complete_test_admin_media_delete(uuid)', 'TEST medya silme tamamlama RPC'),
+    ('public.update_admin_media_metadata(uuid,text,text,public.content_status,boolean,integer)', 'medya metadata güncelleme RPC'),
+    ('public.begin_admin_media_delete(uuid)', 'medya silme başlangıç RPC'),
+    ('public.cancel_admin_media_delete(uuid,text)', 'medya silme geri alma RPC'),
+    ('public.complete_admin_media_delete(uuid)', 'medya silme tamamlama RPC')
 ) as expected(signature, label);
 
 select ok(

@@ -11,7 +11,7 @@ describe("getEventPublicData sorgu kapsamı", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("yalnız etkinliklerin bağlı medya UUID'lerini sorgular", async () => {
-    const mediaIn = vi.fn().mockResolvedValue({
+    const mediaResult = {
       data: [{
         id: "TEST_media",
         source: "local",
@@ -34,7 +34,10 @@ describe("getEventPublicData sorgu kapsamı", () => {
         updated_at: "2026-06-23T00:00:00.000Z",
       }],
       error: null,
-    });
+    };
+    const mediaActiveEq = vi.fn().mockResolvedValue(mediaResult);
+    const mediaStatusEq = vi.fn(() => ({ eq: mediaActiveEq }));
+    const mediaIn = vi.fn(() => ({ eq: mediaStatusEq }));
     const results = {
       events: {
         data: [{
@@ -84,6 +87,8 @@ describe("getEventPublicData sorgu kapsamı", () => {
     const result = await getEventPublicData();
 
     expect(mediaIn).toHaveBeenCalledWith("id", ["TEST_media"]);
+    expect(mediaStatusEq).toHaveBeenCalledWith("status", "published");
+    expect(mediaActiveEq).toHaveBeenCalledWith("is_active", true);
     expect(result.source).toBe("supabase");
     expect(result.data.events[0]?.imageUrl).toBe("/assets/TEST_event.webp");
     expect(result.data.events[0]?.branch).toBe("bostanli");

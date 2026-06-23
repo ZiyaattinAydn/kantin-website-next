@@ -21,8 +21,9 @@ vi.mock("@/lib/admin/media-usage", () => ({
 
 import {
   archiveAdminMedia,
-  deleteTestAdminMedia,
+  deleteAdminMedia,
   restoreAdminMedia,
+  updateAdminMedia,
   uploadAdminMedia,
 } from "@/lib/admin/media-actions";
 
@@ -35,8 +36,8 @@ const TEST_MEDIA = {
   object_path: "admin/2026/11111111-1111-4111-8111-111111111111.webp",
   external_url: null,
   local_path: null,
-  status: "published",
-  is_active: true,
+  status: "archived",
+  is_active: false,
 };
 
 function mediaReadClient(media = TEST_MEDIA) {
@@ -57,34 +58,13 @@ describe("admin medya eylemleri", () => {
     mocks.requireAdmin.mockResolvedValue({ userId: "TEST_admin", role: "admin" });
   });
 
-  it("kullanılan medyanın arşivlenmesini RPC'ye gitmeden engeller", async () => {
-    const rpc = vi.fn();
-    mocks.createClient.mockResolvedValue({ ...mediaReadClient(), rpc });
-    mocks.loadMediaUsageMap.mockResolvedValue(
-      new Map([
-        [
-          TEST_MEDIA.id,
-          [{ source: "menu_items", sourceId: "TEST_item" }],
-        ],
-      ]),
-    );
-    const formData = new FormData();
-    formData.set("id", TEST_MEDIA.id);
-
-    await expect(archiveAdminMedia(formData)).rejects.toThrow(
-      "REDIRECT:/admin/media?error=",
-    );
-    expect(rpc).not.toHaveBeenCalled();
-  });
-
-  it("bağlantısız medyayı transaction RPC ile arşivler", async () => {
+  it("bağlantılı olsa da medyayı transaction RPC ile arşivleyebilir", async () => {
     const single = vi.fn().mockResolvedValue({
       data: { media_id: TEST_MEDIA.id, title: TEST_MEDIA.title },
       error: null,
     });
     const rpc = vi.fn(() => ({ single }));
-    mocks.createClient.mockResolvedValue({ ...mediaReadClient(), rpc });
-    mocks.loadMediaUsageMap.mockResolvedValue(new Map([[TEST_MEDIA.id, []]]));
+    mocks.createClient.mockResolvedValue({ rpc });
     const formData = new FormData();
     formData.set("id", TEST_MEDIA.id);
 
@@ -95,6 +75,57 @@ describe("admin medya eylemleri", () => {
       p_media_id: TEST_MEDIA.id,
       p_action: "media_archive",
     });
+    expect(mocks.loadMediaUsageMap).not.toHaveBeenCalled();
+  });
+
+  it("medya metadata ve yayın ayarlarını transaction RPC ile günceller", async () => {
+    const single = vi.fn().mockResolvedValue({
+      data: { media_id: TEST_MEDIA.id, title: "Yeni ad" },
+      error: null,
+    });
+    const rpc = vi.fn(() => ({ single }));
+    mocks.createClient.mockResolvedValue({ rpc });
+    const formData = new FormData();
+    formData.set("id", TEST_MEDIA.id);
+    formData.set("title", "Yeni ad");
+    formData.set("alt_text", "Yeni erişilebilir açıklama");
+    formData.set("status", "published");
+    formData.set("is_active", "on");
+    formData.set("sort_order", "4");
+
+    await expect(updateAdminMedia(formData)).rejects.toThrow(
+      `REDIRECT:/admin/media?edit=${TEST_MEDIA.id}&notice=`,
+    );
+    expect(rpc).toHaveBeenCalledWith("update_admin_media_metadata", {
+      p_media_id: TEST_MEDIA.id,
+      p_title: "Yeni ad",
+      p_alt_text: "Yeni erişilebilir açıklama",
+      p_status: "published",
+      p_is_active: true,
+      p_sort_order: 4,
+    });
+  });
+
+  it("taslak durumunda aktif checkbox gelse bile kaydı pasif gönderir", async () => {
+    const single = vi.fn().mockResolvedValue({
+      data: { media_id: TEST_MEDIA.id, title: "Taslak" },
+      error: null,
+    });
+    const rpc = vi.fn(() => ({ single }));
+    mocks.createClient.mockResolvedValue({ rpc });
+    const formData = new FormData();
+    formData.set("id", TEST_MEDIA.id);
+    formData.set("title", "Taslak");
+    formData.set("alt_text", "Taslak görsel");
+    formData.set("status", "draft");
+    formData.set("is_active", "on");
+    formData.set("sort_order", "0");
+
+    await expect(updateAdminMedia(formData)).rejects.toThrow("REDIRECT:/admin/media?edit=");
+    expect(rpc).toHaveBeenCalledWith(
+      "update_admin_media_metadata",
+      expect.objectContaining({ p_status: "draft", p_is_active: false }),
+    );
   });
 
   it("arşiv kaydını transaction RPC ile yeniden yayına alır", async () => {
@@ -205,25 +236,40 @@ describe("admin medya eylemleri", () => {
     ]);
   });
 
-  it("TEST_ olmayan medya kaydını kalıcı silme akışına almaz", async () => {
-    const media = { ...TEST_MEDIA, title: "Gerçek medya" };
+  it("aktif medya kaydını kalıcı silme akışına almaz", async () => {
+    const media = { ...TEST_MEDIA, status: "published", is_active: true };
     const rpc = vi.fn();
     mocks.createClient.mockResolvedValue({ ...mediaReadClient(media), rpc });
     const formData = new FormData();
     formData.set("id", media.id);
 
-    await expect(deleteTestAdminMedia(formData)).rejects.toThrow(
+    await expect(deleteAdminMedia(formData)).rejects.toThrow(
       "REDIRECT:/admin/media?error=",
     );
     expect(rpc).not.toHaveBeenCalled();
   });
 
-  it("Storage silme hatasında hazırlanmış TEST medya durumunu geri alır", async () => {
+  it("kullanılan arşiv medyasını kalıcı silmez", async () => {
+    const rpc = vi.fn();
+    mocks.createClient.mockResolvedValue({ ...mediaReadClient(), rpc });
+    mocks.loadMediaUsageMap.mockResolvedValue(new Map([
+      [TEST_MEDIA.id, [{ source: "menu_items", sourceId: "TEST_item" }]],
+    ]));
+    const formData = new FormData();
+    formData.set("id", TEST_MEDIA.id);
+
+    await expect(deleteAdminMedia(formData)).rejects.toThrow(
+      "REDIRECT:/admin/media?error=",
+    );
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("Storage silme hatasında bekleyen medya silme işaretini temizler", async () => {
     const remove = vi.fn().mockResolvedValue({
       error: { message: "TEST_ storage delete error" },
     });
     const rpc = vi.fn((name: string) => {
-      if (name === "begin_test_admin_media_delete") {
+      if (name === "begin_admin_media_delete") {
         return {
           single: async () => ({
             data: {
@@ -231,14 +277,12 @@ describe("admin medya eylemleri", () => {
               title: TEST_MEDIA.title,
               bucket_name: TEST_MEDIA.bucket_name,
               object_path: TEST_MEDIA.object_path,
-              previous_status: "published",
-              previous_is_active: true,
             },
             error: null,
           }),
         };
       }
-      if (name === "cancel_test_admin_media_delete") {
+      if (name === "cancel_admin_media_delete") {
         return Promise.resolve({ data: true, error: null });
       }
       return Promise.resolve({ data: false, error: null });
@@ -252,25 +296,25 @@ describe("admin medya eylemleri", () => {
     const formData = new FormData();
     formData.set("id", TEST_MEDIA.id);
 
-    await expect(deleteTestAdminMedia(formData)).rejects.toThrow(
+    await expect(deleteAdminMedia(formData)).rejects.toThrow(
       "REDIRECT:/admin/media?error=",
     );
-    expect(rpc).toHaveBeenCalledWith("cancel_test_admin_media_delete", {
+    expect(rpc).toHaveBeenCalledWith("cancel_admin_media_delete", {
       p_media_id: TEST_MEDIA.id,
-      p_previous_status: "published",
-      p_previous_is_active: true,
       p_reason: "storage_delete_failed",
     });
     expect(rpc).not.toHaveBeenCalledWith(
-      "complete_test_admin_media_delete",
+      "complete_admin_media_delete",
       expect.anything(),
     );
   });
 
-  it("TEST medya silmeyi hazırla, Storage sil ve DB tamamla sırasıyla yürütür", async () => {
-    const remove = vi.fn().mockResolvedValue({ error: null });
+  it("Storage nesnesi zaten yoksa bekleyen silme işlemini DB tarafında tamamlar", async () => {
+    const remove = vi.fn().mockResolvedValue({
+      error: { statusCode: 404, message: "Object not found" },
+    });
     const rpc = vi.fn((name: string) => {
-      if (name === "begin_test_admin_media_delete") {
+      if (name === "begin_admin_media_delete") {
         return {
           single: async () => ({
             data: {
@@ -278,14 +322,12 @@ describe("admin medya eylemleri", () => {
               title: TEST_MEDIA.title,
               bucket_name: TEST_MEDIA.bucket_name,
               object_path: TEST_MEDIA.object_path,
-              previous_status: "published",
-              previous_is_active: true,
             },
             error: null,
           }),
         };
       }
-      if (name === "complete_test_admin_media_delete") {
+      if (name === "complete_admin_media_delete") {
         return Promise.resolve({ data: true, error: null });
       }
       return Promise.resolve({ data: false, error: null });
@@ -299,11 +341,54 @@ describe("admin medya eylemleri", () => {
     const formData = new FormData();
     formData.set("id", TEST_MEDIA.id);
 
-    await expect(deleteTestAdminMedia(formData)).rejects.toThrow(
+    await expect(deleteAdminMedia(formData)).rejects.toThrow(
       "REDIRECT:/admin/media?notice=",
     );
     expect(remove).toHaveBeenCalledWith([TEST_MEDIA.object_path]);
-    expect(rpc).toHaveBeenCalledWith("complete_test_admin_media_delete", {
+    expect(rpc).toHaveBeenCalledWith("complete_admin_media_delete", {
+      p_media_id: TEST_MEDIA.id,
+    });
+    expect(rpc).not.toHaveBeenCalledWith(
+      "cancel_admin_media_delete",
+      expect.anything(),
+    );
+  });
+
+  it("arşiv medyasını hazırla, Storage sil ve DB tamamla sırasıyla yürütür", async () => {
+    const remove = vi.fn().mockResolvedValue({ error: null });
+    const rpc = vi.fn((name: string) => {
+      if (name === "begin_admin_media_delete") {
+        return {
+          single: async () => ({
+            data: {
+              media_id: TEST_MEDIA.id,
+              title: TEST_MEDIA.title,
+              bucket_name: TEST_MEDIA.bucket_name,
+              object_path: TEST_MEDIA.object_path,
+            },
+            error: null,
+          }),
+        };
+      }
+      if (name === "complete_admin_media_delete") {
+        return Promise.resolve({ data: true, error: null });
+      }
+      return Promise.resolve({ data: false, error: null });
+    });
+    mocks.createClient.mockResolvedValue({
+      ...mediaReadClient(),
+      rpc,
+      storage: { from: vi.fn(() => ({ remove })) },
+    });
+    mocks.loadMediaUsageMap.mockResolvedValue(new Map([[TEST_MEDIA.id, []]]));
+    const formData = new FormData();
+    formData.set("id", TEST_MEDIA.id);
+
+    await expect(deleteAdminMedia(formData)).rejects.toThrow(
+      "REDIRECT:/admin/media?notice=",
+    );
+    expect(remove).toHaveBeenCalledWith([TEST_MEDIA.object_path]);
+    expect(rpc).toHaveBeenCalledWith("complete_admin_media_delete", {
       p_media_id: TEST_MEDIA.id,
     });
   });

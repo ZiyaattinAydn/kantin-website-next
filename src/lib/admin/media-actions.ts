@@ -10,6 +10,9 @@ import {
   validateStorageFile,
   type StorageBucket,
 } from "@/lib/supabase/storage";
+import type { Database } from "@/lib/supabase/database.types";
+
+type ContentStatus = Database["public"]["Enums"]["content_status"];
 
 function text(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -22,6 +25,42 @@ function message(error: unknown) {
 
 function extension(name: string) {
   return name.split(".").pop()?.toLowerCase() || "bin";
+}
+
+function isMissingStorageObjectError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+
+  const candidate = error as {
+    status?: number;
+    statusCode?: number | string;
+    message?: string;
+    error?: string;
+  };
+  const status = Number(candidate.statusCode ?? candidate.status);
+  const details = `${candidate.message ?? ""} ${candidate.error ?? ""}`.toLowerCase();
+
+  return status === 404 || details.includes("not found") || details.includes("not_found");
+}
+
+function parseStatus(value: string): ContentStatus {
+  if (value === "draft" || value === "published" || value === "archived") return value;
+  throw new Error("Geçersiz medya yayın durumu.");
+}
+
+function parseSortOrder(value: string): number {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error("Medya sırası sıfır veya daha büyük bir tam sayı olmalı.");
+  }
+  return parsed;
+}
+
+function revalidateMediaSurfaces() {
+  revalidatePath("/admin/media");
+  revalidatePath("/");
+  revalidatePath("/menu");
+  revalidatePath("/events");
+  revalidatePath("/careers");
 }
 
 export async function uploadAdminMedia(formData: FormData): Promise<never> {
@@ -82,10 +121,46 @@ export async function uploadAdminMedia(formData: FormData): Promise<never> {
     destination = `/admin/media?error=${encodeURIComponent(message(error))}`;
   }
 
-  revalidatePath("/admin/media");
-  revalidatePath("/");
-  revalidatePath("/menu");
-  revalidatePath("/events");
+  revalidateMediaSurfaces();
+  redirect(destination);
+}
+
+export async function updateAdminMedia(formData: FormData): Promise<never> {
+  await requireAdmin();
+  const id = text(formData, "id");
+  let destination: string;
+
+  try {
+    if (!id) throw new Error("Medya kaydı bulunamadı.");
+
+    const title = text(formData, "title");
+    const altText = text(formData, "alt_text");
+    if (!title || !altText) throw new Error("Medya adı ve alt metin zorunlu.");
+    if (title.length > 180) throw new Error("Medya adı en fazla 180 karakter olabilir.");
+    if (altText.length > 500) throw new Error("Alt metin en fazla 500 karakter olabilir.");
+
+    const status = parseStatus(text(formData, "status"));
+    const isActive = status === "published" && formData.get("is_active") === "on";
+    const sortOrder = parseSortOrder(text(formData, "sort_order"));
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .rpc("update_admin_media_metadata", {
+        p_media_id: id,
+        p_title: title,
+        p_alt_text: altText,
+        p_status: status,
+        p_is_active: isActive,
+        p_sort_order: sortOrder,
+      })
+      .single();
+
+    if (error || !data) throw new Error(error?.message || "Medya ayarları güncellenemedi.");
+    destination = `/admin/media?edit=${encodeURIComponent(id)}&notice=Medya ayarları güncellendi.`;
+  } catch (error) {
+    destination = `/admin/media?edit=${encodeURIComponent(id)}&error=${encodeURIComponent(message(error))}`;
+  }
+
+  revalidateMediaSurfaces();
   redirect(destination);
 }
 
@@ -97,23 +172,6 @@ export async function archiveAdminMedia(formData: FormData): Promise<never> {
   try {
     if (!id) throw new Error("Medya kaydı bulunamadı.");
     const supabase = await createClient();
-    const { data: media, error: mediaError } = await supabase
-      .from("media")
-      .select("id, title, kind, bucket_name, object_path, external_url, local_path, status, is_active")
-      .eq("id", id)
-      .single();
-    if (mediaError || !media) throw new Error(mediaError?.message || "Medya kaydı bulunamadı.");
-    if (!media.is_active || media.status === "archived") {
-      throw new Error("Medya kaydı zaten arşivde.");
-    }
-
-    const usages = (await loadMediaUsageMap(supabase, [media])).get(id) ?? [];
-    if (usages.length) {
-      throw new Error(
-        `Bu medya ${usages.length} içerikte kullanılıyor. Önce medya kütüphanesindeki kullanım bağlantılarını kaldır.`,
-      );
-    }
-
     const { data, error } = await supabase
       .rpc("set_admin_media_state", {
         p_media_id: id,
@@ -122,15 +180,12 @@ export async function archiveAdminMedia(formData: FormData): Promise<never> {
       .single();
     if (error || !data) throw new Error(error?.message || "Medya arşivlenemedi.");
 
-    destination = "/admin/media?notice=Medya kaydı arşivlendi.";
+    destination = "/admin/media?notice=Medya arşivlendi ve public görünümlerden kaldırıldı.";
   } catch (error) {
     destination = `/admin/media?error=${encodeURIComponent(message(error))}`;
   }
 
-  revalidatePath("/admin/media");
-  revalidatePath("/");
-  revalidatePath("/menu");
-  revalidatePath("/events");
+  revalidateMediaSurfaces();
   redirect(destination);
 }
 
@@ -150,19 +205,16 @@ export async function restoreAdminMedia(formData: FormData): Promise<never> {
       .single();
     if (error || !data) throw new Error(error?.message || "Medya geri alınamadı.");
 
-    destination = "/admin/media?notice=Medya kaydı yeniden yayına alındı.";
+    destination = "/admin/media?notice=Medya yeniden yayına alındı.";
   } catch (error) {
     destination = `/admin/media?error=${encodeURIComponent(message(error))}`;
   }
 
-  revalidatePath("/admin/media");
-  revalidatePath("/");
-  revalidatePath("/menu");
-  revalidatePath("/events");
+  revalidateMediaSurfaces();
   redirect(destination);
 }
 
-export async function deleteTestAdminMedia(formData: FormData): Promise<never> {
+export async function deleteAdminMedia(formData: FormData): Promise<never> {
   await requireAdmin();
   const id = text(formData, "id");
   let destination: string;
@@ -178,66 +230,60 @@ export async function deleteTestAdminMedia(formData: FormData): Promise<never> {
       .eq("id", id)
       .single();
     if (mediaError || !media) throw new Error(mediaError?.message || "Medya kaydı bulunamadı.");
-    if (
-      media.source !== "storage" ||
-      media.kind !== "image" ||
-      !media.title ||
-      !/^TEST[_\s-]/i.test(media.title)
-    ) {
-      throw new Error("Yalnız TEST_ adlı Storage görselleri kalıcı silinebilir.");
+
+    if (media.source !== "storage" || media.kind !== "image" || !media.bucket_name || !media.object_path) {
+      throw new Error("Kalıcı silme yalnız Storage üzerinde bulunan görseller için kullanılabilir.");
+    }
+    if (media.status !== "archived" || media.is_active) {
+      throw new Error("Kalıcı silmeden önce medya arşivlenmeli.");
     }
 
     const usages = (await loadMediaUsageMap(supabase, [media])).get(id) ?? [];
     if (usages.length) {
-      throw new Error("Bu medya bir içerikte kullanılıyor; önce içerik bağlantısını kaldır.");
+      throw new Error("Bu medya bir içerikte kullanılıyor; kalıcı silmeden önce bağlantıları kaldır.");
     }
 
     const { data: prepared, error: prepareError } = await supabase
-      .rpc("begin_test_admin_media_delete", { p_media_id: id })
+      .rpc("begin_admin_media_delete", { p_media_id: id })
       .single();
     if (prepareError || !prepared) {
-      throw new Error(prepareError?.message || "TEST medya silme işlemi hazırlanamadı.");
+      throw new Error(prepareError?.message || "Medya silme işlemi hazırlanamadı.");
     }
 
     const { error: removeError } = await supabase.storage
       .from(prepared.bucket_name)
       .remove([prepared.object_path]);
 
-    if (removeError) {
-      const { error: cancelError } = await supabase.rpc("cancel_test_admin_media_delete", {
+    if (removeError && !isMissingStorageObjectError(removeError)) {
+      const { error: cancelError } = await supabase.rpc("cancel_admin_media_delete", {
         p_media_id: id,
-        p_previous_status: prepared.previous_status,
-        p_previous_is_active: prepared.previous_is_active,
         p_reason: "storage_delete_failed",
       });
 
       if (cancelError) {
         throw new Error(
-          "Storage nesnesi silinemedi ve medya silme durumu geri alınamadı; işlemi tekrar dene.",
+          "Storage nesnesi silinemedi ve bekleyen silme işareti temizlenemedi; kayıt arşivde kaldı.",
         );
       }
 
-      throw new Error("Storage nesnesi silinemedi; medya kaydı önceki durumuna döndürüldü.");
+      throw new Error("Storage nesnesi silinemedi; medya kaydı arşivde korundu.");
     }
 
     const { data: completed, error: completeError } = await supabase.rpc(
-      "complete_test_admin_media_delete",
+      "complete_admin_media_delete",
       { p_media_id: id },
     );
     if (completeError || completed !== true) {
       throw new Error(
-        "Storage nesnesi silindi ancak medya DB kaydı tamamlanamadı; kayıt arşivde bırakıldı.",
+        "Storage nesnesi silindi ancak DB kaydı tamamlanamadı; arşiv kaydında silme bekliyor işareti bırakıldı.",
       );
     }
 
-    destination = "/admin/media?notice=TEST görseli kalıcı olarak silindi.";
+    destination = "/admin/media?notice=Görsel Storage ve veritabanından kalıcı olarak silindi.";
   } catch (error) {
     destination = `/admin/media?error=${encodeURIComponent(message(error))}`;
   }
 
-  revalidatePath("/admin/media");
-  revalidatePath("/");
-  revalidatePath("/menu");
-  revalidatePath("/events");
+  revalidateMediaSurfaces();
   redirect(destination);
 }

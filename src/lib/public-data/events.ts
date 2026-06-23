@@ -10,9 +10,9 @@ import {
 import { fallbackCommonData } from "./fallbacks";
 import { getPublicBranchRows } from "./branches";
 import {
+  getPublicMediaRows,
   normaliseIssue,
   resolveMediaUrl,
-  type PublicMediaRow,
 } from "./helpers";
 import type { EventPublicData, PublicDataEnvelope } from "./types";
 
@@ -131,18 +131,7 @@ async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData
         .map((event) => event.image_media_id)
         .filter((id): id is string => Boolean(id)),
     )];
-    let mediaRows: PublicMediaRow[] = [];
-
-    if (mediaIds.length) {
-      const mediaResult = await client
-        .from("media")
-        .select(
-          "id, source, bucket_name, object_path, external_url, local_path, alt_text, width, height",
-        )
-        .in("id", mediaIds);
-      if (mediaResult.error) throw mediaResult.error;
-      mediaRows = mediaResult.data ?? [];
-    }
+    const mediaRows = await getPublicMediaRows(client, mediaIds);
 
     const branchByUuid = new Map(
       branchRows.map((branch) => [branch.id, branch]),

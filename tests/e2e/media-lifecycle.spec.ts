@@ -17,7 +17,7 @@ async function loginAsAdmin(
   await expect(page).toHaveURL(/\/admin$/);
 }
 
-test("medya kütüphanesi TEST_ güvenlik kontrollerini sunar", async ({ page }) => {
+test("medya kütüphanesi düzenleme ve güvenli yaşam döngüsü kontrollerini sunar", async ({ page }) => {
   const credentials = adminCredentials();
   test.skip(!credentials, "Yerel TEST admin bilgileri tanımlı değil.");
   await loginAsAdmin(page, credentials!);
@@ -29,10 +29,11 @@ test("medya kütüphanesi TEST_ güvenlik kontrollerini sunar", async ({ page })
   );
   await expect(page.locator('input[name="title"]')).toHaveAttribute(
     "placeholder",
-    /TEST_/,
+    /Menü görseli/,
   );
   await expect(page.getByRole("button", { name: "Görseli yükle" })).toBeVisible();
   await expect(page.locator('select[name="status"]')).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "Kullanım" })).toBeVisible();
-  await expect(page.locator("aside")).toContainText("public bucket nesnesini silmez");
+  await expect(page.getByRole("columnheader", { name: "İşlem" })).toBeVisible();
+  await expect(page.locator("aside")).toContainText("Kalıcı silme yalnız bağlantısız");
 });

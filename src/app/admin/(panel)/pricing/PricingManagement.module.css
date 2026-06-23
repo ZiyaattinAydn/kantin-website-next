@@ -1,0 +1,332 @@
+.filterPanel {
+  margin-bottom: 20px;
+}
+
+.filters {
+  display: grid;
+  gap: 10px;
+}
+
+.filters label:not(.missingToggle) {
+  display: grid;
+  gap: 6px;
+}
+
+.filters label > span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.filters input[type="search"],
+.filters select,
+.priceForm input:not([type="checkbox"]),
+.variantRow input:not([type="checkbox"]) {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+}
+
+.missingToggle,
+.activeToggle,
+.variantActive {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.missingToggle {
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.52);
+}
+
+.missingToggle input,
+.activeToggle input,
+.variantActive input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--blue);
+}
+
+.summary {
+  margin: 13px 0 0;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.productList {
+  display: grid;
+  gap: 18px;
+}
+
+.productCard {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.productHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(0, 71, 187, 0.035);
+}
+
+.productHead h2 {
+  margin: 5px 0 4px;
+  font-size: 1.35rem;
+}
+
+.productHead p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.productHead > a,
+.variantsHead a {
+  color: var(--blue);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.productMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.productMeta > span {
+  display: inline-flex;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(0, 71, 187, 0.08);
+  color: var(--blue);
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.productMeta .live {
+  background: rgba(0, 128, 70, 0.08);
+  color: #08713f;
+}
+
+.productMeta .passive {
+  background: rgba(88, 96, 113, 0.1);
+  color: #4b5563;
+}
+
+.branchGrid {
+  display: grid;
+}
+
+.branchCard {
+  min-width: 0;
+  padding: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.branchCard:last-child {
+  border-bottom: 0;
+}
+
+.branchHead,
+.variantsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.branchHead {
+  margin-bottom: 14px;
+}
+
+.branchHead h3 {
+  margin: 2px 0 0;
+  font-size: 1rem;
+}
+
+.branchHead span,
+.branchHead small {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.branchHead .missing {
+  color: #a12626;
+}
+
+.priceForm {
+  display: grid;
+  gap: 10px;
+}
+
+.priceForm label:not(.activeToggle),
+.notes label,
+.variantRow label:not(.variantActive) {
+  display: grid;
+  gap: 5px;
+}
+
+.priceForm label > span,
+.notes label > span,
+.variantRow label > span,
+.activeToggle span,
+.variantActive span {
+  color: var(--muted);
+  font-size: 0.64rem;
+  font-weight: 900;
+}
+
+.activeToggle {
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.notes {
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(0, 71, 187, 0.025);
+}
+
+.notes summary {
+  cursor: pointer;
+  color: var(--blue);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.notes[open] {
+  display: grid;
+  gap: 10px;
+}
+
+.variants {
+  display: grid;
+  gap: 9px;
+  margin-top: 15px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+
+.variantsHead strong {
+  font-size: 0.78rem;
+}
+
+.variantRow {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--white);
+}
+
+.variantRow > div {
+  display: grid;
+  align-content: center;
+}
+
+.variantRow strong {
+  font-size: 0.72rem;
+}
+
+.variantRow small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.6rem;
+}
+
+.variantActive {
+  min-height: 42px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.noVariants,
+.missingText,
+.empty {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.missingText {
+  margin: 0;
+  padding: 10px 11px;
+  border-radius: 11px;
+  background: rgba(161, 38, 38, 0.055);
+}
+
+.empty {
+  padding: 30px;
+  text-align: center;
+}
+
+@media (min-width: 720px) {
+  .filters {
+    grid-template-columns: minmax(180px, 1.2fr) repeat(3, minmax(140px, 0.8fr));
+    align-items: end;
+  }
+
+  .filters .missingToggle {
+    align-self: end;
+  }
+
+  .priceForm {
+    grid-template-columns: minmax(110px, 0.75fr) minmax(140px, 1fr);
+    align-items: end;
+  }
+
+  .priceForm .activeToggle,
+  .priceForm .notes,
+  .priceForm button,
+  .priceForm .missingText {
+    grid-column: 1 / -1;
+  }
+
+  .variantRow {
+    grid-template-columns: minmax(110px, 1fr) 92px 90px minmax(130px, 1fr) auto;
+    align-items: end;
+  }
+}
+
+@media (min-width: 1180px) {
+  .branchGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .branchCard {
+    border-right: 1px solid var(--line);
+    border-bottom: 0;
+  }
+
+  .branchCard:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .branchCard:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+}

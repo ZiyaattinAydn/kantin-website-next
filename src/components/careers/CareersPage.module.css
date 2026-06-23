@@ -317,6 +317,7 @@
 }
 
 .formSection {
+  isolation: isolate;
   padding: clamp(84px, 10vw, 138px) 0;
   background: transparent;
 }

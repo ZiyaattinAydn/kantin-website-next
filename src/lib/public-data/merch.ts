@@ -8,16 +8,21 @@ import {
   arrayOfRecords,
   asRecord,
   getPageBlocks,
+  getPublicMediaReferenceSet,
+  getPublicMediaRows,
+  isAllowedPublicMediaReference,
   normaliseIssue,
   resolveMediaUrl,
   stringValue,
-  type PublicMediaRow,
 } from "./helpers";
 import type { MerchPublicData, PublicDataEnvelope } from "./types";
 import type { MerchDoodle, MerchProductContent } from "@/types/content";
 import type { BranchId } from "@/types/domain";
 
-function parseMerchDoodles(value: Record<string, unknown> | undefined): MerchDoodle[] {
+function parseMerchDoodles(
+  value: Record<string, unknown> | undefined,
+  activeMediaReferences: ReadonlySet<string>,
+): MerchDoodle[] {
   if (!value) return fallbackHomeData.merchDoodles;
 
   return arrayOfRecords(value.items)
@@ -25,13 +30,17 @@ function parseMerchDoodles(value: Record<string, unknown> | undefined): MerchDoo
       src: stringValue(item.src),
       className: stringValue(item.className),
     }))
-    .filter((item) => item.src && item.className);
+    .filter((item) =>
+      item.src
+      && item.className
+      && isAllowedPublicMediaReference(item.src, activeMediaReferences),
+    );
 }
 
 async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublicData>> {
   try {
     const client = createPublicClient();
-    const [blocks, productsResult, linksResult, branchRows] =
+    const [blocks, productsResult, linksResult, branchRows, activeMediaReferences] =
     await Promise.all([
       getPageBlocks(client, "home"),
       client
@@ -43,6 +52,7 @@ async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublic
         .select("merch_product_id, branch_id, is_available, sort_order")
         .order("sort_order"),
       getPublicBranchRows(),
+      getPublicMediaReferenceSet(client),
     ]);
 
     for (const result of [productsResult, linksResult]) {
@@ -54,15 +64,7 @@ async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublic
         .map((product) => product.image_media_id)
         .filter((id): id is string => Boolean(id)),
     )];
-    let mediaRows: PublicMediaRow[] = [];
-    if (mediaIds.length) {
-      const mediaResult = await client
-        .from("media")
-        .select("id, source, bucket_name, object_path, external_url, local_path, alt_text, width, height")
-        .in("id", mediaIds);
-      if (mediaResult.error) throw mediaResult.error;
-      mediaRows = mediaResult.data ?? [];
-    }
+    const mediaRows = await getPublicMediaRows(client, mediaIds);
 
     const mediaById = new Map(mediaRows.map((media) => [media.id, media]));
     const branchById = new Map(
@@ -113,7 +115,10 @@ async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublic
 
     return {
       data: {
-        merchDoodles: parseMerchDoodles(blocks.get("merch-doodles")),
+        merchDoodles: parseMerchDoodles(
+          blocks.get("merch-doodles"),
+          activeMediaReferences,
+        ),
         merchProducts,
         merchBundles: bundles,
       },

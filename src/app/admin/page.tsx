@@ -84,7 +84,8 @@ export default async function AdminDashboardPage() {
           </div>
           <div className={styles.quickLinks}>
             <Link href="/admin/manage/menu-items?new=1">Yeni menü ürünü</Link>
-            <Link href="/admin/manage/events?new=1">Yeni etkinlik</Link>
+            <Link href="/admin/pricing">Ürün ve şube fiyatlarını yönet</Link>
+            <Link href="/admin/manage/events?new=1">Yeni etkinlik / duyuru</Link>
             <Link href="/admin/manage/merch-products?new=1">Yeni merch ürünü</Link>
             <Link href="/admin/manage/instagram-posts?new=1">Yeni Instagram gönderisi</Link>
             <Link href="/admin/manage/site-settings">Footer ve site ayarları</Link>

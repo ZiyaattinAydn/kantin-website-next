@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Birleşik fiyat yönetimi
+
+- Admin paneline `/admin/pricing` altında ürün odaklı tek fiyat yönetimi ekranı eklendi.
+- Ürün arama, kategori, şube, aktiflik ve eksik fiyat filtreleri tek akışta toplandı.
+- Aynı ürünün bütün aktif şube fiyatları, fiyat etiketleri, notları ve aktiflik durumu aynı kartta düzenlenebiliyor.
+- Eksik ürün-şube bağlantısı fiyat ekranından oluşturulabiliyor; varyant fiyatları ürün ve şube bağlamında inline güncellenebiliyor.
+- Eski teknik şube/varyant tabloları silinmedi; gelişmiş yönetim bağlantıları olarak korunuyor.
+- Türkçe ondalık fiyatların güvenli `price_cents` dönüşümü, UUID ve dönüş URL doğrulaması için unit testler eklendi.
+
+### Medya yönetimi, public görünürlük ve karikatür katmanları
+
+- Kariyer başvuru formu kendi stacking context'ine alındı; hareketli karikatürler form kartının arkasında kalırken parallax davranışı korundu.
+- Public medya adaptörleri yalnız `published + is_active` kayıtları okuyacak şekilde güçlendirildi.
+- Home content block içindeki Storage görsel yolları aktif medya allowlist'iyle doğrulanıyor; arşivlenen galeri/konum/şube görselleri raw URL üzerinden yeniden görünmüyor.
+- Medya kütüphanesine ad, alt metin, yayın durumu, aktiflik ve sıralama düzenleme ekranı eklendi.
+- Bağlantılı medya public görünümden kaldırılabilecek şekilde arşivlenebilir; kalıcı silme yalnız bağlantısız, arşivlenmiş Storage görsellerine açıldı.
+- Storage silme ile DB silme arasındaki yarım kalmış işlemler `_admin_delete` işareti ve güvenli yeniden deneme akışıyla yönetiliyor.
+- Medya güncelleme ve kalıcı silme işlemleri admin yetkili, auditli RPC'lere taşındı; public route revalidation kapsamı genişletildi.
+- Etkinlik + duyuru migration dosyası transaction içine alındı; production uygulama sırası teknik notla belgelendi.
+
 ### Final paket QA ve tasarım temizliği
 
 - Kullanılmayan eski content/component katmanı, eski Firebase/static admin varlıkları, demo etkinlik JSON'u ve referanssız galeri görselleri kaldırıldı.

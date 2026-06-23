@@ -1,135 +1,123 @@
-# Codex Handoff
+# Teknik Handoff
 
 ### Görev
 
-Ara görev - Kahve bar zemin düzeltmesi sonrası site genelinde karikatür parallax davranışı, etkinlikler alt bölüm karikatürleri ve kariyer form layering düzeltmesi.
+Kariyer formu karikatür katmanının kapatılması; etkinlik + duyuru migration hazırlığı; medya ayarları, güvenli kalıcı silme ve public arşiv görünürlüğü düzeltmesi; birleşik fiyat yönetimi ekranı.
 
 ### Durum
 
-Kod tamamlandı, test edildi ve commitlendi. Local DB testi hâlâ Docker/Supabase erişimi nedeniyle engelli.
+Kod, unit testler ve production build tamamlandı. Production Supabase'e migration uygulanmadı. Docker kullanılmadığı için pgTAP ve yerel Supabase E2E testleri çalıştırılmadı.
 
 ### Yapılanlar
 
-Önce `/menu` Alsancak Kahve Barı bölümünde mavi panel altında kaybolan zemin düzeltildi. Public dotted background override'ı kahve bar ve bağlı merch bölümü için fazla agresif `transparent !important` uyguluyordu. Kahve bölümü tekrar `var(--cream)` zemin ve ortak dot pattern ile çiziliyor; merch shell transparan kalıp kahve zeminiyle kesintisiz devam ediyor.
+#### Karikatür katmanları
 
-Bu oturumdaki yeni istek kapsamında merch drop bölümündeki cursor'a bağlı karikatür hareketi ortak bir client bileşenine taşındı. `DoodleParallaxStage`, fine pointer ve reduced motion kontrollerini yapıyor, pointer/mouse hareketini stage parent ölçüsüne göre CSS değişkenlerine yazıyor ve alan dışına çıkınca parallax değerlerini sıfırlıyor.
+- `/careers#basvuru` form bölümü `isolation: isolate` ile ayrı stacking context'e alındı.
+- Doodle/parallax katmanı altta, form layout ve opak form kartı üstte kalıyor.
+- Hareket ve reduced-motion davranışı korunuyor.
 
-`AmbientDoodles` artık bu ortak parallax stage'i kullanıyor. Böylece ana sayfa hero, lokasyonlar, anılar, home events, menü bölümleri ve etkinlikler hero gibi AmbientDoodles kullanan tüm karikatürler aynı cursor hareketini aldı.
+#### Etkinlikler ve duyurular
 
-Merch drop tarafındaki lokal parallax state/ref/handler kodu kaldırıldı ve aynı ortak stage'e bağlandı. Menü merch showcase, footer ve kariyer sayfasındaki özel karikatür katmanları da aynı davranışı kullanacak şekilde güncellendi.
+- Daha önce hazırlanan etkinlik + duyuru sistemi korunup migration transaction sınırına alındı.
+- Bekleyen migration: `supabase/migrations/20260623030000_event_announcements.sql`.
+- Production uygulama ve smoke test sırası teknik nota yazıldı.
 
-`/events` sayfasının filtre/listenin bulunduğu alt bölümüne ayrıca `events-page-lower-doodles` karikatür katmanı eklendi. Bu katman empty/list card arkasında ve alt kenarlarda düşük opaklıklı karikatürleri gösteriyor.
+#### Medya yönetimi
 
-Son ara düzeltmede `/careers#basvuru` formunun üzerine binen karikatürler arka katmana alındı. `formDoodles` parallax katmanı aynı şekilde hareket etmeye devam ediyor; `formLayout`, `formIntro` ve `form` kendi stacking context'iyle üstte duruyor. Form kartı opak beyaz zemine alındı, böylece çizgiler başlık/input/button üstünden görünmüyor.
+- Public medya sorguları `status = published` ve `is_active = true` filtrelerini açıkça uyguluyor.
+- Home ve merch content block görsel yolları aktif medya referans allowlist'iyle doğrulanıyor. Arşivli Storage URL'si JSON içinde bağlı kalsa bile public alanda render edilmiyor.
+- Arşivlenmiş Instagram medyası boş `src` üretmeden listeden çıkarılıyor.
+- `/admin/media` ekranında medya adı, alt metin, yayın durumu, aktiflik ve sıralama düzenlenebiliyor.
+- Kaynak, bucket ve object path salt okunur bırakıldı.
+- Bağlantılı medya arşivlenebiliyor; kullanım bağlantıları kalıcı silmeyi engellemeye devam ediyor.
+- Kalıcı silme yalnız bağlantısız, arşivlenmiş ve pasif public Storage görsellerinde açılıyor ve yazılı onay istiyor.
+- Silme begin → Storage remove → DB complete akışında yürütülüyor. Storage nesnesi zaten yoksa DB tamamlama güvenli şekilde devam ediyor. Storage hatasında pending marker kaldırılıyor; DB tamamlama yarıda kalırsa `SİLMEYİ TAMAMLA` ile tekrar denenebiliyor.
+- Metadata güncelleme ve kalıcı silme admin kontrolü ve semantic audit içeren SECURITY DEFINER RPC'lere taşındı.
+- `/`, `/menu`, `/events`, `/careers` ve `/admin/media` medya işlemlerinden sonra revalidate ediliyor.
 
-### Değişen dosyalar
+#### Birleşik fiyat yönetimi
 
-- `src/components/effects/DoodleParallaxStage.tsx`: site genelinde kullanılacak cursor parallax stage bileşeni eklendi.
-- `src/components/effects/AmbientDoodles.tsx`: AmbientDoodles ortak parallax stage ile render ediliyor.
-- `src/components/home/HomeMerchDrop.tsx`: lokal pointer parallax kodu kaldırıldı, ortak stage kullanıldı.
-- `src/components/merch/MenuMerchShowcase.tsx`: merch showcase karikatürleri ortak stage'e bağlandı.
-- `src/components/layout/SiteFooter.tsx`: footer karikatürleri ortak stage ile sarıldı.
-- `src/components/layout/SiteFooter.module.css`: footer parallax stage CSS değişkenleri ve transform'u eklendi.
-- `src/components/careers/CareersPage.tsx`: hero ve başvuru formu karikatürleri ortak stage ile sarıldı.
-- `src/components/careers/CareersPage.module.css`: careers hero/form parallax stage stilleri eklendi; son düzeltmede form layout/card z-index'i üst katmana alındı ve form zemini opaklaştırıldı.
-- `src/components/events/EventsPageClient.tsx`: alt etkinlik/list bölgesine `events-page-lower-doodles` eklendi.
-- `src/components/events/EventsPageClient.module.css`: alt etkinlik karikatürlerinin konumları, z-index ve section layering'i eklendi.
-- `tests/unit/components/doodle-parallax-stage.test.tsx`: parallax CSS değişkenlerinin pointer hareketiyle yazıldığı test edildi.
-- `tests/unit/components/events-page-client.test.tsx`: etkinlikler alt karikatür katmanının render olduğu kontrol edildi.
-- `tests/unit/styles/careers-doodles.test.ts`: careers karikatür stage'lerinin parallax CSS kontratı ve formun doodle layer üstünde kalma kontratı eklendi.
-- `src/styles/theme.css`: kahve bar zemin düzeltmesi önceki commit'te yapıldı.
-- `tests/unit/styles/public-background-grid.test.ts`: kahve bar zemin kontratı önceki commit'te test edildi.
+- `/admin/pricing` ekranı eklendi.
+- Ürün arama, kategori, şube, aktiflik ve eksik fiyat filtreleri eklendi.
+- Aynı ürünün bütün aktif şube fiyatları tek kartta düzenlenebiliyor.
+- Temel fiyat, fiyat etiketi, fiyat/bulunabilirlik notu ve şube aktifliği güncellenebiliyor.
+- Eksik ürün-şube fiyat bağlantısı aynı ekrandan oluşturulabiliyor.
+- Varyant fiyatı, fiyat notu ve aktifliği ürün/şube bağlamında inline güncellenebiliyor.
+- `Ürünler`, `Şube fiyatları` ve `Fiyat varyantları` generic ekranları silinmedi; gelişmiş yönetim bağlantıları olarak korundu.
+- Türkçe ondalık fiyatlar güvenli şekilde `price_cents` değerine çevriliyor.
+- Fiyat ekranı mevcut RLS ve transaction audit trigger'larını kullanıyor; yeni migration gerektirmiyor.
+
+### Önemli değişen dosyalar
+
+- `src/components/careers/CareersPage.module.css`
+- `src/lib/public-data/helpers.ts`
+- `src/lib/public-data/home.ts`
+- `src/lib/public-data/menu.ts`
+- `src/lib/public-data/merch.ts`
+- `src/lib/public-data/events.ts`
+- `src/app/admin/(panel)/media/page.tsx`
+- `src/app/admin/(panel)/media/MediaLibrary.module.css`
+- `src/components/admin/crud/TypedConfirmSubmitButton.tsx`
+- `src/lib/admin/media-actions.ts`
+- `src/lib/supabase/database.types.ts`
+- `supabase/migrations/20260623030000_event_announcements.sql`
+- `supabase/migrations/20260624010000_media_management.sql`
+- `supabase/tests/transactional_admin_mutations.test.sql`
+- `src/app/admin/(panel)/pricing/page.tsx`
+- `src/app/admin/(panel)/pricing/PricingManagement.module.css`
+- `src/lib/admin/pricing.ts`
+- `src/lib/admin/pricing-actions.ts`
+- `src/components/admin/AdminShell.tsx`
+- `src/app/admin/page.tsx`
+- `tests/unit/admin/media-actions.test.ts`
+- `tests/unit/public-data/media-visibility.test.ts`
+- `tests/unit/admin/pricing.test.ts`
+- `tests/unit/admin/pricing-actions.test.ts`
+- `tests/e2e/media-lifecycle.spec.ts`
 
 ### Veritabanı etkisi
 
-Bu ara görevde yeni migration yazılmadı, migration uygulanmadı, remote Supabase veya production veri üzerinde işlem yapılmadı.
+Bekleyen production migration sırası:
 
-Önceki Task 3 migration'ı hâlâ bekliyor:
+1. `20260623030000_event_announcements.sql`
+2. `20260624010000_media_management.sql`
+3. `notify pgrst, 'reload schema';`
 
-- `supabase/migrations/20260623030000_event_announcements.sql`
+Birleşik fiyat yönetimi mevcut menü tablolarını kullanır ve ek migration gerektirmez.
 
-Kritik not: Admin `events` resource yeni kolonları doğrudan select ettiği için production şemada bu migration hazır değilse admin yüzeyi kırılabilir. Remote migration bu oturumda uygulanmadı.
+### Test ve doğrulama
 
-### Test sonuçları
+Geçen kontroller:
 
-- `npm run test:unit -- tests/unit/components/doodle-parallax-stage.test.tsx tests/unit/components/events-page-client.test.tsx tests/unit/styles/careers-doodles.test.ts`: geçti, 3 dosya / 5 test.
-- `npm run test:unit -- tests/unit/styles/careers-doodles.test.ts`: geçti, 1 dosya / 1 test.
-- `npm run test:unit`: geçti, 35 dosya / 99 test.
-- `npx tsc --noEmit`: geçti.
+- `npm ci --ignore-scripts`: geçti, 475 paket kuruldu.
+- `npm run test:unit`: geçti, **38 test dosyası / 117 test**.
 - `npm run lint`: geçti.
-- Browser manuel kontrol: `http://127.0.0.1:3000/events` üzerinde hero ve alt etkinlik bölümü render edildi. DOM kontrolünde hero karikatürleri 9, alt bölüm karikatürleri 9 adet göründü. Screenshot ile empty card arkasında ve alt kenarda karikatürlerin göründüğü doğrulandı.
-- Browser manuel kontrol: `http://127.0.0.1:3000/careers#basvuru` üzerinde form layering doğrulandı. DOM'da `formDoodles` z-index `0`, `formLayout` ve `form` z-index `1`, form background `rgb(255, 255, 255)` döndü; screenshot'ta karikatürler form kartının içine binmeden arka zeminde kaldı.
+- `npx tsc --noEmit`: geçti.
+- Temiz `.next` sonrası `npm run build`: geçti; `/admin/pricing` dynamic route olarak build listesinde yer aldı.
+- `npm audit --audit-level=high`: geçti, 0 güvenlik bulgusu.
+- 161 TypeScript/TSX dosyası compiler parser ile ayrıca tarandı: sözdizimi temiz.
+- CSS brace ve SQL transaction/dollar-quote statik kontrolleri temiz.
 
-Önceki blokaj aynen sürüyor:
+Çalıştırılmayan kontroller:
 
-- `npm run test:db`: önceki denemede `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321` local hedefi doğrulandı, fakat local Postgres bağlantısı `LegacyDbConnectError / Failed to connect` verdi.
-- `.\node_modules\.bin\supabase.cmd status` ve `.\node_modules\.bin\supabase.cmd start`: Docker Desktop named-pipe `500 Internal Server Error` nedeniyle tamamlanamadı.
-
-### Manuel kontrol
-
-- `/menu#kahve-bari`: önceki commit sonrası kahve bar computed style krem zemin + dot pattern + mavi metin döndürdü; screenshot'ta intro/listeler okunur göründü.
-- `/events`: bu görev sonrası alt etkinlik/list bölgesinde ek karikatürler göründü. İn-app browser otomasyonunda fiziksel cursor hareketi CSS değişkenlerini güvenilir şekilde raporlamadı; davranış `DoodleParallaxStage` unit testiyle doğrulandı.
-- `/careers#basvuru`: form alanında karikatürler arka planda kaldı; hareket katmanı DOM'da 18 karikatürle korunuyor.
-
-### Git durumu
-
-- branch: `main`
-- kahve bar düzeltme commit'i: `2fdd1c2 fix: restore coffee bar background`
-- kahve bar handoff commit'i: `64c196a docs: update codex handoff for coffee bar fix`
-- karikatür parallax commit'i: `1185be3 feat: add sitewide doodle parallax`
-- kariyer form layering commit'i: `5fd4aaa fix: keep career form above doodles`
-- önceki Task 3 commit'i: `c702ca2 codex tasarimsal duzenlemeler`
+- `npm run test:db`: Docker/yerel Supabase olmadığı için çalıştırılmadı.
+- `npm run test:e2e`: yerel Supabase ve TEST admin oturumu olmadığı için çalıştırılmadı.
+- Production migration, canlı Storage silme ve canlı veri değişikliği yapılmadı.
 
 ### Açık riskler
 
-- `test:db` local Docker/Supabase bağlantı problemi nedeniyle hâlâ çalıştırılamadı.
-- Task 3 migration'ı local DB'de pgTAP ile doğrulanmadı ve remote'a uygulanmadı.
-- Production schema migration sırası netleşmeden Task 3'teki admin duyuru yönetimi production için hazır kabul edilmemeli.
-- Browser otomasyonunda cursor hareketi CSS değişkenini ölçmek güvenilir sinyal vermedi; parallax davranışı unit test ile doğrulandı ve render görsel olarak kontrol edildi.
+- Production schema event ve medya migration'ları uygulanmadan yeni duyuru alanları ve medya RPC'leri kullanılamaz.
+- RPC davranışı gerçek PostgreSQL üzerinde pgTAP ile bu ortamda doğrulanmadı.
+- Kalıcı Storage silme yalnız bağlantısız `TEST_` medya ile production smoke test edilmelidir.
+- Fiyat ekranı build ve unit düzeyinde doğrulandı; gerçek admin oturumunda responsive smoke test otomasyonda tamamlanmalıdır.
 
 ### Sonraki görev
 
-Task 3'ü gerçekten kapatmak için önce yerel Docker/Supabase named-pipe erişimi düzeltilmeli. Ardından PowerShell'de local env açıkça verilerek `npm run test:db` çalıştırılmalı. Migration uygulama/push sırası netleşmeden Task 4'e geçilmemeli.
+1. İki migration'ı belgelenen sırada Supabase SQL Editor'da uygula.
+2. PostgREST schema cache'i yenile.
+3. Yalnız `TEST_` verilerle etkinlik/duyuru, medya arşiv/restore/delete ve birleşik fiyat yönetimi smoke testlerini çalıştır.
+4. 390, 768, 1024 ve 1440 piksel genişliklerde `/admin/media` ve `/admin/pricing` final görsel kontrolünü yap.
 
 ### GPT'ye aktarılacak kısa özet
 
-Kantin Website `main` üzerinde çalışılıyor. Son stabil commitler:
-- `c702ca2 codex tasarimsal duzenlemeler`: Task 3 etkinlik + duyuru merkezi implementasyonu.
-- `2fdd1c2 fix: restore coffee bar background`: `/menu#kahve-bari` zemin düzeltmesi.
-- `64c196a docs: update codex handoff for coffee bar fix`: önceki handoff dokümanı.
-- `1185be3 feat: add sitewide doodle parallax`: bu oturumdaki karikatür parallax işi.
-- `5fd4aaa fix: keep career form above doodles`: kariyer başvuru formunu karikatür layer üstüne alma düzeltmesi.
-
-Bu oturumda önceki kahve bar bozulması düzeltilmiş durumdaydı. Yeni istek: etkinlikler sayfasının aşağı kısmına karikatür eklemek ve merch drop'taki cursor'a göre aşağı/yukarı hareket davranışını sitedeki bütün karikatürlere yaymak.
-
-Ek ara istek: iş başvurusu sayfasında formun üzerine binen karikatürleri formun arka planına almak, hareket özelliklerini bozmamak.
-
-Yapılanlar:
-- `src/components/effects/DoodleParallaxStage.tsx` eklendi. Fine pointer ve reduced motion kontrolü yapıyor, `pointermove`/`mousemove` ile `--parallax-x` ve `--parallax-y` CSS değişkenlerini güncelliyor, alan dışına çıkınca sıfırlıyor.
-- `AmbientDoodles` ortak stage'e taşındı; AmbientDoodles kullanan site karikatürleri artık cursor parallax alıyor.
-- `HomeMerchDrop` içindeki lokal parallax handler/ref kodu kaldırıldı; ortak stage kullanıldı.
-- `MenuMerchShowcase`, `SiteFooter`, `CareersPage` hero/form karikatürleri ortak stage'e bağlandı.
-- `/events` alt section içine `AmbientDoodles className="events-page-lower-doodles" preset="memories"` eklendi.
-- `EventsPageClient.module.css` içinde alt karikatürlerin konumları, layering ve z-index düzenlendi.
-- `CareersPage.module.css` içinde form layout ve form kartı `z-index: 1` ile doodle layer'ın üstüne alındı; form background `var(--white)` yapıldı. `formDoodles` parallax katmanı ve animasyonları korunuyor.
-- Unit testler eklendi/güncellendi: `tests/unit/components/doodle-parallax-stage.test.tsx`, `tests/unit/components/events-page-client.test.tsx`, `tests/unit/styles/careers-doodles.test.ts`.
-
-Geçen kontroller:
-- `npm run test:unit -- tests/unit/components/doodle-parallax-stage.test.tsx tests/unit/components/events-page-client.test.tsx tests/unit/styles/careers-doodles.test.ts`: geçti, 3 dosya / 5 test.
-- `npm run test:unit -- tests/unit/styles/careers-doodles.test.ts`: geçti, 1 dosya / 1 test.
-- `npm run test:unit`: geçti, 35 dosya / 99 test.
-- `npx tsc --noEmit`: geçti.
-- `npm run lint`: geçti.
-- Browser manuel kontrol: `http://127.0.0.1:3000/events` üzerinde hero ve alt bölüm render edildi; DOM'da hero 9 karikatür, alt bölüm 9 karikatür gördü; screenshot'ta empty card arkasında/altında karikatürler göründü.
-- Browser manuel kontrol: `http://127.0.0.1:3000/careers#basvuru` üzerinde formun opak beyaz zeminde ve karikatürlerin arka planda kaldığı doğrulandı.
-
-Çalışmayan/ertelenen kontrol:
-- `npm run test:db` önceki denemelerde local Docker/Supabase named-pipe `500 Internal Server Error` ve Postgres `LegacyDbConnectError / Failed to connect` nedeniyle çalıştırılamadı. Remote Supabase migration uygulanmadı.
-
-Önemli risk:
-- Task 3 migration'ı `supabase/migrations/20260623030000_event_announcements.sql` hâlâ local DB'de pgTAP ile doğrulanmadı ve remote'a uygulanmadı. Admin events resource yeni kolonları select ettiği için production schema migration hazır değilse admin duyuru yönetimi kırılabilir.
-
-Sonraki görev:
-- Önce local Docker/Supabase named-pipe erişimini düzelt.
-- Sonra local Supabase env açıkça verilerek `npm run test:db` çalıştır.
-- Migration uygulama ve production schema sırası netleşmeden Task 4'e geçme.
+Kantin Website güncel kaynak paketinde planlanan karikatür, medya ve fiyat yönetimi işleri tamamlandı. Kariyer formu ayrı stacking context'e alındı; hareketli karikatürler form arkasında kalıyor. Public medya adaptörleri yalnız published+active kayıtları okuyor ve content block içindeki arşivli Storage URL'lerini allowlist ile engelliyor. Admin medya ekranına metadata/status/aktiflik/sıra düzenleme, bağlantılı medyayı arşivleme ve bağlantısız arşiv Storage görselini yazılı onayla kalıcı silme eklendi. Silme işlemi retry-safe begin/remove/complete RPC akışı kullanıyor. Yeni medya migration'ı `20260624010000_media_management.sql`; önce `20260623030000_event_announcements.sql`, sonra medya migration'ı uygulanmalı ve schema cache yenilenmeli. `/admin/pricing` birleşik fiyat ekranı eklendi: ürün arama, kategori/şube/aktiflik/eksik fiyat filtreleri; bütün şube fiyatları; eksik ilişki oluşturma ve inline varyant fiyat güncelleme aynı akışta. Fiyat ekranı yeni migration gerektirmiyor. `npm run test:unit` 38 dosya/117 test, lint, TypeScript, temiz production build ve npm audit geçti. Docker olmadığı için pgTAP/E2E çalıştırılmadı ve production DB/Storage'a işlem yapılmadı.

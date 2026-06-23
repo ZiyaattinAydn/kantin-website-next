@@ -8,6 +8,7 @@ import {
   asRecord,
   formatTryFromCents,
   getPageBlocks,
+  getPublicMediaRows,
   normaliseIssue,
   resolveMediaUrl,
   stringValue,
@@ -208,15 +209,7 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
         .map((item) => item.image_media_id)
         .filter((id): id is string => Boolean(id)),
     )];
-    const mediaRows: PublicMediaRow[] = [];
-    if (mediaIds.length) {
-      const mediaResult = await client
-        .from("media")
-        .select("id, source, bucket_name, object_path, external_url, local_path, alt_text, width, height")
-        .in("id", mediaIds);
-      if (mediaResult.error) throw mediaResult.error;
-      mediaRows.push(...(mediaResult.data ?? []));
-    }
+    const mediaRows = await getPublicMediaRows(client, mediaIds);
 
     const branchByUuid = new Map(
       branchRows.map((branch) => [branch.id, branch]),

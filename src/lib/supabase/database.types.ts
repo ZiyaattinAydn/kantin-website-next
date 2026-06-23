@@ -1299,6 +1299,40 @@ export type Database = {
         Args: { p_media_id: string };
         Returns: boolean;
       };
+      update_admin_media_metadata: {
+        Args: {
+          p_media_id: string;
+          p_title: string;
+          p_alt_text: string;
+          p_status: Database["public"]["Enums"]["content_status"];
+          p_is_active: boolean;
+          p_sort_order: number;
+        };
+        Returns: {
+          media_id: string;
+          title: string | null;
+        }[];
+      };
+      begin_admin_media_delete: {
+        Args: { p_media_id: string };
+        Returns: {
+          media_id: string;
+          title: string | null;
+          bucket_name: string;
+          object_path: string;
+        }[];
+      };
+      cancel_admin_media_delete: {
+        Args: {
+          p_media_id: string;
+          p_reason: string;
+        };
+        Returns: boolean;
+      };
+      complete_admin_media_delete: {
+        Args: { p_media_id: string };
+        Returns: boolean;
+      };
       is_admin: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;

@@ -1,3 +1,5 @@
+begin;
+
 alter table public.events
   add column if not exists content_type text not null default 'event',
   add column if not exists cta_label text,
@@ -74,3 +76,5 @@ using (
       and branch.is_active = true
   )
 );
+
+commit;
