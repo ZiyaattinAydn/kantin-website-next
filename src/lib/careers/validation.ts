@@ -10,9 +10,8 @@ import {
   validateStorageFile,
 } from "@/lib/supabase/storage";
 
-export const CAREER_CONSENT_VERSION = "2026-06-20-v1";
-export const CAREER_FORM_MIN_FILL_MS = 2_000;
-export const CAREER_FORM_MAX_AGE_MS = 2 * 60 * 60 * 1_000;
+const CAREER_FORM_MIN_FILL_MS = 2_000;
+const CAREER_FORM_MAX_AGE_MS = 2 * 60 * 60 * 1_000;
 export const CAREER_MAX_REQUEST_BYTES = 6 * 1024 * 1024;
 
 const AVAILABILITY_DB_VALUE: Readonly<Record<string, string>> = {

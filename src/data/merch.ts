@@ -67,16 +67,8 @@ export const merchProducts = [
   },
 ] as const satisfies readonly MerchProductContent[];
 
-export const merchSideProducts = merchProducts.filter(
-  (product) => product.id !== "oversize-tshirt",
-);
-
 export const merchBundles = [
   { name: "Oversize Tişört", price: 690 },
   { name: "Full Set · Tişört + Çanta + Şapka", price: 1350 },
   { name: "2’li Kombin · seçili iki parça", price: 990 },
 ] as const satisfies readonly MerchBundle[];
-
-export const merchBundleOffers = merchBundles.filter(
-  (bundle) => bundle.name !== "Oversize Tişört",
-);

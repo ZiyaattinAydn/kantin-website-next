@@ -18,6 +18,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: clamp(18px, 3vw, 44px);
   height: 100%;
 }
 
@@ -26,7 +27,8 @@
   z-index: 1002;
   color: var(--blue);
   font-family: "Montserrat", sans-serif;
-  font-size: 2.3rem;
+  flex: 0 0 auto;
+  font-size: clamp(2rem, 2.2vw, 2.3rem);
   font-weight: 900;
   line-height: 1;
   letter-spacing: -0.07em;
@@ -113,7 +115,7 @@
   outline-color: rgba(255, 255, 255, 0.82);
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 1179px) {
   .header {
     background: rgba(244, 239, 230, 0.96);
     -webkit-backdrop-filter: none;
@@ -179,7 +181,7 @@
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1180px) {
   .toggle {
     display: none;
   }
@@ -187,9 +189,11 @@
   .nav {
     position: static;
     display: flex;
+    min-width: 0;
+    justify-content: flex-end;
     flex-direction: row;
     align-items: center;
-    gap: 6px;
+    gap: clamp(2px, 0.5vw, 8px);
     padding: 0;
     background: transparent;
     color: var(--ink);
@@ -200,12 +204,13 @@
 
   .navLink {
     min-height: 42px;
-    padding: 0 14px;
+    padding: 0 clamp(9px, 0.9vw, 14px);
     border: 0;
     border-radius: 999px;
     font-family: "Inter", sans-serif;
-    font-size: 0.9rem;
+    font-size: clamp(0.82rem, 0.78vw, 0.9rem);
     font-weight: 800;
+    white-space: nowrap;
     letter-spacing: normal;
   }
 

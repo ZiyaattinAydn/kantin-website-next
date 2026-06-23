@@ -1,5 +1,5 @@
 export const ADMIN_PAGE_SIZE = 25;
-export const ADMIN_SEARCH_MAX_LENGTH = 100;
+const ADMIN_SEARCH_MAX_LENGTH = 100;
 
 export type AdminPagination = {
   page: number;

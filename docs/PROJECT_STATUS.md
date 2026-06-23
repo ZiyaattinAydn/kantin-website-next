@@ -39,15 +39,16 @@ Proje özellik geliştirme açısından release candidate seviyesindedir. Fronte
 
 ## Açık kalan maddeler
 
-### Production'a geçiş
+### Final entegrasyon kapanışı
 
-Preview ortamı hazırdır ancak final production promotion ayrıca yapılmalıdır:
+Güncel kaynak kod `main` branch'indedir. Release kapanışı için:
 
-1. `develop` -> `main` merge
-2. Production environment variable kontrolü
-3. Supabase Site URL / Redirect URL production kontrolü
-4. Production redeploy
-5. Deployment verifier 8/8
+1. Docker Desktop ile yerel Supabase yığınını başlat
+2. Migration zinciri ve pgTAP testlerini çalıştır
+3. Yerel TEST_ admin, medya, kariyer ve CV senaryolarını doğrula
+4. Playwright E2E turunu tamamla
+5. Production environment ve Supabase Site URL / Redirect URL ayarlarını kontrol et
+6. Production verifier çalıştır
 
 ### İçerik
 
@@ -57,8 +58,8 @@ Preview ortamı hazırdır ancak final production promotion ayrıca yapılmalıd
 
 ### Paket güvenliği
 
-`npm audit` iki moderate uyarı raporlamaktadır. Zincir Next.js'in sabitlediği PostCSS sürümünden gelir. `npm audit fix --force`, uyumsuz/eski Next.js sürümü önerdiği için uygulanmamıştır. Yeni uyumlu Next.js/PostCSS güncellemesi çıktığında kontrollü branch üzerinde denenmelidir.
+Kontrollü PostCSS override sonrasında `npm audit` 0 güvenlik açığı raporlamaktadır. `npm audit fix --force` kullanılmamalıdır; ilerideki major yükseltmeler ayrı ve kontrollü ele alınmalıdır.
 
 ## Sürüm kararı
 
-Mevcut paket `1.0.0-rc.1` olarak işaretlenmiştir. Production verifier, final responsive kabul ve içerik kontrolü tamamlandığında `1.0.0` etiketi verilebilir.
+Mevcut paket `1.0.0-rc.1` olarak işaretlenmiştir. Yerel Supabase/pgTAP, E2E, production verifier ve final içerik kabulü tamamlandığında `1.0.0` etiketi verilebilir.

@@ -8,7 +8,7 @@ import { primaryNavigation } from "@/data/site";
 import type { NavigationItem } from "@/types/content";
 import styles from "./SiteHeader.module.css";
 
-const DESKTOP_BREAKPOINT = 1024;
+const DESKTOP_BREAKPOINT = 1180;
 
 function isNavigationItemActive(pathname: string, item: NavigationItem) {
   if (item.href.includes("#")) return false;

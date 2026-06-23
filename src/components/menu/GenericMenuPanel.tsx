@@ -69,7 +69,7 @@ function MenuItemCard({ item }: { item: GenericMenuItemData }) {
   );
 }
 
-export function MenuCategory({ category }: { category: GenericMenuCategoryData }) {
+function MenuCategory({ category }: { category: GenericMenuCategoryData }) {
   return (
     <section
       className={styles.category}

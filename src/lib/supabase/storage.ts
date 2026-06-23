@@ -24,7 +24,7 @@ export const PUBLIC_IMAGE_BUCKETS = [
   STORAGE_BUCKETS.instagramMedia,
 ] as const satisfies readonly StorageBucket[];
 
-export const IMAGE_MIME_TYPES = [
+const IMAGE_MIME_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
@@ -37,7 +37,7 @@ export const CV_MIME_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ] as const;
 
-export const STORAGE_LIMITS = {
+const STORAGE_LIMITS = {
   imageBytes: 8 * 1024 * 1024,
   cvBytes: 5 * 1024 * 1024,
 } as const;

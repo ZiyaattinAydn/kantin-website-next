@@ -1,17 +1,36 @@
 .notice {
-  margin: 1rem auto 0;
-  max-width: min(1180px, calc(100% - 2rem));
-  border: 1px solid rgba(2, 25, 75, 0.18);
-  border-radius: 14px;
-  background: rgba(255, 248, 231, 0.96);
-  color: #02194b;
-  padding: 0.85rem 1rem;
-  font-size: 0.86rem;
-  line-height: 1.5;
+  display: flex;
+  width: min(calc(100% - 32px), var(--container));
+  align-items: center;
+  gap: 10px;
+  margin: 12px auto 0;
+  padding: 10px 14px;
+  border: 1px solid rgba(0, 71, 187, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  color: #28405f;
+  box-shadow: 0 8px 30px rgba(16, 16, 16, 0.035);
+  backdrop-filter: blur(12px);
+}
+
+.statusDot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #d69a22;
+  box-shadow: 0 0 0 4px rgba(214, 154, 34, 0.14);
+}
+
+.notice p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
 .notice strong {
-  font-weight: 800;
+  color: #02194b;
+  font-weight: 850;
 }
 
 .empty {
@@ -30,4 +49,21 @@
 
 .empty p {
   margin: 0;
+}
+
+@media (max-width: 560px) {
+  .notice {
+    width: min(calc(100% - 24px), var(--container));
+    align-items: flex-start;
+    border-radius: 16px;
+    padding: 10px 12px;
+  }
+
+  .statusDot {
+    margin-top: 4px;
+  }
+
+  .notice p {
+    font-size: 0.74rem;
+  }
 }

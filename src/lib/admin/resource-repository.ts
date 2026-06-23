@@ -10,7 +10,7 @@ type RepositoryError = {
   code?: string;
 };
 
-export class AdminRepositoryError extends Error {
+class AdminRepositoryError extends Error {
   readonly code: string;
 
   constructor(message: string, code = "repository_error") {
@@ -74,14 +74,4 @@ export async function deleteAdminRow(
 ): Promise<void> {
   const { error } = await client.from(table).delete().eq("id", id);
   if (error) throw operationError(error, "Kayıt silinemedi.");
-}
-
-export async function upsertAdminRows(
-  client: SupabaseClient,
-  table: AdminTable,
-  payloads: AdminMutationPayload[],
-  onConflict: string,
-): Promise<void> {
-  const { error } = await client.from(table).upsert(payloads, { onConflict });
-  if (error) throw operationError(error, "Kayıtlar güncellenemedi.");
 }

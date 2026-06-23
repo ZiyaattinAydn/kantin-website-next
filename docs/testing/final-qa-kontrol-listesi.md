@@ -91,7 +91,7 @@
 ## Deployment
 
 - [ ] Preview verifier başarılı
-- [ ] `develop -> main` merge
+- [x] Güncel kaynak kod `main` branch'inde
 - [ ] Production environment variable'ları
 - [ ] Supabase Site URL / Redirect URL
 - [ ] Production verifier 8/8

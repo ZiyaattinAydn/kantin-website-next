@@ -2,7 +2,7 @@
 
 ## Branch ve ortam
 
-- Ana geliştirme branch'i `develop`'tır. Açık onay olmadan `main` branch'ine geçme.
+- Ana çalışma branch'i `main`'dir. Yeni değişiklikler kontrollü commitlerle doğrudan `main` üzerinde ilerler.
 - Production deploy, production verifier, canlı veri yazma/silme ve canlı Storage işlemi yapma.
 - `.env.local` dosyasını okuma, yazdırma, değiştirme veya commit kapsamına alma.
 - Secret, service role key, database parolası ve token'ları komut çıktısına taşıma.

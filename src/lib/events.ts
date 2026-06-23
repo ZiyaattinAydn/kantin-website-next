@@ -1,7 +1,5 @@
 import type { Event as EventRecord, EventBranchId } from "@/types/domain";
 
-export const EVENT_DEMO_STORAGE_KEY = "kantin_demo_events_v1";
-
 export type EventBranch = EventBranchId;
 
 export type RawEvent = Partial<
@@ -91,30 +89,6 @@ export function normalisePublishedEvents(items: RawEvent[]): KantinEvent[] {
     .filter((item): item is KantinEvent => Boolean(item))
     .filter((item) => (item.endAt || item.startAt) >= now)
     .sort((first, second) => first.startAt.getTime() - second.startAt.getTime());
-}
-
-export async function loadPublishedEvents(): Promise<KantinEvent[]> {
-  if (typeof window !== "undefined") {
-    try {
-      const demo = JSON.parse(
-        window.localStorage.getItem(EVENT_DEMO_STORAGE_KEY) || "[]",
-      ) as RawEvent[];
-
-      if (demo.length) return normalisePublishedEvents(demo);
-    } catch (error) {
-      console.warn("Demo etkinlikleri okunamadı:", error);
-    }
-  }
-
-  try {
-    const response = await fetch("/data/events.json", { cache: "no-store" });
-    if (!response.ok) throw new Error("events.json okunamadı");
-
-    return normalisePublishedEvents((await response.json()) as RawEvent[]);
-  } catch (error) {
-    console.warn("Yerel etkinlik verisi okunamadı:", error);
-    return [];
-  }
 }
 
 export function safeExternalUrl(value?: string): string | null {

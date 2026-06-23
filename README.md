@@ -3,7 +3,7 @@
 Kantin Alsancak ve Atakent şubeleri için geliştirilen, canlı içerik yönetimi ve yönetici paneli bulunan Next.js web uygulaması.
 
 **Sürüm:** `1.0.0-rc.1`  
-**Durum:** Özellik geliştirme tamamlandı; Preview ortamı Supabase ile doğrulandı. Production'a geçiş için `develop -> main` birleştirmesi ve son kapanış kontrolleri bekleniyor.
+**Durum:** Kaynak kod ve otomatik test katmanı güncel `main` branch'inde. Yerel Supabase/pgTAP ve final E2E doğrulaması Docker aşamasında tamamlanacak.
 
 ## Teknoloji yığını
 
@@ -118,8 +118,8 @@ Doğrulama sorguları `supabase/verification/` altındadır. Manuel ve yalnızca
 
 ## Deployment düzeni
 
-- `develop`: Vercel Preview
-- `main`: Vercel Production
+- `main`: ana geliştirme ve Vercel Production branch'i
+- Büyük değişiklikler gerektiğinde kısa ömürlü feature branch kullanılabilir
 - Preview ortamı `SITE_ENV=preview` ve `noindex` kullanır.
 - Production ortamı `SITE_ENV=production` ile indexlenebilir.
 - Production'a geçmeden önce `docs/deployment/production-kapanis.md` izlenmelidir.
@@ -139,7 +139,6 @@ Doğrulama sorguları `supabase/verification/` altındadır. Manuel ve yalnızca
 
 ## Bilinen açık maddeler
 
-- `develop` Preview doğrulandı; final `main` Production promotion henüz yapılmadı.
 - Etkinlik tablosunda yayınlanmış kayıt yoksa etkinlik sayfası kontrollü boş durum gösterir.
-- `npm audit` iki moderate uyarı bildiriyor; otomatik `--force` düzeltmesi uyumsuz Next.js downgrade önerdiği için uygulanmadı. Ayrıntı proje durum belgesinde kayıtlıdır.
+- `npm audit` kontrollü PostCSS override sonrasında 0 güvenlik açığı raporlamaktadır.
 - İçerik ve görsel kalite çalışmaları yönetici panelinden sürdürülebilir; yeni özellik geliştirme şu aşamada kapalıdır.

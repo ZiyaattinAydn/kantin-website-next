@@ -27,10 +27,12 @@
 - lint: başarılı
 - TypeScript: başarılı
 - production build: başarılı
-- project preflight: 6/6
+- unit test: 29 dosya / 86 test başarılı
+- coverage: satır %64.10 / branch %43.66
+- npm audit: 0 vulnerability
 - user Faz 9 CRUD acceptance: başarılı
 - Vercel Preview deployment/Supabase/public-data health: başarılı
 
 ## Açık production adımı
 
-Release candidate production değildir. `develop -> main` merge, Production environment kontrolü ve production verifier tamamlandığında `1.0.0` etiketi verilebilir.
+Kaynak kod `main` branch'indedir. Yerel Supabase migration/pgTAP, Playwright E2E, Production environment kontrolü ve production verifier tamamlandığında `1.0.0` etiketi verilebilir.

@@ -16,7 +16,7 @@ function normalizeSiteUrl(value: string): URL {
   return url;
 }
 
-export function getSiteEnvironment(): SiteEnvironment {
+function getSiteEnvironment(): SiteEnvironment {
   const explicit = process.env.SITE_ENV?.trim().toLowerCase();
 
   if (explicit === "production" || explicit === "preview") {

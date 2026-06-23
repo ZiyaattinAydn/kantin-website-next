@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Final paket QA ve tasarım temizliği
+
+- Kullanılmayan eski content/component katmanı, eski Firebase/static admin varlıkları, demo etkinlik JSON'u ve referanssız galeri görselleri kaldırıldı.
+- Header masaüstü kırılımı dinamik navigasyon taşmasını önleyecek şekilde yükseltildi; mobil menü daha erken devreye giriyor.
+- Ana sayfa hero alanındaki viewport tabanlı aşırı yükseklik kaldırıldı ve masaüstü/tablet/mobil dikey ritmi dengelendi.
+- Canlı veri fallback uyarısı daha sakin, kompakt ve erişilebilir bir durum bandına dönüştürüldü.
+- Ana çalışma akışı `main` branch'ine güncellendi; README ve proje kuralları mevcut sürece göre yenilendi.
+- Unit test, coverage, ESLint, TypeScript, production build ve npm audit kontrolleri yeniden doğrulandı.
+
 ### Faz 14A
 
 - Vitest unit/coverage, yerel Supabase pgTAP ve Playwright regresyon altyapısı eklendi.

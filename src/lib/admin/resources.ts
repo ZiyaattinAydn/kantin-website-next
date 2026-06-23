@@ -485,6 +485,3 @@ export function getAdminResource(key: string): AdminResource | null {
   return resources.find((resource) => resource.key === key) ?? null;
 }
 
-export function getAdminResources(): readonly AdminResource[] {
-  return resources;
-}

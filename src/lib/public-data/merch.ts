@@ -17,7 +17,7 @@ import type { MerchPublicData, PublicDataEnvelope } from "./types";
 import type { MerchDoodle, MerchProductContent } from "@/types/content";
 import type { BranchId } from "@/types/domain";
 
-export function parseMerchDoodles(value: Record<string, unknown> | undefined): MerchDoodle[] {
+function parseMerchDoodles(value: Record<string, unknown> | undefined): MerchDoodle[] {
   if (!value) return fallbackHomeData.merchDoodles;
 
   return arrayOfRecords(value.items)

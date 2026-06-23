@@ -4,9 +4,12 @@ export function PublicDataNotice({ issues }: { issues: string[] }) {
   if (!issues.length) return null;
 
   return (
-    <div className={styles.notice} role="status">
-      <strong>Canlı veri geçici olarak kullanılamıyor.</strong>{" "}
-      Site doğrulanmış yerel içerikle çalışmaya devam ediyor.
+    <div className={styles.notice} role="status" aria-live="polite">
+      <span className={styles.statusDot} aria-hidden="true" />
+      <p>
+        <strong>Yerel içerik gösteriliyor.</strong>{" "}
+        Canlı veri bağlantısı düzeldiğinde sayfa otomatik olarak güncel içeriğe döner.
+      </p>
     </div>
   );
 }
