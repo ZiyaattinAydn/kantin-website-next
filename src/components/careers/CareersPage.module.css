@@ -1,5 +1,5 @@
 .page {
-  background: var(--cream);
+  background: transparent;
 }
 
 .hero,
@@ -14,9 +14,7 @@
   display: grid;
   align-items: center;
   padding: clamp(78px, 10vw, 132px) 0;
-  background-color: var(--cream);
-  background-image: url("/assets/ui/kantin-dot-pattern.png");
-  background-size: 20px 20px;
+  background: transparent;
 }
 
 .heroGrid {
@@ -282,9 +280,7 @@
 
 .formSection {
   padding: clamp(84px, 10vw, 138px) 0;
-  background-color: var(--cream);
-  background-image: url("/assets/ui/kantin-dot-pattern.png");
-  background-size: 20px 20px;
+  background: transparent;
 }
 
 

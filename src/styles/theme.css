@@ -1,6 +1,15 @@
 .public-theme-root {
+  --public-dot-image: url("/assets/ui/kantin-dot-pattern.png");
+  --public-dot-size: 20px 20px;
+  --public-dot-position: 0 0;
+
   min-height: 100vh;
-  background: var(--cream);
+  overflow-x: clip;
+  background-color: var(--cream);
+  background-image: var(--public-dot-image);
+  background-position: var(--public-dot-position);
+  background-repeat: repeat;
+  background-size: var(--public-dot-size);
   color: var(--ink);
   font-family: var(--theme-font-body, "Inter", system-ui, sans-serif);
   font-size: var(--theme-body-size, 16px);
@@ -127,4 +136,35 @@
   .public-theme-root[data-card-density="airy"] .section {
     padding-block: 96px !important;
   }
+}
+
+.public-theme-root :where(
+  .dotted-paper,
+  .menu-truth-note,
+  .home-events-illustrated,
+  .coffee-bar-section,
+  .coffee-bar-section + .alsancak-merch-section,
+  .coffee-bar-section + .alsancak-merch-section .merch-panel-shell,
+  .atakent-food.dotted-paper,
+  .home-merch-cartoon,
+  #anilarimiz.section.dotted-paper
+) {
+  background-color: transparent !important;
+  background-image: none !important;
+  background-position: var(--public-dot-position) !important;
+  background-repeat: repeat !important;
+  background-size: var(--public-dot-size) !important;
+}
+
+.public-theme-root #anilarimiz.section.dotted-paper,
+.public-theme-root .atakent-food.dotted-paper {
+  background-color: transparent !important;
+  background-image: none !important;
+  background-position: var(--public-dot-position) !important;
+  background-repeat: repeat !important;
+  background-size: var(--public-dot-size) !important;
+}
+
+.public-theme-root :where(.site-header) {
+  background-color: rgba(244, 239, 230, 0.91);
 }
