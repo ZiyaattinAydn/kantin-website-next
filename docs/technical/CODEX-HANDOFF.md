@@ -6,7 +6,7 @@ Görev 3 - Etkinlikler sayfasını etkinlik + duyuru merkezi yap.
 
 ### Durum
 
-yerel implementasyon tamamlandı; push beklemede
+implementasyon ve kod commit'i mevcut; local DB testi engelli
 
 ### Yapılanlar
 
@@ -19,6 +19,8 @@ Etkinlik kartı duyuru rozeti, duyuru tarih alanı ve opsiyonel CTA etiketi/link
 Admin generic resource `events` kaynağı “Etkinlikler ve duyurular” olarak genişletildi. Admin formuna `content_type`, `cta_label`, `publish_start_at`, `publish_end_at` alanları eklendi. Payload validasyonu tablo kurallarıyla hizalandı: etkinlik için açıklama ve başlangıç zorunlu, duyuru için açıklama/tarih opsiyonel, bitiş tarihleri başlangıçlardan sonra olmalı.
 
 Public Supabase adapter yeni kolonları okuyacak şekilde güncellendi. Yeni kolonlar bulunamazsa public tarafta eski kolon setine fallback denemesi var; ancak admin CRUD resource yeni kolonları select edeceği için admin duyuru yönetimi migration uygulanmadan production şemada hazır kabul edilmemeli.
+
+Ara düzeltme: Task 4'e geçmeden önce `/menu` Alsancak Kahve Barı bölümünün zemininin mavi panel altında kaybolduğu görüldü. `theme.css` içindeki public dotted background override'ı `.coffee-bar-section` ve bağlı Merch section için fazla agresif şekilde `transparent !important` uyguluyordu. Kahve/Merch bölümleri bu genel transparent listeden çıkarıldı; kahve bölümü tekrar `var(--cream)` zemin ve ortak dot pattern ile çiziliyor, Merch shell ise transparan kalıp kahve zeminiyle kesintisiz devam ediyor.
 
 ### Değişen dosyalar
 
@@ -42,6 +44,8 @@ Public Supabase adapter yeni kolonları okuyacak şekilde güncellendi. Yeni kol
 - `tests/unit/admin/resource-data.test.ts`: admin select kolon beklentileri güncellendi.
 - `tests/unit/admin/resource-validation.test.ts`: duyuru payload ve etkinlik zorunlu alan testleri eklendi.
 - `tests/unit/public-data/events-query.test.ts`: public event fixture’ı yeni kolonlarla güncellendi.
+- `src/styles/theme.css`: kahve barı için krem/noktalı zemin istisnası eklendi.
+- `tests/unit/styles/public-background-grid.test.ts`: kahve barının mavi panel içinde kendi krem/dot zeminini koruduğu test edildi.
 
 ### Veritabanı etkisi
 
@@ -68,7 +72,10 @@ Migration etkisi:
 - `npx tsc --noEmit`: geçti.
 - `npm run lint`: geçti.
 - `npm run build`: geçti.
-- `npm run test:db`: çalıştırılamadı; güvenlik script’i `NEXT_PUBLIC_SUPABASE_URL` process değişkeninin açıkça tanımlanmasını istiyor. `.env.local` okunmadı ve uzak Supabase hedefi kullanılmadı.
+- `npm run test:unit -- public-background-grid`: geçti.
+- `npm run test:db`: çalıştırılamadı. `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321` ile güvenlik script’i local hedefi doğruladı, fakat local Postgres bağlantısı `LegacyDbConnectError / Failed to connect` ile başarısız oldu.
+- `.\node_modules\.bin\supabase.cmd status`: çalıştırılamadı; local Docker Desktop named-pipe health check `500 Internal Server Error` döndürdü.
+- `.\node_modules\.bin\supabase.cmd start`: `DOCKER_API_VERSION=1.43` ile denendi, yine Docker Desktop named-pipe `500 Internal Server Error` nedeniyle local stack başlatılamadı.
 
 ### Manuel kontrol
 
@@ -77,32 +84,38 @@ Mevcut yerel dev server `http://localhost:3000` üzerinde `/events` açıldı.
 - Desktop DOM kontrolü: hero metni, iki filtre grubu, genel boş durum ve footer render oldu.
 - Desktop görsel kontrol: filtreler ve boş durum kartı taşma/üst üste binme olmadan göründü.
 - Mobil 390 px kontrol: hero ve mobil header render oldu; filtrelere inen ek screenshot denemesi browser screenshot timeout verdi, ama ilk mobil render ve desktop görsel kontrol sağlıklıydı.
+- `/menu#kahve-bari` görsel kontrolü: computed style `background-color: rgb(244, 239, 230)`, `background-image: /assets/ui/kantin-dot-pattern.png`, metin rengi mavi. Screenshot ile kahve intro ve listelerin krem/noktalı zeminde okunur olduğu doğrulandı.
 
 ### Git durumu
 
 - branch: `main`
 - başlangıç HEAD: `f863d67`
-- push: yapılmadı
-- commit: henüz yapılmadı
+- mevcut HEAD: `2fdd1c2`
+- mevcut kod commit'i: `2fdd1c2 fix: restore coffee bar background`
+- önceki Task 3 commit'i: `c702ca2 codex tasarimsal duzenlemeler`
 
-Push yapılmama nedeni: Bu görev production şema migration’ına bağımlı. Public adapter eski kolon setine fallback yapıyor, fakat admin resource yeni kolonları select edeceği için migration uygulanmadan push etmek production admin yüzeyini kırabilir.
+Not: Bu devam adımında kahve barı zemin düzeltmesi `2fdd1c2` commit'iyle kaydedildi. Handoff güncellemesi ayrıca commitlenecek.
 
-Not: Görev başlamadan önce mevcut olan uncommitted değişiklikler hâlâ kapsam dışı tutuldu: `CHANGELOG.md`, `src/components/admin/AdminQuickAccess.module.css`, `src/styles/legacy.css`, `FINAL-TASARIM-TUR-1-NOTLARI.md`.
+Önemli risk: Bu görev production şema migration’ına bağımlı. Public adapter eski kolon setine fallback yapıyor, fakat admin resource yeni kolonları select edeceği için production şemada migration hazır değilse admin yüzeyi kırılabilir. Remote migration bu oturumda uygulanmadı.
+
+Not: Görev başında kapsam dışı olan `CHANGELOG.md`, `src/components/admin/AdminQuickAccess.module.css`, `src/styles/legacy.css`, `FINAL-TASARIM-TUR-1-NOTLARI.md` değişiklikleri de mevcut `c702ca2` commit'i içinde görünüyor.
 
 ### Açık riskler
 
-- `test:db` yerel Supabase env değişkeni verilmediği için çalışmadı; migration ve RLS pgTAP testi henüz yerel DB’de doğrulanmadı.
+- `test:db` local URL ile denendi ama yerel Supabase Postgres bağlantısı kurulamadı; migration ve RLS pgTAP testi henüz yerel DB’de doğrulanmadı.
+- Local Supabase CLI, Docker Desktop named-pipe üzerinden container health/service inspect yaparken 500 Internal Server Error alıyor. Bu giderilmeden `supabase start/status/test db` tamamlanamıyor.
 - Migration uygulanmadan admin CRUD duyuru alanları production şemada kullanıma hazır değildir.
 - Mobil filtre/boş durum bölümü DOM ve desktop full-page görsel ile doğrulandı; mobil alt bölüm screenshot denemesi timeout verdi.
 - Local dev build sırasında `.env.local` Next tarafından ortam olarak algılandı; dosya içeriği okunmadı veya yazdırılmadı.
 
 ### Sonraki görev
 
-Görev 3’ü tamamlamak için önce yerel Supabase hedefi açıkça process değişkeniyle verilerek `npm run test:db` çalıştırılmalı. Ardından migration uygulama/push sırası netleşmeli. Production schema hazır olmadan bu değişiklikler remote’a push edilmemeli ve Task 4’e geçilmemeli.
+Görev 3’ü tamamlamak için önce yerel Docker/Supabase stack erişimi düzeltilmeli, ardından `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 npm run test:db` eşdeğeri PowerShell env ile çalıştırılmalı. Sonra migration uygulama/push sırası netleşmeli. Production schema hazır olmadan bu değişiklikler remote’a push edilmemeli ve Task 4’e geçilmemeli.
 
 ### GPT'ye aktarılacak kısa özet
 
-Kantin Website Task 3 üzerinde yerel implementasyon tamamlandı ama commit/push yapılmadı; başlangıç HEAD `main` üzerinde `f863d67`.
+Kantin Website Task 3 implementasyonu `main` / `origin/main` üzerinde `c702ca2` commit'inde görünüyordu. Başlangıç HEAD `f863d67` idi.
+Ara kahve barı düzeltmesi `2fdd1c2 fix: restore coffee bar background` commit'iyle yapıldı.
 Görev: `/events` sayfasını etkinlik + duyuru merkezi yapmak.
 Yapılan ana değişiklikler: `events` modeli `contentType: event | announcement`, opsiyonel duyuru tarihi, `ctaLabel`, `publishStartAt`, `publishEndAt` destekli hale geldi.
 `src/lib/events.ts` artık etkinliklerde `startAt` zorunlu tutuyor; duyurularda tarih zorunlu değil; duyuruları `publish_start_at` / `publish_end_at` penceresine göre gizliyor; süresi geçmiş duyurular public listeden düşüyor.
@@ -119,8 +132,11 @@ RLS pgTAP dosyası `supabase/tests/rls_policies.test.sql` yeni duyuru kolon/poli
 Yeni unit testler: `tests/unit/lib/events.test.ts`, `tests/unit/components/event-card.test.tsx`, `tests/unit/components/events-page-client.test.tsx`.
 Güncellenen unit testler: admin resource data/validation ve public events query testleri.
 Geçen kontroller: `npm run test:unit` (34 dosya / 98 test), `npx tsc --noEmit`, `npm run lint`, `npm run build`.
-Çalışmayan kontrol: `npm run test:db`; güvenlik script’i `NEXT_PUBLIC_SUPABASE_URL` process değişkeninin açıkça tanımlanmasını istedi. `.env.local` okunmadı, uzak Supabase kullanılmadı.
+Ara kahve barı düzeltmesi: `src/styles/theme.css` içinde `.coffee-bar-section` genel transparent dotted override'dan çıkarıldı ve krem/dot pattern istisnası eklendi. `tests/unit/styles/public-background-grid.test.ts` bu kontratı kontrol ediyor. Geçen ek kontroller: `npm run test:unit -- public-background-grid`, `npx tsc --noEmit`, `npm run lint`.
+Manuel kahve kontrolü: `http://localhost:3000/menu` üzerinde `#kahve-bari` computed style krem zemin + dot pattern + mavi metin döndürdü; screenshot'ta intro/listeler okunur göründü.
+Çalışmayan kontrol: `npm run test:db`; `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321` ile güvenlik script’i local hedefi doğruladı ama local Postgres bağlantısı `LegacyDbConnectError / Failed to connect` verdi.
+Ek local Supabase denemeleri: `.\node_modules\.bin\supabase.cmd status` ve `.\node_modules\.bin\supabase.cmd start` Docker Desktop named-pipe `500 Internal Server Error` nedeniyle tamamlanmadı. `DOCKER_API_VERSION=1.43` ile start tekrar denendi, sonuç değişmedi.
 Manuel kontrol: `http://localhost:3000/events` desktop DOM/görsel sağlıklı; mobil 390 px hero render sağlıklı; mobil alt bölüm screenshot denemesi timeout verdi.
-Kritik not: Public adapter eski kolon setine fallback yapıyor ama admin resource yeni kolonları doğrudan select edeceği için migration uygulanmadan production’a push etme. Önce local `test:db`, sonra migration/push sırası netleşmeli.
-Kapsam dışı eski dirty dosyalar hâlâ var: `CHANGELOG.md`, `src/components/admin/AdminQuickAccess.module.css`, `src/styles/legacy.css`, `FINAL-TASARIM-TUR-1-NOTLARI.md`.
-Sonraki görev: Task 3’ü bitirmek için local Supabase env açıkça verilerek `npm run test:db` çalıştır; migration uygulama sırası netleşmeden Task 4’e geçme.
+Kritik not: Public adapter eski kolon setine fallback yapıyor ama admin resource yeni kolonları doğrudan select edeceği için production şemada migration hazır değilse admin yüzeyi kırılabilir. Remote migration uygulanmadı. Önce local `test:db`, sonra migration/production schema durumu netleşmeli.
+Başta kapsam dışı olan eski dirty dosyalar mevcut `c702ca2` commit'i içinde görünüyor: `CHANGELOG.md`, `src/components/admin/AdminQuickAccess.module.css`, `src/styles/legacy.css`, `FINAL-TASARIM-TUR-1-NOTLARI.md`.
+Sonraki görev: Task 3’ü bitirmek için önce yerel Docker/Supabase named-pipe erişimini düzelt; sonra local Supabase env açıkça verilerek `npm run test:db` çalıştır. Migration uygulama sırası netleşmeden Task 4’e geçme.
