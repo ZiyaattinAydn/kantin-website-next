@@ -20,6 +20,9 @@ describe("public background grid", () => {
     expect(themeCss).toMatch(
       /\.public-theme-root\s+#anilarimiz\.section\.dotted-paper,[\s\S]*\.public-theme-root\s+\.atakent-food\.dotted-paper\s*{[\s\S]*background-image:\s*none\s*!important;/,
     );
+    expect(themeCss).toMatch(
+      /\.public-theme-root\s+:where\([\s\S]*\.coffee-bar-section[\s\S]*\.coffee-bar-section\s+\+\s+\.alsancak-merch-section[\s\S]*background-color:\s*var\(--cream\)\s*!important;[\s\S]*background-image:\s*var\(--public-dot-image\)\s*!important;/,
+    );
     expect(careersCss).toMatch(/\.page\s*{[\s\S]*background:\s*transparent;/);
     expect(careersCss).not.toMatch(
       /background-image:\s*url\("\/assets\/ui\/kantin-dot-pattern\.png"\)/,

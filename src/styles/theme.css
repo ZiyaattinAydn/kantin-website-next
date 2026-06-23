@@ -142,9 +142,6 @@
   .dotted-paper,
   .menu-truth-note,
   .home-events-illustrated,
-  .coffee-bar-section,
-  .coffee-bar-section + .alsancak-merch-section,
-  .coffee-bar-section + .alsancak-merch-section .merch-panel-shell,
   .atakent-food.dotted-paper,
   .home-merch-cartoon,
   #anilarimiz.section.dotted-paper
@@ -154,6 +151,21 @@
   background-position: var(--public-dot-position) !important;
   background-repeat: repeat !important;
   background-size: var(--public-dot-size) !important;
+}
+
+.public-theme-root :where(
+  .coffee-bar-section,
+  .coffee-bar-section + .alsancak-merch-section
+) {
+  background-color: var(--cream) !important;
+  background-image: var(--public-dot-image) !important;
+  background-position: var(--public-dot-position) !important;
+  background-repeat: repeat !important;
+  background-size: var(--public-dot-size) !important;
+}
+
+.public-theme-root :where(.coffee-bar-section + .alsancak-merch-section .merch-panel-shell) {
+  background: transparent !important;
 }
 
 .public-theme-root #anilarimiz.section.dotted-paper,
