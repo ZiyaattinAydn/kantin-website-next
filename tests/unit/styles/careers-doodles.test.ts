@@ -17,6 +17,8 @@ describe("careers doodle animation styles", () => {
     expect(css).toMatch(/\.formDoodles\s*{[\s\S]*--parallax-x:\s*0px/);
     expect(css).toMatch(/\.heroDoodles\s*{[\s\S]*transform:\s*translate3d\(var\(--parallax-x\), var\(--parallax-y\), 0\)/);
     expect(css).toMatch(/\.formDoodles\s*{[\s\S]*transform:\s*translate3d\(var\(--parallax-x\), var\(--parallax-y\), 0\)/);
+    expect(css).toMatch(/\.formLayout\s*{[\s\S]*z-index:\s*1/);
+    expect(css).toMatch(/\.form\s*{[\s\S]*background:\s*var\(--white\)/);
     expect(css).toContain("opacity: var(--career-doodle-peak-opacity)");
     expect(css).toMatch(/@media \(max-width: 899px\)[\s\S]*--career-doodle-scale:\s*0\.58/);
     expect(css).toMatch(/@media \(max-width: 679px\)[\s\S]*--career-doodle-scale:\s*0\.42/);

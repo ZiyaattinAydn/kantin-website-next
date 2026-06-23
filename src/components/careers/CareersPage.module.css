@@ -394,6 +394,8 @@
 }
 
 .formLayout {
+  position: relative;
+  z-index: 1;
   display: grid;
   gap: 32px;
   align-items: center;
@@ -401,6 +403,8 @@
 
 .formIntro,
 .form {
+  position: relative;
+  z-index: 1;
   min-width: 0;
   border: 1px solid rgba(16, 16, 16, 0.13);
   border-radius: 32px;
@@ -487,7 +491,7 @@
   display: grid;
   gap: 18px;
   padding: clamp(22px, 3.5vw, 42px);
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--white);
   box-shadow: var(--shadow);
 }
 
