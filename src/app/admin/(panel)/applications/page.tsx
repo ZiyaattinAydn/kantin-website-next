@@ -235,27 +235,36 @@ export default async function AdminApplicationsPage({ searchParams }: Props) {
 
             {(selected.privacy_status === "anonymization_pending" ||
               (selected.privacy_status === "active" && selected.status === "archived")) ? (
-              <form action={anonymizeApplicationAction} className={styles.form} style={{ marginTop: 22 }}>
-                <input name="id" type="hidden" value={selected.id} />
-                <label className={styles.field}>
-                  <span>Geri döndürülemez işlem onayı</span>
-                  <input
-                    autoComplete="off"
-                    name="confirmation"
-                    pattern="ANONIMLESTIR"
-                    placeholder="ANONIMLESTIR"
-                    required
-                  />
-                  <small>Private CV Storage dosyası silinir; kişisel alanlar ve admin notu anonimleştirilir.</small>
-                </label>
-                <ConfirmSubmitButton
-                  className={styles.danger}
-                  confirmMessage="CV kalıcı olarak silinsin ve aday verisi geri döndürülemez biçimde anonimleştirilsin mi?"
-                  type="submit"
-                >
-                  {selected.privacy_status === "anonymization_pending" ? "Anonimleştirmeyi sürdür" : "CV'yi sil ve anonimleştir"}
-                </ConfirmSubmitButton>
-              </form>
+              <>
+                <form action={anonymizeApplicationAction} className={styles.form} style={{ marginTop: 22 }}>
+                  <input name="id" type="hidden" value={selected.id} />
+                  <input name="_intent" type="hidden" value="dry_run" />
+                  <button className={styles.secondary} type="submit">Dry-run kontrolü yap</button>
+                  <small>DB veya Storage değiştirmeden arşiv durumu ve CV medya bağlantısı kontrol edilir.</small>
+                </form>
+
+                <form action={anonymizeApplicationAction} className={styles.form} style={{ marginTop: 12 }}>
+                  <input name="id" type="hidden" value={selected.id} />
+                  <label className={styles.field}>
+                    <span>Geri döndürülemez işlem onayı</span>
+                    <input
+                      autoComplete="off"
+                      name="confirmation"
+                      pattern="ANONIMLESTIR"
+                      placeholder="ANONIMLESTIR"
+                      required
+                    />
+                    <small>Private CV Storage dosyası silinir; kişisel alanlar ve admin notu anonimleştirilir.</small>
+                  </label>
+                  <ConfirmSubmitButton
+                    className={styles.danger}
+                    confirmMessage="CV kalıcı olarak silinsin ve aday verisi geri döndürülemez biçimde anonimleştirilsin mi?"
+                    type="submit"
+                  >
+                    {selected.privacy_status === "anonymization_pending" ? "Anonimleştirmeyi sürdür" : "CV'yi sil ve anonimleştir"}
+                  </ConfirmSubmitButton>
+                </form>
+              </>
             ) : null}
           </aside>
         ) : null}

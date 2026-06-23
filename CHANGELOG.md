@@ -27,6 +27,7 @@
 ### Faz 14D
 
 - Kariyer başvurularına 180 günlük retention inceleme tarihi ve gizlilik durumları eklendi.
+- Admin ekranına DB, Storage veya audit yazmadan çalışan anonimleştirme dry-run ön kontrolü eklendi.
 - Private CV silme ile DB anonimleştirmeyi ayıran, hata halinde devam/geri alma destekli iki aşamalı admin akışı eklendi.
 - Aday PII, teknik parmak izleri, admin notu ve CV medya kaydını temizleyen admin-only RPC'ler eklendi.
 - CV signed URL erişimi anonimleştirme bekleyen ve tamamlanmış kayıtlarda kapatıldı.

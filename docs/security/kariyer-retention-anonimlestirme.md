@@ -13,8 +13,18 @@ Bu belge Faz 14D ile eklenen teknik kişisel veri yaşam döngüsünü açıklar
 
 1. Başvuru sonucu ve gerekli admin notları tamamlanır.
 2. Başvuru durumu `Arşiv` yapılır.
-3. Admin anonimleştirme formuna `ANONIMLESTIR` yazar.
-4. Tarayıcı onayında geri döndürülemez işlem tekrar kabul edilir.
+3. Admin isterse önce dry-run kontrolü çalıştırır; bu kontrol DB veya Storage yazmaz.
+4. Admin anonimleştirme formuna `ANONIMLESTIR` yazar.
+5. Tarayıcı onayında geri döndürülemez işlem tekrar kabul edilir.
+
+## Dry-run kontrolü
+
+Admin ekranındaki dry-run kontrolü yalnız salt-okunur ön doğrulama yapar. Başvurunun varlığını, arşiv durumunu ve varsa CV medya kaydının `storage` + `document` + `career-cvs` bucket yapısına uygunluğunu kontrol eder. Bu işlem:
+
+- `begin_job_application_anonymization` RPC'sini çağırmaz.
+- Storage dosyası silmez.
+- Başvuru, medya veya audit kaydı yazmaz.
+- Gerçek silme/anonimleştirme kanıtı değildir; yalnız işlem öncesi güvenli bağlantı kontrolüdür.
 
 ## İki aşamalı teknik akış
 

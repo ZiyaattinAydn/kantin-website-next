@@ -36,6 +36,102 @@ describe("anonymizeApplicationAction", () => {
     expect(mocks.createClient).not.toHaveBeenCalled();
   });
 
+  it("dry-run kontrolünde DB veya Storage yazma akışını çağırmaz", async () => {
+    const remove = vi.fn();
+    const rpc = vi.fn();
+    const applicationMaybeSingle = vi.fn(async () => ({
+      data: {
+        id: "TEST_application",
+        status: "archived",
+        privacy_status: "active",
+        cv_media_id: "TEST_media",
+      },
+      error: null,
+    }));
+    const mediaMaybeSingle = vi.fn(async () => ({
+      data: {
+        id: "TEST_media",
+        source: "storage",
+        kind: "document",
+        bucket_name: "career-cvs",
+        object_path: "incoming/TEST_application/TEST_cv.pdf",
+      },
+      error: null,
+    }));
+    const from = vi.fn((table: string) => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: table === "job_applications"
+            ? applicationMaybeSingle
+            : mediaMaybeSingle,
+        })),
+      })),
+    }));
+    mocks.createClient.mockResolvedValue({
+      from,
+      rpc,
+      storage: { from: vi.fn(() => ({ remove })) },
+    });
+    const formData = new FormData();
+    formData.set("id", "TEST_application");
+    formData.set("_intent", "dry_run");
+
+    await expect(anonymizeApplicationAction(formData)).rejects.toThrow(
+      "REDIRECT:/admin/applications?edit=TEST_application&notice=",
+    );
+    expect(from).toHaveBeenCalledWith("job_applications");
+    expect(from).toHaveBeenCalledWith("media");
+    expect(rpc).not.toHaveBeenCalled();
+    expect(remove).not.toHaveBeenCalled();
+  });
+
+  it("dry-run geçersiz CV medya bağlantısını yazma yapmadan durdurur", async () => {
+    const remove = vi.fn();
+    const rpc = vi.fn();
+    const applicationMaybeSingle = vi.fn(async () => ({
+      data: {
+        id: "TEST_application",
+        status: "archived",
+        privacy_status: "active",
+        cv_media_id: "TEST_media",
+      },
+      error: null,
+    }));
+    const mediaMaybeSingle = vi.fn(async () => ({
+      data: {
+        id: "TEST_media",
+        source: "storage",
+        kind: "image",
+        bucket_name: "gallery-images",
+        object_path: "TEST_image.webp",
+      },
+      error: null,
+    }));
+    const from = vi.fn((table: string) => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: table === "job_applications"
+            ? applicationMaybeSingle
+            : mediaMaybeSingle,
+        })),
+      })),
+    }));
+    mocks.createClient.mockResolvedValue({
+      from,
+      rpc,
+      storage: { from: vi.fn(() => ({ remove })) },
+    });
+    const formData = new FormData();
+    formData.set("id", "TEST_application");
+    formData.set("_intent", "dry_run");
+
+    await expect(anonymizeApplicationAction(formData)).rejects.toThrow(
+      "REDIRECT:/admin/applications?edit=TEST_application&error=",
+    );
+    expect(rpc).not.toHaveBeenCalled();
+    expect(remove).not.toHaveBeenCalled();
+  });
+
   it("CV silindikten sonra anonimleştirmeyi tamamlar", async () => {
     const remove = vi.fn().mockResolvedValue({ error: null });
     const rpc = vi.fn((name: string) => {
