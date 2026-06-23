@@ -21,15 +21,20 @@ export default async function EventsPage() {
   ]);
   const initialEvents = result.data.events.map((event) => ({
     id: event.id,
+    contentType: event.contentType,
     title: event.title,
     description: event.description,
-    startAt: event.startAt.toISOString(),
+    startAt: event.startAt?.toISOString() ?? null,
     endAt: event.endAt?.toISOString() ?? null,
     branch: event.branch,
     status: "published" as const,
     link: event.link,
+    ctaLabel: event.ctaLabel,
     imageUrl: event.imageUrl,
     location: event.location,
+    publishStartAt: event.publishStartAt?.toISOString() ?? null,
+    publishEndAt: event.publishEndAt?.toISOString() ?? null,
+    sortOrder: event.sortOrder,
   }));
 
   return (

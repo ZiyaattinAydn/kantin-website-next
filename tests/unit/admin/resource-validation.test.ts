@@ -121,4 +121,44 @@ describe("parseAdminResourcePayload", () => {
       expect.objectContaining<Partial<AdminValidationError>>({ field: "value", code: "json_shape" }),
     );
   });
+
+  it("duyuru payload'ını tarih zorunluluğu olmadan kabul eder", () => {
+    const formData = new FormData();
+    formData.set("content_type", "announcement");
+    formData.set("title", "TEST_ Duyuru");
+    formData.set("slug", "test-duyuru");
+    formData.set("status", "published");
+    formData.set("is_active", "on");
+    formData.set("publish_start_at", "2026-06-23T10:00");
+    formData.set("publish_end_at", "2099-06-23T10:00");
+    formData.set("sort_order", "5");
+
+    const payload = parseAdminResourcePayload(resource("events"), formData);
+
+    expect(payload).toMatchObject({
+      content_type: "announcement",
+      title: "TEST_ Duyuru",
+      start_at: null,
+      description: null,
+      sort_order: 5,
+    });
+  });
+
+  it("etkinlik payload'ında başlangıç ve açıklamayı zorunlu tutar", () => {
+    const formData = new FormData();
+    formData.set("content_type", "event");
+    formData.set("title", "TEST_ Etkinlik");
+    formData.set("slug", "test-etkinlik");
+    formData.set("status", "published");
+    formData.set("sort_order", "0");
+
+    expect(() => parseAdminResourcePayload(resource("events"), formData)).toThrowError(
+      expect.objectContaining<Partial<AdminValidationError>>({ field: "description", code: "required" }),
+    );
+
+    formData.set("description", "TEST_ Etkinlik açıklaması");
+    expect(() => parseAdminResourcePayload(resource("events"), formData)).toThrowError(
+      expect.objectContaining<Partial<AdminValidationError>>({ field: "start_at", code: "required" }),
+    );
+  });
 });

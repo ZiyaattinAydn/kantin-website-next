@@ -34,6 +34,15 @@
   justify-self: end;
 }
 
+.announcementDate {
+  background: var(--ink);
+}
+
+.typeBadge {
+  background: rgba(0, 71, 187, 0.11);
+  color: var(--blue);
+}
+
 .listImage {
   min-height: 220px;
   margin: 0;

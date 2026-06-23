@@ -4,7 +4,9 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import type { EventPublicData } from "@/lib/public-data/types";
 
 export default function HomeEvents({ data }: { data: EventPublicData }) {
-  const events = data.events.slice(0, 3);
+  const events = data.events
+    .filter((event) => event.contentType === "event" && event.startAt)
+    .slice(0, 3);
 
   return (
     <section className="section dotted-paper home-events-illustrated" id="etkinlikler">

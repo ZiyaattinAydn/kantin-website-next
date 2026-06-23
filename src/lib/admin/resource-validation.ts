@@ -297,12 +297,49 @@ function parseField(resource: AdminResource, field: AdminField, formData: FormDa
   }
 }
 
+function fieldByName(resource: AdminResource, name: string): AdminField {
+  const field = resource.fields.find((entry) => entry.name === name);
+  if (!field) throw new AdminValidationError(name, "Geçersiz alan.", "invalid_field");
+  return field;
+}
+
+function isoTime(value: Json): number | null {
+  if (typeof value !== "string" || !value) return null;
+  const time = new Date(value).getTime();
+  return Number.isNaN(time) ? null : time;
+}
+
+function validateEventsPayload(resource: AdminResource, payload: AdminMutationPayload): void {
+  if (resource.key !== "events") return;
+
+  const contentType = payload.content_type === "announcement" ? "announcement" : "event";
+  const description = typeof payload.description === "string" ? payload.description.trim() : "";
+  const startAt = isoTime(payload.start_at);
+  const endAt = isoTime(payload.end_at);
+  const publishStartAt = isoTime(payload.publish_start_at);
+  const publishEndAt = isoTime(payload.publish_end_at);
+
+  if (contentType === "event") {
+    if (!description) fail(fieldByName(resource, "description"), "Etkinlik açıklaması zorunlu.", "required");
+    if (startAt === null) fail(fieldByName(resource, "start_at"), "Etkinlik başlangıcı zorunlu.", "required");
+  }
+
+  if (startAt !== null && endAt !== null && endAt <= startAt) {
+    fail(fieldByName(resource, "end_at"), "Bitiş zamanı başlangıçtan sonra olmalı.", "datetime_order");
+  }
+
+  if (publishStartAt !== null && publishEndAt !== null && publishEndAt <= publishStartAt) {
+    fail(fieldByName(resource, "publish_end_at"), "Yayın bitişi yayın başlangıcından sonra olmalı.", "datetime_order");
+  }
+}
+
 export function parseAdminResourcePayload(
   resource: AdminResource,
   formData: FormData,
 ): AdminMutationPayload {
   const payload: AdminMutationPayload = {};
   for (const field of resource.fields) payload[field.name] = parseField(resource, field, formData);
+  validateEventsPayload(resource, payload);
   return payload;
 }
 

@@ -68,3 +68,26 @@
     transition: none;
   }
 }
+
+/* Mobile public pages: keep the shortcut away from the hero artwork. */
+@media (max-width: 719px) {
+  .link {
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: auto;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    opacity: 0.9;
+  }
+
+  .link span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

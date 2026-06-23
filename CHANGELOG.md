@@ -10,6 +10,9 @@
 - Canlı veri fallback uyarısı daha sakin, kompakt ve erişilebilir bir durum bandına dönüştürüldü.
 - Ana çalışma akışı `main` branch'ine güncellendi; README ve proje kuralları mevcut sürece göre yenilendi.
 - Unit test, coverage, ESLint, TypeScript, production build ve npm audit kontrolleri yeniden doğrulandı.
+- Ana sayfa hero başlık ölçüsü ve kolon oranları geniş ekranda daha dengeli satır kırılımı verecek şekilde inceltildi.
+- Mobil hero alanında metnin arkasına düşen üst doodle görselleri gizlendi; meta bağlantıları düzenli iki sütun yapısına geçirildi.
+- Mobil admin hızlı erişim düğmesi içerik solundan sağ alta taşınarak hero illüstrasyonuyla çakışması azaltıldı.
 
 ### Faz 14A
 

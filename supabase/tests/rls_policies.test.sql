@@ -1,7 +1,7 @@
 begin;
 
 set local search_path = public, extensions;
-select plan(10);
+select plan(13);
 
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.branches'::regclass),
@@ -46,6 +46,41 @@ select ok(
 select ok(
   not has_function_privilege('anon', 'public.is_admin()', 'EXECUTE'),
   'anon rolü admin kontrolünü RPC olarak çağıramaz'
+);
+
+select ok(
+  (
+    select count(*) = 4
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'events'
+      and column_name in ('content_type', 'cta_label', 'publish_start_at', 'publish_end_at')
+  ),
+  'events tablosu etkinlik/duyuru alanlarina sahip'
+);
+select ok(
+  exists (
+    select 1
+    from pg_policy
+    where polrelid = 'public.events'::regclass
+      and polname = 'events_public_read'
+      and pg_get_expr(polqual, polrelid) like '%publish_start_at%'
+      and pg_get_expr(polqual, polrelid) like '%publish_end_at%'
+  ),
+  'events public okuma politikasi duyuru yayin penceresini uygular'
+);
+select ok(
+  (
+    select count(*) = 3
+    from pg_constraint
+    where conrelid = 'public.events'::regclass
+      and conname in (
+        'events_content_type_allowed',
+        'events_event_description_required',
+        'events_event_start_required'
+      )
+  ),
+  'events constraintleri etkinlik ve duyuru kurallarini korur'
 );
 
 select * from finish();

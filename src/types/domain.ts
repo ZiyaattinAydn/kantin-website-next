@@ -53,15 +53,19 @@ export type MenuItem = {
 /** Supabase tablosuna karşılık gelecek etkinlik modeli. */
 export type Event = {
   id: string;
+  contentType?: "event" | "announcement";
   title: string;
-  description: string;
-  startAt: string;
+  description?: string;
+  startAt?: string | null;
   endAt?: string | null;
   branchId: EventBranchId;
   status: "draft" | "published";
   location?: string;
   link?: string;
+  ctaLabel?: string;
   imageUrl?: string;
+  publishStartAt?: string | null;
+  publishEndAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
 };

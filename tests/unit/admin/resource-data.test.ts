@@ -56,7 +56,7 @@ describe("admin resource data", () => {
     });
 
     expect(select).toHaveBeenCalledWith(
-      "id,title,start_at,status,is_active,is_featured",
+      "id,title,content_type,start_at,status,is_active,is_featured",
       { count: "exact" },
     );
 
@@ -103,6 +103,7 @@ describe("admin resource data", () => {
     expect(select).toHaveBeenCalledWith(
       [
         "id",
+        "content_type",
         "title",
         "slug",
         "summary",
@@ -112,11 +113,14 @@ describe("admin resource data", () => {
         "venue_name",
         "location_text",
         "external_url",
+        "cta_label",
         "image_media_id",
         "status",
         "is_active",
         "is_featured",
         "published_at",
+        "publish_start_at",
+        "publish_end_at",
         "sort_order",
       ].join(","),
     );

@@ -2,14 +2,19 @@
   padding-top: 40px;
 }
 
-.filterBar {
+.filterStack {
   position: sticky;
   top: calc(var(--header-height) + 10px);
   z-index: 20;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.filterBar {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  margin-bottom: 28px;
   padding: 8px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -20,6 +25,10 @@
 
 .filterBar::-webkit-scrollbar {
   display: none;
+}
+
+.branchBar {
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .filterButton {

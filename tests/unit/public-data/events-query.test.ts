@@ -39,6 +39,7 @@ describe("getEventPublicData sorgu kapsamı", () => {
       events: {
         data: [{
           id: "TEST_event",
+          content_type: "event",
           title: "TEST_ Etkinlik",
           description: "TEST_ Etkinlik açıklaması",
           start_at: "2099-06-23T18:00:00.000Z",
@@ -46,7 +47,11 @@ describe("getEventPublicData sorgu kapsamı", () => {
           venue_name: "TEST_ Mekan",
           location_text: null,
           external_url: null,
+          cta_label: null,
           image_media_id: "TEST_media",
+          publish_start_at: null,
+          publish_end_at: null,
+          sort_order: 0,
         }],
         error: null,
       },

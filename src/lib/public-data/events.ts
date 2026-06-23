@@ -16,6 +16,52 @@ import {
 } from "./helpers";
 import type { EventPublicData, PublicDataEnvelope } from "./types";
 
+const EVENT_COLUMNS = [
+  "id",
+  "title",
+  "description",
+  "content_type",
+  "start_at",
+  "end_at",
+  "venue_name",
+  "location_text",
+  "external_url",
+  "cta_label",
+  "image_media_id",
+  "publish_start_at",
+  "publish_end_at",
+  "sort_order",
+].join(", ");
+
+const LEGACY_EVENT_COLUMNS = [
+  "id",
+  "title",
+  "description",
+  "start_at",
+  "end_at",
+  "venue_name",
+  "location_text",
+  "external_url",
+  "image_media_id",
+].join(", ");
+
+type EventPublicRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  content_type?: string | null;
+  start_at: string | null;
+  end_at: string | null;
+  venue_name: string | null;
+  location_text: string | null;
+  external_url: string | null;
+  cta_label?: string | null;
+  image_media_id: string | null;
+  publish_start_at?: string | null;
+  publish_end_at?: string | null;
+  sort_order?: number | null;
+};
+
 function branchMapsFromRows(
   rows: Array<{
     slug: string;
@@ -58,25 +104,30 @@ async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData
 
   try {
     const client = createPublicClient();
-    const [eventsResult, linksResult, branchRows] = await Promise.all([
+    const [extendedEventsResult, linksResult, branchRows] = await Promise.all([
       client
         .from("events")
-        .select(
-          "id, title, description, start_at, end_at, venue_name, location_text, external_url, image_media_id",
-        )
-        .order("start_at"),
+        .select(EVENT_COLUMNS)
+        .order("sort_order", { ascending: true }),
       client
         .from("event_branches")
         .select("event_id, branch_id, sort_order")
         .order("sort_order"),
       getPublicBranchRows(),
     ]);
+    const eventsResult = extendedEventsResult.error
+      ? await client
+        .from("events")
+        .select(LEGACY_EVENT_COLUMNS)
+        .order("start_at")
+      : extendedEventsResult;
 
     if (eventsResult.error) throw eventsResult.error;
     if (linksResult.error) throw linksResult.error;
 
+    const eventRows = (eventsResult.data ?? []) as unknown as EventPublicRow[];
     const mediaIds = [...new Set(
-      (eventsResult.data ?? [])
+      eventRows
         .map((event) => event.image_media_id)
         .filter((id): id is string => Boolean(id)),
     )];
@@ -107,7 +158,7 @@ async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData
       branchIdsByEvent.set(link.event_id, ids);
     }
 
-    const rawEvents: RawEvent[] = (eventsResult.data ?? []).map((event) => {
+    const rawEvents: RawEvent[] = eventRows.map((event) => {
       const branchSlugs = (branchIdsByEvent.get(event.id) ?? [])
         .map((id) => branchByUuid.get(id)?.slug)
         .filter((slug): slug is string => Boolean(slug));
@@ -118,15 +169,20 @@ async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData
 
       return {
         id: event.id,
+        contentType: event.content_type === "announcement" ? "announcement" : "event",
         title: event.title,
-        description: event.description,
+        description: event.description ?? undefined,
         startAt: event.start_at,
         endAt: event.end_at,
         branch,
         status: "published",
         location: event.location_text ?? event.venue_name ?? undefined,
         link: event.external_url ?? undefined,
+        ctaLabel: event.cta_label ?? undefined,
         imageUrl: resolveMediaUrl(client, media) ?? undefined,
+        publishStartAt: event.publish_start_at,
+        publishEndAt: event.publish_end_at,
+        sortOrder: event.sort_order ?? undefined,
       };
     });
 
@@ -139,7 +195,7 @@ async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData
         ...maps,
         instagramUrl: fallbackCommonData.siteIdentity.instagramUrl,
       },
-      source: eventsResult.data?.length ? "supabase" : "empty",
+      source: eventRows.length ? "supabase" : "empty",
       issues: [],
     };
   } catch (error) {
