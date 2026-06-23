@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   createClient: vi.fn(),
-  logAdminAction: vi.fn(),
   requireAdmin: vi.fn(),
   revalidatePath: vi.fn(),
 }));
@@ -15,9 +14,62 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/lib/auth/admin", () => ({ requireAdmin: mocks.requireAdmin }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: mocks.createClient }));
-vi.mock("@/lib/admin/audit", () => ({ logAdminAction: mocks.logAdminAction }));
 
-import { anonymizeApplicationAction } from "@/lib/admin/application-actions";
+import {
+  anonymizeApplicationAction,
+  updateApplicationAction,
+} from "@/lib/admin/application-actions";
+
+
+
+describe("updateApplicationAction", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.requireAdmin.mockResolvedValue({ userId: "TEST_admin", role: "admin" });
+  });
+
+  it("başvuru durum ve not güncellemesini transaction RPC ile yapar", async () => {
+    const single = vi.fn().mockResolvedValue({
+      data: { application_id: "11111111-1111-4111-8111-111111111111" },
+      error: null,
+    });
+    const rpc = vi.fn(() => ({ single }));
+    mocks.createClient.mockResolvedValue({ rpc });
+
+    const formData = new FormData();
+    formData.set("id", "11111111-1111-4111-8111-111111111111");
+    formData.set("status", "reviewing");
+    formData.set("admin_notes", "TEST_ görüşme planlandı");
+
+    await expect(updateApplicationAction(formData)).rejects.toThrow(
+      "REDIRECT:/admin/applications?edit=11111111-1111-4111-8111-111111111111&notice=",
+    );
+
+    expect(rpc).toHaveBeenCalledWith("update_job_application_admin", {
+      p_application_id: "11111111-1111-4111-8111-111111111111",
+      p_status: "reviewing",
+      p_admin_notes: "TEST_ görüşme planlandı",
+    });
+  });
+
+  it("transaction RPC hatasını kullanıcıya geri taşır", async () => {
+    const single = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "TEST_ application transaction error" },
+    });
+    mocks.createClient.mockResolvedValue({
+      rpc: vi.fn(() => ({ single })),
+    });
+
+    const formData = new FormData();
+    formData.set("id", "11111111-1111-4111-8111-111111111111");
+    formData.set("status", "reviewing");
+
+    await expect(updateApplicationAction(formData)).rejects.toThrow(
+      "REDIRECT:/admin/applications?edit=11111111-1111-4111-8111-111111111111&error=",
+    );
+  });
+});
 
 describe("anonymizeApplicationAction", () => {
   beforeEach(() => {

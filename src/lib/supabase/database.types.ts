@@ -1226,6 +1226,67 @@ export type Database = {
         Args: { p_application_id: string };
         Returns: boolean;
       };
+      save_admin_theme_settings: {
+        Args: {
+          p_theme: Json;
+          p_visibility: Json;
+          p_reset?: boolean;
+        };
+        Returns: boolean;
+      };
+      update_job_application_admin: {
+        Args: {
+          p_application_id: string;
+          p_status: Database["public"]["Enums"]["job_application_status"];
+          p_admin_notes: string | null;
+        };
+        Returns: { application_id: string }[];
+      };
+      create_admin_media_record: {
+        Args: {
+          p_bucket_name: string;
+          p_object_path: string;
+          p_title: string;
+          p_alt_text: string;
+          p_mime_type: string;
+          p_size_bytes: number;
+        };
+        Returns: string;
+      };
+      set_admin_media_state: {
+        Args: {
+          p_media_id: string;
+          p_action: string;
+        };
+        Returns: {
+          media_id: string;
+          title: string | null;
+        }[];
+      };
+      begin_test_admin_media_delete: {
+        Args: { p_media_id: string };
+        Returns: {
+          media_id: string;
+          title: string | null;
+          bucket_name: string;
+          object_path: string;
+          previous_status: Database["public"]["Enums"]["content_status"];
+          previous_is_active: boolean;
+        }[];
+      };
+      cancel_test_admin_media_delete: {
+        Args: {
+          p_media_id: string;
+          p_previous_status: Database["public"]["Enums"]["content_status"];
+          p_previous_is_active: boolean;
+          p_reason: string;
+        };
+        Returns: boolean;
+      };
+      complete_test_admin_media_delete: {
+        Args: { p_media_id: string };
+        Returns: boolean;
+      };
       is_admin: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;

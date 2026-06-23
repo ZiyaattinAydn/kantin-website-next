@@ -40,3 +40,22 @@ Faz 9 sonrasında:
 `migrations/20260622080000_career_retention_anonymization.sql`
 
 Bu migration kariyer başvurularına 180 günlük retention inceleme tarihi, gizlilik durumları ve admin-only iki aşamalı anonimleştirme RPC'leri ekler. Migration kendi başına CV veya aday verisi silmez. Uygulamadan önce yerel Supabase üzerinde `supabase/tests/career_retention.test.sql` ve yalnız `TEST_` başvurusu ile doğrulanmalıdır.
+
+## Faz 14F migrations
+
+`migrations/20260623010000_transactional_content_audit.sql`
+
+Generic içerik ve `site_settings` mutasyonlarını satır bazlı DB trigger ile aynı transaction içinde audit eder. Tema RPC'si iki ayar satırını tek semantic kayıt olarak yazabilmek için trigger bastırma modunu yalnız kendi transaction'ında kullanır.
+
+`migrations/20260623020000_transactional_admin_mutations.sql`
+
+Tema, kariyer başvurusu admin güncellemesi ve medya yaşam döngüsünü auditli SECURITY DEFINER RPC sınırına taşır. `media` ve `job_applications` tablolarında authenticated doğrudan INSERT/UPDATE/DELETE yetkileri kaldırılır. TEST_ medya silme akışı Storage sınırı nedeniyle hazırlama, dış silme, tamamlama/geri alma adımlarından oluşur.
+
+Bu iki migration birlikte uygulanmalı ve ardından şu testler yerel Supabase üzerinde çalıştırılmalıdır:
+
+- `supabase/tests/content_audit_triggers.test.sql`
+- `supabase/tests/transactional_admin_mutations.test.sql`
+- `supabase/tests/admin_audit.test.sql`
+- `supabase/tests/career_retention.test.sql`
+
+Docker/local Supabase doğrulaması yapılmadan bu migration'lar uzak projeye uygulanmamalıdır.

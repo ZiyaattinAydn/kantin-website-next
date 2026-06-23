@@ -3,9 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
-import { logAdminAction } from "@/lib/admin/audit";
-import { upsertAdminRows } from "@/lib/admin/resource-repository";
-import type { AdminMutationPayload } from "@/lib/admin/resource-validation";
 import { createClient } from "@/lib/supabase/server";
 import {
   BODY_SCALES,
@@ -57,7 +54,7 @@ function safeMessage(error: unknown): string {
 }
 
 export async function saveThemeSettings(formData: FormData): Promise<never> {
-  const admin = await requireAdmin();
+  await requireAdmin();
   const reset = textValue(formData, "_intent") === "reset";
   let destination: string;
 
@@ -106,61 +103,37 @@ export async function saveThemeSettings(formData: FormData): Promise<never> {
           careers: checked(formData, "visibility.careers"),
         };
 
-    const settingsRows: AdminMutationPayload[] = [
-      {
-        key: "theme.settings",
-        value: {
-          fontPreset: theme.fontPreset,
-          colorPreset: theme.colorPreset,
-          headingScale: theme.headingScale,
-          bodyScale: theme.bodyScale,
-          cardDensity: theme.cardDensity,
-          homeSectionOrder: [...theme.homeSectionOrder],
-        },
-        description:
-          "Kontrollü font, renk, başlık, gövde, kart yoğunluğu ve ana sayfa sıralama ayarları.",
-        is_public: true,
-        status: "published",
-        is_active: true,
-        sort_order: 9,
-      },
-      {
-        key: "sections.visibility",
-        value: {
-          homeHero: visibility.homeHero,
-          branches: visibility.branches,
-          menu: visibility.menu,
-          events: visibility.events,
-          merch: visibility.merch,
-          memories: visibility.memories,
-          instagram: visibility.instagram,
-          careers: visibility.careers,
-        },
-        description: "Public site bölüm görünürlükleri.",
-        is_public: true,
-        status: "published",
-        is_active: true,
-        sort_order: 5,
-      },
-    ];
-
     const supabase = await createClient();
-    await upsertAdminRows(supabase, "site_settings", settingsRows, "key");
-
-    await logAdminAction({
-      actorId: admin.userId,
-      action: reset ? "theme_reset" : "theme_update",
-      entityType: "site_settings",
-      entityId: null,
-      entityLabel: reset ? "Varsayılan tasarım ayarları" : "Kontrollü tasarım ayarları",
-      metadata: {
-        theme,
-        visibility,
+    const { data, error } = await supabase.rpc("save_admin_theme_settings", {
+      p_theme: {
+        fontPreset: theme.fontPreset,
+        colorPreset: theme.colorPreset,
+        headingScale: theme.headingScale,
+        bodyScale: theme.bodyScale,
+        cardDensity: theme.cardDensity,
+        homeSectionOrder: [...theme.homeSectionOrder],
       },
+      p_visibility: {
+        homeHero: visibility.homeHero,
+        branches: visibility.branches,
+        menu: visibility.menu,
+        events: visibility.events,
+        merch: visibility.merch,
+        memories: visibility.memories,
+        instagram: visibility.instagram,
+        careers: visibility.careers,
+      },
+      p_reset: reset,
     });
 
+    if (error || data !== true) {
+      throw new Error(error?.message || "Tema transaction işlemi tamamlanamadı.");
+    }
+
     destination = `/admin/theme?notice=${encodeURIComponent(
-      reset ? "Tasarım ayarları güvenli varsayılanlara döndürüldü." : "Tasarım ayarları kaydedildi.",
+      reset
+        ? "Tasarım ayarları güvenli varsayılanlara döndürüldü."
+        : "Tasarım ayarları kaydedildi.",
     )}`;
   } catch (error) {
     destination = `/admin/theme?error=${encodeURIComponent(safeMessage(error))}`;

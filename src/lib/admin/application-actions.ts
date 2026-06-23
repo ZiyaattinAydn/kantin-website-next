@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/auth/admin";
-import { logAdminAction } from "@/lib/admin/audit";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -78,7 +77,7 @@ async function previewApplicationAnonymization(
 }
 
 export async function updateApplicationAction(formData: FormData): Promise<never> {
-  const admin = await requireAdmin();
+  await requireAdmin();
   const id = text(formData, "id");
   const status = text(formData, "status") as Status;
   const adminNotes = text(formData, "admin_notes");
@@ -90,22 +89,16 @@ export async function updateApplicationAction(formData: FormData): Promise<never
 
     const supabase = await createClient();
     const { data, error } = await supabase
-      .from("job_applications")
-      .update({ status, admin_notes: adminNotes || null })
-      .eq("id", id)
-      .eq("privacy_status", "active")
-      .select("full_name")
+      .rpc("update_job_application_admin", {
+        p_application_id: id,
+        p_status: status,
+        p_admin_notes: adminNotes || null,
+      })
       .single();
-    if (error) throw new Error(error.message);
 
-    await logAdminAction({
-      actorId: admin.userId,
-      action: "application_update",
-      entityType: "job_applications",
-      entityId: id,
-      entityLabel: data.full_name,
-      metadata: { status },
-    });
+    if (error || !data) {
+      throw new Error(error?.message || "Başvuru transaction işlemi tamamlanamadı.");
+    }
     destination = `/admin/applications?edit=${id}&notice=${encodeURIComponent("Başvuru güncellendi.")}`;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Başvuru güncellenemedi.";

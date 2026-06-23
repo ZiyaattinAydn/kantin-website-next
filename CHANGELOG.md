@@ -51,6 +51,12 @@
 - Dinamik Supabase CRUD erişimi tek repository sınırında toplandı; admin CRUD ve tema yazma akışlarındaki `as never` / `as unknown` tip kaçışları kaldırıldı.
 - Resource alan, liste, arama ve sıralama kolonları tabloya özel generated Database tipleriyle derleme zamanında sınırlandı.
 - Doğrulama, güvenli JSON ve kontrollü editör davranışı için unit regresyon testleri eklendi.
+- CV signed URL erişimi audit kaydı yazılamadığında fail-closed davranacak şekilde güçlendirildi.
+- Generic içerik ve site ayarı mutasyonları transaction içi DB trigger audit katmanına taşındı.
+- Tema ve kariyer başvurusu güncellemeleri semantic audit kaydıyla aynı RPC transaction'ında tamamlanmaya başladı.
+- Medya oluşturma, arşivleme ve geri alma işlemleri auditli RPC'lere; TEST_ medya silme işlemi telafi edilebilir iki aşamalı akışa taşındı.
+- Media ve job_applications tablolarında authenticated doğrudan yazma yetkileri kaldırılarak auditli RPC sınırı zorunlu hale getirildi.
+- Transaction audit, tema, kariyer ve medya akışları için Vitest ve pgTAP regresyonları eklendi.
 
 ## 1.0.0-rc.1 - 2026-06-22
 
