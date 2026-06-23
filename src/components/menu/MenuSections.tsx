@@ -1,6 +1,7 @@
-import type { RefObject } from "react";
+import type { Ref } from "react";
 import AmbientDoodles from "@/components/effects/AmbientDoodles";
 import MenuMerchShowcase from "@/components/merch/MenuMerchShowcase";
+import { GenericMenuCategoryList } from "./GenericMenuPanel";
 import type { MenuPublicData } from "@/lib/public-data/types";
 import type { MerchBundle, MerchDoodle, MerchProductContent } from "@/types/content";
 import type { CoffeeMenuGroup } from "@/types/menu";
@@ -18,11 +19,48 @@ import {
 type PanelProps = {
   hidden: boolean;
   data: MenuPublicData;
-  panelRef?: RefObject<HTMLElement | null>;
+  panelRef?: Ref<HTMLElement>;
   merchProducts?: MerchProductContent[];
   merchBundles?: MerchBundle[];
   merchDoodles?: MerchDoodle[];
 };
+
+const ALSANCAK_RICH_CATEGORY_SLUGS = new Set([
+  "fici-biralar",
+  "sise-biralar",
+  "deli-salata",
+  "saraplar",
+  "fritoz",
+  "firin",
+  "soslar",
+  "kahve",
+  "spesiyaller",
+  "kahve-disi",
+  "kahve-ekstralari",
+]);
+
+const ATAKENT_RICH_CATEGORY_SLUGS = new Set([
+  "fici-biralar",
+  "bubble-kokteyller",
+  "house-kokteyller",
+  "sise-biralar",
+  "saraplar",
+  "sicaklar",
+  "izgara-sisleri",
+  "tatli",
+]);
+
+function extraBranchCategories(
+  data: MenuPublicData,
+  branchSlug: string,
+  handled: Set<string>,
+) {
+  return (
+    data.branches
+      .find((branch) => branch.slug === branchSlug)
+      ?.categories.filter((category) => !handled.has(category.slug)) ?? []
+  );
+}
 
 function BranchIntro({
   kicker,
@@ -184,6 +222,13 @@ export function AlsancakMenuPanel({ hidden, panelRef, data, merchProducts, merch
         </div>
         <aside className="sauce-bar reveal"><div><p className="menu-kicker">{data.sauceBar.kicker}</p><h3>{data.sauceBar.title}</h3></div><p>{data.sauceBar.items.join(" · ")}</p></aside>
         <CoffeeBar data={data} />
+        <GenericMenuCategoryList
+          categories={extraBranchCategories(
+            data,
+            "alsancak",
+            ALSANCAK_RICH_CATEGORY_SLUGS,
+          )}
+        />
         <MenuMerchShowcase products={merchProducts} bundles={merchBundles} doodles={merchDoodles} />
       </div>
     </section>
@@ -215,6 +260,13 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
             <section className="food-column reveal reveal-delay-1"><div className="food-section-heading"><h3>Izgara Şişleri</h3><small>17:00’dan itibaren</small></div>{data.atakentGrillItems.map((item) => <AtakentFoodItem key={item.name} item={item} />)}</section>
           </div>
           <section className="dessert-line reveal"><div><p className="menu-kicker">{data.atakentDessert.kicker}</p><h3>{data.atakentDessert.name}</h3><p>{data.atakentDessert.description}</p><small>{data.atakentDessert.allergens}</small></div><strong>{data.atakentDessert.price}</strong></section>
+          <GenericMenuCategoryList
+            categories={extraBranchCategories(
+              data,
+              "atakent",
+              ATAKENT_RICH_CATEGORY_SLUGS,
+            )}
+          />
         </div>
       </div>
     </section>

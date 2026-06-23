@@ -11,6 +11,7 @@ describe("ana sayfa admin şube eşleşmesi", () => {
       [fallbackHomeData.menuBranches[0]],
       [{
         slug: "alsancak",
+        code: "ALS",
         name: "TEST_ Yeni şube adı",
         short_description: "TEST_ Yeni açıklama",
         features: ["TEST_ Yeni özellik"],
@@ -18,6 +19,7 @@ describe("ana sayfa admin şube eşleşmesi", () => {
     );
 
     expect(result).toMatchObject({
+      code: "ALS",
       name: "TEST_ Yeni şube adı",
       description: "TEST_ Yeni açıklama",
       tags: ["TEST_ Yeni özellik"],
@@ -29,6 +31,8 @@ describe("ana sayfa admin şube eşleşmesi", () => {
       [fallbackHomeData.locationBranches[0]],
       [{
         slug: "alsancak",
+        code: "ALS",
+        name: "Alsancak",
         address_line: "TEST_ Yeni adres",
         district: "TEST_ İlçe",
         city: "İzmir",
@@ -43,5 +47,48 @@ describe("ana sayfa admin şube eşleşmesi", () => {
       description: "TEST_ Konum açıklaması",
       mapsUrl: "https://maps.example/new",
     });
+  });
+
+  it("içerik bloğunda bulunmayan üçüncü şube için genel kartlar üretir", () => {
+    const menuBranches = mergeMenuBranchesWithAdmin(
+      fallbackHomeData.menuBranches,
+      [{
+        slug: "bostanli",
+        code: "BOS",
+        name: "TEST_ Bostanlı",
+        short_description: "TEST_ Üçüncü şube",
+        features: ["TEST_ Bahçe"],
+      }],
+    );
+    const locations = mergeLocationsWithAdmin(
+      fallbackHomeData.locationBranches,
+      [{
+        slug: "bostanli",
+        code: "BOS",
+        name: "TEST_ Bostanlı",
+        address_line: "TEST_ 1. Sokak No:1",
+        district: "Bostanlı",
+        city: "İzmir",
+        short_description: "TEST_ Üçüncü şube",
+        maps_url: "https://maps.example/bostanli",
+      }],
+    );
+
+    expect(menuBranches).toEqual([
+      expect.objectContaining({
+        slug: "bostanli",
+        code: "BOS",
+        name: "TEST_ Bostanlı",
+        image: undefined,
+      }),
+    ]);
+    expect(locations).toEqual([
+      expect.objectContaining({
+        slug: "bostanli",
+        code: "BOS",
+        visualClass: "branch-generic",
+        images: [],
+      }),
+    ]);
   });
 });

@@ -77,7 +77,7 @@ export const fallbackHomeData: HomePublicData = {
   },
   menuBranches: homeMenuBranches.map((branch) => ({
     ...branch,
-    image: { ...branch.image },
+    image: branch.image ? { ...branch.image } : undefined,
     tags: [...branch.tags],
   })),
   locationBranches: locationBranches.map((branch) => ({
@@ -111,7 +111,21 @@ export const fallbackHomeData: HomePublicData = {
 export const fallbackMenuData: MenuPublicData = {
   hasMenuData: true,
   itemImages: [],
-  branchOptions: branchOptions.map((branch) => ({ ...branch })),
+  branchOptions: branchOptions.map((branch) => ({
+    ...branch,
+    code: branches.find((item) => item.id === branch.id)?.code ?? branch.id.toUpperCase(),
+  })),
+  branches: branchOptions.map((branch) => {
+    const fallbackBranch = branches.find((item) => item.id === branch.id);
+    return {
+      id: fallbackBranch?.id ?? branch.id,
+      slug: branch.id,
+      code: fallbackBranch?.code ?? branch.id.toUpperCase(),
+      name: branch.label,
+      description: branch.description,
+      categories: [],
+    };
+  }),
   menuHero: { ...menuHero },
   alsancakIntro: { ...alsancakIntro, titleLines: [...alsancakIntro.titleLines] },
   alsancakDraftBeers: alsancakDraftBeers.map((item) => ({ ...item, prices: [...item.prices] })),

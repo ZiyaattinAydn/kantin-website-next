@@ -57,7 +57,7 @@ describe("getEventPublicData sorgu kapsamı", () => {
       branches: {
         data: [{
           id: "TEST_branch",
-          slug: "alsancak",
+          slug: "bostanli",
           name: "TEST_ Alsancak",
           address_line: "TEST_ Adres",
           district: "Konak",
@@ -81,5 +81,7 @@ describe("getEventPublicData sorgu kapsamı", () => {
     expect(mediaIn).toHaveBeenCalledWith("id", ["TEST_media"]);
     expect(result.source).toBe("supabase");
     expect(result.data.events[0]?.imageUrl).toBe("/assets/TEST_event.webp");
+    expect(result.data.events[0]?.branch).toBe("bostanli");
+    expect(result.data.branchLabels.bostanli).toBe("TEST_ Alsancak");
   });
 });

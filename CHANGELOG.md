@@ -58,6 +58,29 @@
 - Media ve job_applications tablolarında authenticated doğrudan yazma yetkileri kaldırılarak auditli RPC sınırı zorunlu hale getirildi.
 - Transaction audit, tema, kariyer ve medya akışları için Vitest ve pgTAP regresyonları eklendi.
 
+### Faz 14G
+
+- Public şube modeli sabit Alsancak/Atakent union tiplerinden çıkarılarak veritabanındaki aktif şubeleri destekleyecek şekilde dinamikleştirildi.
+- Menü sekmeleri, URL `sube` seçimi, etkinlik filtreleri, merch ilişkileri ve kariyer şube seçenekleri dinamik şube listesine bağlandı.
+- Alsancak ve Atakent'in mevcut zengin menü tasarımları korunurken yeni şubeler için kategori `display_type` değerini kullanan genel menü renderer'ı eklendi.
+- Mevcut iki şubeye sonradan eklenen yeni kategoriler, sabit slug listesinde olmasa bile genel kategori alanında gösterilmeye başlandı.
+- Ana sayfa menü ve konum kartları, içerik bloklarında bulunmayan üçüncü şubeler için güvenli genel kart üretecek şekilde genişletildi.
+- Üçüncü şube, yeni kategori, etkinlik filtresi ve kariyer başvurusu için unit regresyon testleri eklendi.
+
+### Faz 14H
+
+- Kullanılmayan eski content katmanı ve yinelenen menü/etkinlik componentleri kaldırıldı.
+- Kariyer ve etkinlik şube seçeneklerindeki artık kullanılmayan statik exportlar temizlendi.
+- Aktif veri kaynakları `src/data`, `src/lib/public-data` ve `src/components/cards` altında tekilleştirildi.
+- `legacy.css`, seed/fallback ve deployment scriptleri için güvenli temizlik sınırları teknik envanterle belgelendi.
+
+### Faz 14I
+
+- Bağımlılık güvenlik taramasındaki iki moderate PostCSS bulgusu kontrollü `overrides` kaydıyla güvenli sürüme taşındı.
+- Next.js'in transitive PostCSS bağımlılığı `8.5.15` sürümüne sabitlendi; `npm audit` sonucu sıfır bulguya indirildi.
+- Kırıcı ESLint, TypeScript ve Node tip yükseltmeleri sunum öncesi risk oluşturmaması için ertelendi.
+- Bağımlılık kararı, doğrulama komutları ve geri alma yöntemi teknik notla belgelendi.
+
 ## 1.0.0-rc.1 - 2026-06-22
 
 ### Tamamlananlar

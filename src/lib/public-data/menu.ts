@@ -27,7 +27,7 @@ import type {
   PriceTableRow,
 } from "@/types/menu";
 
-type BranchSlug = "alsancak" | "atakent";
+type BranchSlug = string;
 
 type MenuItemRow = Pick<
   TableRow<"menu_items">,
@@ -46,11 +46,25 @@ type MenuItemRow = Pick<
 >;
 type MenuItemBranchRow = Pick<
   TableRow<"menu_item_branches">,
-  "id" | "menu_item_id" | "branch_id" | "price_cents" | "price_label" | "price_note" | "sort_order"
+  | "id"
+  | "menu_item_id"
+  | "branch_id"
+  | "price_cents"
+  | "price_label"
+  | "price_note"
+  | "availability_note"
+  | "sort_order"
 >;
 type MenuItemVariantRow = Pick<
   TableRow<"menu_item_variants">,
-  "menu_item_branch_id" | "label" | "price_cents" | "sort_order"
+  | "id"
+  | "menu_item_branch_id"
+  | "slug"
+  | "label"
+  | "detail"
+  | "price_cents"
+  | "price_note"
+  | "sort_order"
 >;
 
 type MenuEntry = {
@@ -150,29 +164,38 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
       blocks,
       branchRows,
       categoriesResult,
+      categoryLinksResult,
       itemsResult,
       itemLinksResult,
       variantsResult,
     ] = await Promise.all([
       getPageBlocks(client, "menu"),
       getPublicBranchRows(),
-      client.from("menu_categories").select("id, slug, metadata").order("sort_order"),
+      client
+        .from("menu_categories")
+        .select("id, slug, name, description, display_type, metadata, sort_order")
+        .order("sort_order"),
+      client
+        .from("menu_category_branches")
+        .select("category_id, branch_id, display_name, description, sort_order")
+        .order("sort_order"),
       client
         .from("menu_items")
         .select("id, category_id, slug, name, description, detail, highlight_text, allergen_text, badges, image_media_id, metadata, sort_order")
         .order("sort_order"),
       client
         .from("menu_item_branches")
-        .select("id, menu_item_id, branch_id, price_cents, price_label, price_note, sort_order")
+        .select("id, menu_item_id, branch_id, price_cents, price_label, price_note, availability_note, sort_order")
         .order("sort_order"),
       client
         .from("menu_item_variants")
-        .select("menu_item_branch_id, label, price_cents, sort_order")
+        .select("id, menu_item_branch_id, slug, label, detail, price_cents, price_note, sort_order")
         .order("sort_order"),
     ]);
 
     for (const result of [
       categoriesResult,
+      categoryLinksResult,
       itemsResult,
       itemLinksResult,
       variantsResult,
@@ -216,7 +239,7 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
       .map((link): (MenuEntry & { branch: BranchSlug; categorySlug: string }) | null => {
         const branchSlug = branchByUuid.get(link.branch_id)?.slug;
         const item = itemByUuid.get(link.menu_item_id);
-        if (!item || (branchSlug !== "alsancak" && branchSlug !== "atakent")) {
+        if (!item || !branchSlug) {
           return null;
         }
         const categorySlug = categoryByUuid.get(item.category_id)?.slug;
@@ -316,42 +339,118 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
     const heroBlock = blocks.get("hero") ?? {};
     const alsancakIntroBlock = blocks.get("alsancak-intro") ?? {};
     const atakentIntroBlock = blocks.get("atakent-intro") ?? {};
-    const branchesBySlug = new Map(
-      branchRows.map((branch) => [branch.slug, branch]),
+    const categoryLinkByKey = new Map(
+      (categoryLinksResult.data ?? []).map((link) => [
+        `${link.branch_id}:${link.category_id}`,
+        link,
+      ]),
     );
+    const itemImages = mapMenuItemImages(client, entries, mediaRows);
+    const imageByBranchAndItem = new Map(
+      itemImages.map((image) => [
+        `${image.branch}:${image.itemId}`,
+        image,
+      ]),
+    );
+    const genericBranches = branchRows
+      .map((branch) => {
+        const categories = (categoriesResult.data ?? [])
+          .map((category) => {
+            const categoryItems = entries
+              .filter(
+                (entry) =>
+                  entry.branch === branch.slug &&
+                  entry.categorySlug === category.slug,
+              )
+              .sort(
+                (first, second) =>
+                  first.link.sort_order - second.link.sort_order ||
+                  first.item.sort_order - second.item.sort_order,
+              );
+            if (!categoryItems.length) return null;
 
-    const hasMenuData = entries.length > 0;
+            const link = categoryLinkByKey.get(
+              `${branch.id}:${category.id}`,
+            );
+
+            return {
+              id: category.id,
+              slug: category.slug,
+              name: link?.display_name ?? category.name,
+              description:
+                link?.description ?? category.description ?? undefined,
+              displayType: category.display_type,
+              sortOrder: link?.sort_order ?? category.sort_order,
+              items: categoryItems.map((entry) => ({
+                id: entry.item.id,
+                slug: entry.item.slug,
+                name: entry.item.name,
+                description: entry.item.description ?? undefined,
+                detail: entry.item.detail ?? undefined,
+                highlight: entry.item.highlight_text ?? undefined,
+                allergens: entry.item.allergen_text ?? undefined,
+                badges: [...entry.item.badges],
+                price: formatTryFromCents(entry.link.price_cents),
+                priceLabel: entry.link.price_label ?? undefined,
+                priceNote: entry.link.price_note ?? undefined,
+                availabilityNote:
+                  entry.link.availability_note ?? undefined,
+                image: imageByBranchAndItem.get(
+                  `${branch.slug}:${entry.item.id}`,
+                ),
+                variants: entry.variants.map((variant) => ({
+                  id: variant.id,
+                  slug: variant.slug,
+                  label: variant.label,
+                  detail: variant.detail ?? undefined,
+                  price: formatTryFromCents(variant.price_cents),
+                  priceNote: variant.price_note ?? undefined,
+                  sortOrder: variant.sort_order,
+                })),
+                sortOrder: entry.link.sort_order,
+              })),
+            };
+          })
+          .filter((category): category is NonNullable<typeof category> => Boolean(category))
+          .sort((first, second) => first.sortOrder - second.sortOrder);
+
+        return {
+          id: branch.id,
+          slug: branch.slug,
+          code: branch.code,
+          name: branch.name,
+          description:
+            branch.short_description ??
+            `${branch.name} şubesine özel güncel menü.`,
+          categories,
+        };
+      })
+      .filter((branch) => branch.categories.length > 0);
+
+    const hasMenuData = genericBranches.length > 0;
     const data: MenuPublicData = {
       hasMenuData,
-      itemImages: mapMenuItemImages(client, entries, mediaRows),
-      branchOptions: [
-        {
-          id: "alsancak",
-          label:
-            branchesBySlug.get("alsancak")?.name ??
-            fallbackMenuData.branchOptions[0].label,
-          description:
-            branchesBySlug.get("alsancak")?.short_description ??
-            "Self-servis · kokteyl yok",
-        },
-        {
-          id: "atakent",
-          label:
-            branchesBySlug.get("atakent")?.name ??
-            fallbackMenuData.branchOptions[1].label,
-          description:
-            branchesBySlug.get("atakent")?.short_description ??
-            "Bubble kokteyl · grill",
-        },
-      ],
+      itemImages,
+      branchOptions: genericBranches.map((branch) => ({
+        id: branch.slug,
+        code: branch.code,
+        label: branch.name,
+        description: branch.description,
+      })),
+      branches: genericBranches,
       menuHero: {
         eyebrow: stringValue(heroBlock.eyebrow, fallbackMenuData.menuHero.eyebrow),
         title: stringValue(heroBlock.title, fallbackMenuData.menuHero.title),
         description: stringValue(
           heroBlock.description,
-          fallbackMenuData.menuHero.description,
+          genericBranches.length
+            ? `${genericBranches.map((branch) => branch.name).join(", ")} şubelerinin ürün ve fiyatları birbirinden farklı olabilir. Gideceğin şubeyi seçerek güncel menüyü incele.`
+            : fallbackMenuData.menuHero.description,
         ),
-        mark: stringValue(heroBlock.mark, fallbackMenuData.menuHero.mark),
+        mark: stringValue(
+          heroBlock.mark,
+          genericBranches.map((branch) => branch.code).join("—") || fallbackMenuData.menuHero.mark,
+        ),
       },
       alsancakIntro: {
         kicker: stringValue(

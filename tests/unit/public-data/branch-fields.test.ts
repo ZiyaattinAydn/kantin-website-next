@@ -41,4 +41,29 @@ describe("admin şube alanları", () => {
       openingHours: ["Her gün 10:00-00:00"],
     });
   });
+  it("tanımlı iki şube dışındaki geçerli slug ve kodu da kabul eder", () => {
+    const branch = mapBranch({
+      slug: "bostanli",
+      code: "BOS",
+      name: "TEST_ Bostanlı",
+      short_description: null,
+      address_line: "TEST_ Adres",
+      district: "Bostanlı",
+      city: "İzmir",
+      maps_url: "https://maps.example/bostanli",
+      phone: null,
+      public_email: null,
+      opening_hours: {},
+      features: [],
+      is_active: true,
+      sort_order: 3,
+    });
+
+    expect(branch).toMatchObject({
+      id: "bostanli",
+      code: "BOS",
+      name: "TEST_ Bostanlı",
+    });
+  });
+
 });

@@ -8,16 +8,18 @@ export default function MenuCard({ branch }: { branch: HomeMenuBranch }) {
         branch.delayClass ? ` ${branch.delayClass}` : ""
       }`}
     >
-      <div aria-hidden="true" className="home-menu-media">
-        <img
-          alt=""
-          decoding="async"
-          height={branch.image.height}
-          loading="lazy"
-          src={branch.image.src}
-          width={branch.image.width}
-        />
-      </div>
+      {branch.image ? (
+        <div aria-hidden="true" className="home-menu-media">
+          <img
+            alt=""
+            decoding="async"
+            height={branch.image.height}
+            loading="lazy"
+            src={branch.image.src}
+            width={branch.image.width}
+          />
+        </div>
+      ) : null}
 
       <div className="home-menu-code">{branch.code}</div>
       <p className="eyebrow eyebrow-light">{branch.name}</p>

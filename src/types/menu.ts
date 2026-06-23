@@ -1,9 +1,8 @@
-import type { BranchId } from "./domain";
-
-export type MenuBranch = BranchId;
+export type MenuBranch = string;
 
 export type BranchOption = {
   id: MenuBranch;
+  code?: string;
   label: string;
   description: string;
 };

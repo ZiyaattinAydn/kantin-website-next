@@ -88,8 +88,8 @@ function parseMenuBranches(
       const code = item.code;
       const image = asRecord(item.image);
 
-      if (slug !== "alsancak" && slug !== "atakent") return null;
-      if (code !== "ALS" && code !== "ATA") return null;
+      if (typeof slug !== "string" || !slug.trim()) return null;
+      if (typeof code !== "string" || !code.trim()) return null;
 
       return {
         slug,
@@ -120,14 +120,9 @@ function parseLocations(
       const code = item.code;
       const visualClass = item.visualClass;
 
-      if (slug !== "alsancak" && slug !== "atakent") return null;
-      if (code !== "ALS" && code !== "ATA") return null;
-      if (
-        visualClass !== "branch-alsancak" &&
-        visualClass !== "branch-atakent"
-      ) {
-        return null;
-      }
+      if (typeof slug !== "string" || !slug.trim()) return null;
+      if (typeof code !== "string" || !code.trim()) return null;
+      if (typeof visualClass !== "string" || !visualClass.trim()) return null;
 
       const images = arrayOfRecords(item.images)
         .map((image) => ({
@@ -236,20 +231,33 @@ export function mergeMenuBranchesWithAdmin(
   branches: HomeMenuBranch[],
   rows: Array<Pick<
     TableRow<"branches">,
-    "slug" | "name" | "short_description" | "features"
+    "slug" | "code" | "name" | "short_description" | "features"
   >>,
 ): HomeMenuBranch[] {
-  const rowsBySlug = new Map(rows.map((row) => [row.slug, row]));
+  if (!rows.length) return branches;
 
-  return branches.map((branch) => {
-    const row = rowsBySlug.get(branch.slug);
-    if (!row) return branch;
+  const configuredBySlug = new Map(
+    branches.map((branch) => [branch.slug, branch]),
+  );
+
+  return rows.map((row, index) => {
+    const configured = configuredBySlug.get(row.slug);
 
     return {
-      ...branch,
+      slug: row.slug,
+      code: row.code,
       name: row.name,
-      description: row.short_description ?? branch.description,
-      tags: [...row.features],
+      image: configured?.image,
+      title: configured?.title ?? `${row.name} menüsü`,
+      description:
+        row.short_description ??
+        configured?.description ??
+        `${row.name} şubesine özel güncel menüyü incele.`,
+      tags: row.features.length
+        ? [...row.features]
+        : configured?.tags ?? [],
+      delayClass:
+        configured?.delayClass ?? (index > 0 ? "reveal-delay-1" : undefined),
     };
   });
 }
@@ -258,21 +266,37 @@ export function mergeLocationsWithAdmin(
   branches: LocationBranch[],
   rows: Array<Pick<
     TableRow<"branches">,
-    "slug" | "address_line" | "district" | "city" | "short_description" | "maps_url"
+    | "slug"
+    | "code"
+    | "name"
+    | "address_line"
+    | "district"
+    | "city"
+    | "short_description"
+    | "maps_url"
   >>,
 ): LocationBranch[] {
-  const rowsBySlug = new Map(rows.map((row) => [row.slug, row]));
+  if (!rows.length) return branches;
 
-  return branches.map((branch) => {
-    const row = rowsBySlug.get(branch.slug);
-    if (!row) return branch;
+  const configuredBySlug = new Map(
+    branches.map((branch) => [branch.slug, branch]),
+  );
+
+  return rows.map((row, index) => {
+    const configured = configuredBySlug.get(row.slug);
 
     return {
-      ...branch,
+      slug: row.slug,
+      code: row.code,
+      visualClass: configured?.visualClass ?? "branch-generic",
+      eyebrow: configured?.eyebrow ?? `${row.name} şubesi`,
       title: row.address_line,
       address: `${row.district} / ${row.city}`,
-      description: row.short_description ?? undefined,
+      description: row.short_description ?? configured?.description,
       mapsUrl: row.maps_url,
+      images: configured?.images ?? [],
+      delayClass:
+        configured?.delayClass ?? (index > 0 ? "reveal-delay-1" : undefined),
     };
   });
 }
@@ -334,7 +358,7 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
     for (const link of productLinksResult.data ?? []) {
       if (!link.is_available) continue;
       const slug = branchByUuid.get(link.branch_id)?.slug;
-      if (slug !== "alsancak" && slug !== "atakent") continue;
+      if (!slug) continue;
       const ids = branchIdsByProduct.get(link.merch_product_id) ?? [];
       ids.push(slug);
       branchIdsByProduct.set(link.merch_product_id, ids);

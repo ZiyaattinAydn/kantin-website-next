@@ -25,9 +25,9 @@ export type MerchBundle = {
 
 export type HomeMenuBranch = {
   slug: BranchId;
-  code: "ALS" | "ATA";
+  code: string;
   name: string;
-  image: ImageAsset;
+  image?: ImageAsset;
   title: string;
   description: string;
   tags: string[];
@@ -36,8 +36,8 @@ export type HomeMenuBranch = {
 
 export type LocationBranch = {
   slug: BranchId;
-  code: "ALS" | "ATA";
-  visualClass: "branch-alsancak" | "branch-atakent";
+  code: string;
+  visualClass: string;
   eyebrow: string;
   title: string;
   address: string;

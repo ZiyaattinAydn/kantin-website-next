@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 import {
   careerAvailabilityDays,
-  careerBranches,
   careerDepartments,
   careerEmploymentTypes,
 } from "@/data/careers";
@@ -40,7 +39,7 @@ export type CareerApplicationInput = {
   fullName: string;
   phone: string;
   email: string;
-  branchSlug: "alsancak" | "atakent" | "either";
+  branchSlug: string;
   department: "service" | "kitchen" | "bar" | "cashier";
   employmentType: "full_time" | "part_time";
   shiftPreference: "morning" | "evening";
@@ -151,8 +150,11 @@ export async function validateCareerApplicationForm(
     return { ok: false, field: "email", message: "Geçerli bir e-posta adresi girin." };
   }
 
-  const branchSlug = readText(formData, "branch");
-  if (!careerBranches.some((branch) => branch.id === branchSlug)) {
+  const branchSlug = readText(formData, "branch").toLowerCase();
+  if (
+    branchSlug !== "either" &&
+    !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(branchSlug)
+  ) {
     return { ok: false, field: "branch", message: "Geçerli bir şube seçin." };
   }
 

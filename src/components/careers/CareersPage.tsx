@@ -4,7 +4,6 @@ import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   careerAvailabilityDays,
-  careerBranches,
   careerDepartments,
   careerEmploymentTypes,
   careersContactEmail,
@@ -38,7 +37,11 @@ function getDepartment(id: string) {
   return careerDepartments.find((department) => department.id === id);
 }
 
-export default function CareersPage() {
+export default function CareersPage({
+  branchOptions,
+}: {
+  branchOptions: Array<{ id: string; label: string }>;
+}) {
   const formRef = useRef<HTMLFormElement>(null);
   const formStartedAtRef = useRef(0);
   const [departmentId, setDepartmentId] = useState<CareerDepartmentId>("service");
@@ -196,11 +199,15 @@ export default function CareersPage() {
           </div>
 
           <aside className={styles.heroCard}>
-            <p className={styles.cardLabel}>Şimdilik iki şubede</p>
-            <strong>Alsancak + Atakent</strong>
+            <p className={styles.cardLabel}>Aktif şubelerde</p>
+            <strong>
+              {branchOptions
+                .filter((branch) => branch.id !== "either")
+                .map((branch) => branch.label)
+                .join(" + ") || "Kantin"}
+            </strong>
             <p>
-              Vardiya saatleri şu an iki şube için ortak kabul edildi. İşletme bilgisi değişirse
-              daha sonra güncelleriz.
+              Başvuru sırasında aktif şubelerden birini seçebilir veya esnek olduğunu belirtebilirsin.
             </p>
             <div className={styles.heroTags}>
               <span>Part-time uygun</span>
@@ -311,7 +318,7 @@ export default function CareersPage() {
                 <label>
                   <span>Şube</span>
                   <select name="branch" defaultValue="either" required>
-                    {careerBranches.map((branch) => (
+                    {branchOptions.map((branch) => (
                       <option key={branch.id} value={branch.id}>{branch.label}</option>
                     ))}
                   </select>

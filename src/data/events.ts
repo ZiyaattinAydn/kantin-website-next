@@ -13,8 +13,4 @@ export const eventBranchAddresses: Record<EventBranchId, string> = {
   both: `${branchById.alsancak.name} + ${branchById.atakent.name}`,
 };
 
-export const eventFilters = [
-  { value: "all", label: "Tümü" },
-  { value: "alsancak", label: branchById.alsancak.name },
-  { value: "atakent", label: branchById.atakent.name },
-] as const;
+

@@ -7,7 +7,7 @@ import { getPagePublicMetadata } from "@/lib/public-data/metadata";
 export function generateMetadata() {
   return getPagePublicMetadata("events", {
     title: "Etkinlikler",
-    description: "Kantin Alsancak ve Atakent şubelerindeki yaklaşan etkinlikler.",
+    description: "Kantin şubelerindeki yaklaşan etkinlikler.",
     canonical: "/events",
   });
 }

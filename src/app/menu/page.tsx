@@ -8,7 +8,7 @@ import { getPagePublicMetadata } from "@/lib/public-data/metadata";
 export function generateMetadata() {
   return getPagePublicMetadata("menu", {
     title: "Şube Menüleri",
-    description: "Kantin Alsancak ve Atakent şubelerine özel menüler.",
+    description: "Kantin şubelerine özel güncel menüler.",
     canonical: "/menu",
   });
 }
@@ -27,7 +27,13 @@ export default async function MenuPage({ searchParams }: MenuPageProps) {
     getMenuMerchPublicData(),
   ]);
   const requestedBranch = Array.isArray(params.sube) ? params.sube[0] : params.sube;
-  const initialBranch = requestedBranch === "atakent" ? "atakent" : "alsancak";
+  const availableBranches = new Set(
+    menu.data.branchOptions.map((branch) => branch.id),
+  );
+  const initialBranch =
+    requestedBranch && availableBranches.has(requestedBranch)
+      ? requestedBranch
+      : menu.data.branchOptions[0]?.id ?? "alsancak";
 
   return (
     <PublicPageShell common={common} issues={[...menu.issues, ...merch.issues]}>

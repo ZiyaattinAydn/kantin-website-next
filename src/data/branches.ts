@@ -1,4 +1,4 @@
-import type { Branch, BranchId } from "@/types/domain";
+import type { Branch } from "@/types/domain";
 
 export const branches = [
   {
@@ -31,4 +31,4 @@ export const branches = [
 
 export const branchById = Object.fromEntries(
   branches.map((branch) => [branch.id, branch]),
-) as Record<BranchId, (typeof branches)[number]>;
+) as Record<string, (typeof branches)[number]>;

@@ -136,17 +136,75 @@ export type MenuItemImageData = {
   itemId: string;
   slug: string;
   name: string;
-  branch: "alsancak" | "atakent";
+  branch: string;
   imageUrl: string;
   imageAlt: string;
   width: number;
   height: number;
 };
 
+
+export type MenuCategoryDisplay =
+  | "price_table"
+  | "compact"
+  | "cards"
+  | "editorial"
+  | "feature"
+  | "coffee"
+  | "custom";
+
+export type GenericMenuVariantData = {
+  id: string;
+  slug: string;
+  label: string;
+  detail?: string;
+  price: string;
+  priceNote?: string;
+  sortOrder: number;
+};
+
+export type GenericMenuItemData = {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string;
+  detail?: string;
+  highlight?: string;
+  allergens?: string;
+  badges: string[];
+  price: string;
+  priceLabel?: string;
+  priceNote?: string;
+  availabilityNote?: string;
+  image?: MenuItemImageData;
+  variants: GenericMenuVariantData[];
+  sortOrder: number;
+};
+
+export type GenericMenuCategoryData = {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string;
+  displayType: MenuCategoryDisplay;
+  sortOrder: number;
+  items: GenericMenuItemData[];
+};
+
+export type GenericMenuBranchData = {
+  id: string;
+  slug: string;
+  code: string;
+  name: string;
+  description: string;
+  categories: GenericMenuCategoryData[];
+};
+
 export type MenuPublicData = {
   hasMenuData: boolean;
   itemImages: MenuItemImageData[];
-  branchOptions: Array<{ id: "alsancak" | "atakent"; label: string; description: string }>;
+  branchOptions: Array<{ id: string; code: string; label: string; description: string }>;
+  branches: GenericMenuBranchData[];
   menuHero: MenuHeroData;
   alsancakIntro: BranchIntroData;
   alsancakDraftBeers: PriceTableRow[];
@@ -179,7 +237,7 @@ export type MenuPublicData = {
 
 export type EventPublicData = {
   events: KantinEvent[];
-  branchLabels: Record<"alsancak" | "atakent" | "both", string>;
-  branchAddresses: Record<"alsancak" | "atakent" | "both", string>;
+  branchLabels: Record<string, string>;
+  branchAddresses: Record<string, string>;
   instagramUrl: string;
 };

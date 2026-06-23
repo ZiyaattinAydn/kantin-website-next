@@ -81,9 +81,6 @@ export function mapBranch(row: {
   is_active: boolean;
   sort_order: number;
 }): Branch | null {
-  if (row.slug !== "alsancak" && row.slug !== "atakent") return null;
-  if (row.code !== "ALS" && row.code !== "ATA") return null;
-
   return {
     id: row.slug,
     code: row.code,

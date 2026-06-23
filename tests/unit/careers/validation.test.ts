@@ -17,6 +17,16 @@ describe("validateCareerApplicationForm", () => {
     expect(result.data.cvExtension).toBe("pdf");
   });
 
+  it("yeni bir şube slug değerini uygulama katmanında kabul eder", async () => {
+    const result = await validateCareerApplicationForm(
+      careerFormData({ branch: "bostanli" }),
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.branchSlug).toBe("bostanli");
+  });
+
   it("honeypot dolu başvuruyu reddeder", async () => {
     const result = await validateCareerApplicationForm(
       careerFormData({ website: "https://spam.example" }),

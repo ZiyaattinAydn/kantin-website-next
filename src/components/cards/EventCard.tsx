@@ -16,7 +16,7 @@ import {
   type KantinEvent,
 } from "@/lib/events";
 
-type BranchMap = Record<"alsancak" | "atakent" | "both", string>;
+type BranchMap = Record<string, string>;
 
 type EventCardProps = {
   event: KantinEvent;
@@ -54,7 +54,7 @@ export default function EventCard({
         </div>
         <div className="event-content">
           <div className="event-tags">
-            <span>{branchLabels[event.branch]}</span>
+            <span>{branchLabels[event.branch] ?? "Kantin"}</span>
             <span>{formatEventTime(event.startAt)}</span>
           </div>
           <h3>{event.title}</h3>
@@ -71,7 +71,7 @@ export default function EventCard({
     );
   }
 
-  const address = event.location || branchAddresses[event.branch];
+  const address = event.location || branchAddresses[event.branch] || "Kantin";
   const timeRange = `${formatEventTime(event.startAt)}${
     event.endAt ? `–${formatEventTime(event.endAt)}` : ""
   }`;
@@ -95,7 +95,7 @@ export default function EventCard({
       ) : null}
       <div className={styles.listBody}>
         <div className="event-tags">
-          <span>{branchLabels[event.branch]}</span>
+          <span>{branchLabels[event.branch] ?? "Kantin"}</span>
           <span>{formatEventTime(event.startAt)}</span>
           <span>{address}</span>
         </div>

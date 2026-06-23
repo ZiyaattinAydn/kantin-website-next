@@ -1,21 +1,8 @@
-import { branchById } from "@/data/branches";
 import type { Event as EventRecord, EventBranchId } from "@/types/domain";
 
 export const EVENT_DEMO_STORAGE_KEY = "kantin_demo_events_v1";
 
 export type EventBranch = EventBranchId;
-
-export const eventBranchLabels: Record<EventBranch, string> = {
-  alsancak: branchById.alsancak.name,
-  atakent: branchById.atakent.name,
-  both: "İki şube",
-};
-
-export const eventBranchAddresses: Record<EventBranch, string> = {
-  alsancak: `${branchById.alsancak.addressLine}, ${branchById.alsancak.district} / ${branchById.alsancak.city}`,
-  atakent: `${branchById.atakent.addressLine}, ${branchById.atakent.district} / ${branchById.atakent.city}`,
-  both: `${branchById.alsancak.name} + ${branchById.atakent.name}`,
-};
 
 export type RawEvent = Partial<
   Omit<EventRecord, "startAt" | "endAt" | "branchId">
@@ -72,8 +59,9 @@ function parseDate(value: unknown): Date | null {
 }
 
 function normaliseBranch(value?: string): EventBranch {
-  return value === "alsancak" || value === "atakent" || value === "both"
-    ? value
+  const normalized = value?.trim().toLowerCase();
+  return normalized && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized)
+    ? normalized
     : "both";
 }
 

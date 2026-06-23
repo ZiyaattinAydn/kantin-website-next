@@ -16,11 +16,7 @@ export type CareerDepartment = {
 
 export const careersContactEmail = "hello@kantin.pub";
 
-export const careerBranches = [
-  { id: "alsancak", label: "Alsancak" },
-  { id: "atakent", label: "Atakent" },
-  { id: "either", label: "Fark etmez" },
-] as const;
+
 
 export const careerEmploymentTypes = [
   { id: "full-time", label: "Tam zamanlı" },

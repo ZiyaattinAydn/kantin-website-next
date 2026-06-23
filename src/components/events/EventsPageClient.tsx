@@ -3,16 +3,14 @@
 import { useMemo, useState } from "react";
 import AmbientDoodles from "@/components/effects/AmbientDoodles";
 import EventCard, { EventsZeroState } from "@/components/cards/EventCard";
-import { eventFilters } from "@/data/events";
 import styles from "./EventsPageClient.module.css";
 import {
   normalisePublishedEvents,
-  type EventBranch,
   type RawEvent,
 } from "@/lib/events";
 
-type EventFilter = "all" | Exclude<EventBranch, "both">;
-type BranchMap = Record<"alsancak" | "atakent" | "both", string>;
+type EventFilter = "all" | string;
+type BranchMap = Record<string, string>;
 
 function matchesFilter(
   event: ReturnType<typeof normalisePublishedEvents>[number],
@@ -37,7 +35,15 @@ export default function EventsPageClient({
     () => normalisePublishedEvents(initialEvents),
     [initialEvents],
   );
-
+  const filters = useMemo(
+    () => [
+      { value: "all", label: "Tümü" },
+      ...Object.entries(branchLabels)
+        .filter(([slug]) => slug !== "both")
+        .map(([value, label]) => ({ value, label })),
+    ],
+    [branchLabels],
+  );
   const visibleEvents = useMemo(
     () => events.filter((event) => matchesFilter(event, activeFilter)),
     [activeFilter, events],
@@ -72,7 +78,7 @@ export default function EventsPageClient({
       <section className={`section ${styles.page}`}>
         <div className="container">
           <div aria-label="Etkinlikleri şubeye göre filtrele" className={`${styles.filterBar} reveal`}>
-            {eventFilters.map((filter) => {
+            {filters.map((filter) => {
               const active = filter.value === activeFilter;
 
               return (

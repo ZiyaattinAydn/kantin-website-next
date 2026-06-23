@@ -72,7 +72,7 @@ async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublic
     for (const link of linksResult.data ?? []) {
       if (!link.is_available) continue;
       const slug = branchById.get(link.branch_id);
-      if (slug !== "alsancak" && slug !== "atakent") continue;
+      if (!slug) continue;
       const ids = branchIdsByProduct.get(link.merch_product_id) ?? [];
       ids.push(slug);
       branchIdsByProduct.set(link.merch_product_id, ids);

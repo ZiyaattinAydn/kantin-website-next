@@ -1,33 +1,56 @@
 import "server-only";
 
-import { getPublicBranchRows } from "./branches";
 import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
-import { normalisePublishedEvents, type KantinEvent, type RawEvent } from "@/lib/events";
+import {
+  normalisePublishedEvents,
+  type KantinEvent,
+  type RawEvent,
+} from "@/lib/events";
 import { fallbackCommonData } from "./fallbacks";
-import { normaliseIssue, resolveMediaUrl, type PublicMediaRow } from "./helpers";
+import { getPublicBranchRows } from "./branches";
+import {
+  normaliseIssue,
+  resolveMediaUrl,
+  type PublicMediaRow,
+} from "./helpers";
 import type { EventPublicData, PublicDataEnvelope } from "./types";
 
-function fallbackBranchMaps() {
-  const alsancak = fallbackCommonData.branches.find(
-    (branch) => branch.id === "alsancak",
-  )!;
-  const atakent = fallbackCommonData.branches.find(
-    (branch) => branch.id === "atakent",
-  )!;
-
-  return {
-    branchLabels: {
-      alsancak: alsancak.name,
-      atakent: atakent.name,
-      both: "İki şube",
-    } as const,
-    branchAddresses: {
-      alsancak: `${alsancak.addressLine}, ${alsancak.district} / ${alsancak.city}`,
-      atakent: `${atakent.addressLine}, ${atakent.district} / ${atakent.city}`,
-      both: `${alsancak.name} + ${atakent.name}`,
-    } as const,
+function branchMapsFromRows(
+  rows: Array<{
+    slug: string;
+    name: string;
+    address_line: string;
+    district: string;
+    city: string;
+  }>,
+) {
+  const branchLabels: Record<string, string> = { both: "Tüm şubeler" };
+  const branchAddresses: Record<string, string> = {
+    both: rows.length
+      ? rows.map((branch) => branch.name).join(" + ")
+      : "Kantin şubeleri",
   };
+
+  for (const branch of rows) {
+    branchLabels[branch.slug] = branch.name;
+    branchAddresses[branch.slug] =
+      `${branch.address_line}, ${branch.district} / ${branch.city}`;
+  }
+
+  return { branchLabels, branchAddresses };
+}
+
+function fallbackBranchMaps() {
+  return branchMapsFromRows(
+    fallbackCommonData.branches.map((branch) => ({
+      slug: branch.id,
+      name: branch.name,
+      address_line: branch.addressLine,
+      district: branch.district,
+      city: branch.city,
+    })),
+  );
 }
 
 async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData>> {
@@ -38,7 +61,9 @@ async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData
     const [eventsResult, linksResult, branchRows] = await Promise.all([
       client
         .from("events")
-        .select("id, title, description, start_at, end_at, venue_name, location_text, external_url, image_media_id")
+        .select(
+          "id, title, description, start_at, end_at, venue_name, location_text, external_url, image_media_id",
+        )
         .order("start_at"),
       client
         .from("event_branches")
@@ -49,16 +74,20 @@ async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData
 
     if (eventsResult.error) throw eventsResult.error;
     if (linksResult.error) throw linksResult.error;
+
     const mediaIds = [...new Set(
       (eventsResult.data ?? [])
         .map((event) => event.image_media_id)
         .filter((id): id is string => Boolean(id)),
     )];
     let mediaRows: PublicMediaRow[] = [];
+
     if (mediaIds.length) {
       const mediaResult = await client
         .from("media")
-        .select("id, source, bucket_name, object_path, external_url, local_path, alt_text, width, height")
+        .select(
+          "id, source, bucket_name, object_path, external_url, local_path, alt_text, width, height",
+        )
         .in("id", mediaIds);
       if (mediaResult.error) throw mediaResult.error;
       mediaRows = mediaResult.data ?? [];
@@ -81,14 +110,8 @@ async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData
     const rawEvents: RawEvent[] = (eventsResult.data ?? []).map((event) => {
       const branchSlugs = (branchIdsByEvent.get(event.id) ?? [])
         .map((id) => branchByUuid.get(id)?.slug)
-        .filter((slug): slug is "alsancak" | "atakent" =>
-          slug === "alsancak" || slug === "atakent",
-        );
-
-      const branch =
-        branchSlugs.length > 1
-          ? "both"
-          : branchSlugs[0] ?? "both";
+        .filter((slug): slug is string => Boolean(slug));
+      const branch = branchSlugs.length === 1 ? branchSlugs[0] : "both";
       const media = event.image_media_id
         ? mediaByUuid.get(event.image_media_id)
         : null;
@@ -108,29 +131,12 @@ async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData
     });
 
     const events: KantinEvent[] = normalisePublishedEvents(rawEvents);
-    const branchBySlug = new Map(
-      branchRows.map((branch) => [branch.slug, branch]),
-    );
-    const alsancak = branchBySlug.get("alsancak");
-    const atakent = branchBySlug.get("atakent");
+    const maps = branchMapsFromRows(branchRows);
 
     return {
       data: {
         events,
-        branchLabels: {
-          alsancak: alsancak?.name ?? fallbackMaps.branchLabels.alsancak,
-          atakent: atakent?.name ?? fallbackMaps.branchLabels.atakent,
-          both: "İki şube",
-        },
-        branchAddresses: {
-          alsancak: alsancak
-            ? `${alsancak.address_line}, ${alsancak.district} / ${alsancak.city}`
-            : fallbackMaps.branchAddresses.alsancak,
-          atakent: atakent
-            ? `${atakent.address_line}, ${atakent.district} / ${atakent.city}`
-            : fallbackMaps.branchAddresses.atakent,
-          both: `${alsancak?.name ?? "Alsancak"} + ${atakent?.name ?? "Atakent"}`,
-        },
+        ...maps,
         instagramUrl: fallbackCommonData.siteIdentity.instagramUrl,
       },
       source: eventsResult.data?.length ? "supabase" : "empty",

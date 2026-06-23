@@ -47,3 +47,27 @@
 .active small {
   color: rgba(255, 255, 255, 0.72);
 }
+
+.code {
+  display: inline-flex;
+  width: fit-content;
+  padding: 3px 7px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 760px) {
+  .selector {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+
+  .tab {
+    flex: 0 0 min(78vw, 320px);
+    scroll-snap-align: start;
+  }
+}

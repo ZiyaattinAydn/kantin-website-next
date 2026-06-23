@@ -1,5 +1,5 @@
-export type BranchId = "alsancak" | "atakent";
-export type EventBranchId = BranchId | "both";
+export type BranchId = string;
+export type EventBranchId = string;
 export type CurrencyCode = "TRY";
 
 /**
@@ -8,7 +8,7 @@ export type CurrencyCode = "TRY";
  */
 export type Branch = {
   id: BranchId;
-  code: "ALS" | "ATA";
+  code: string;
   name: string;
   addressLine: string;
   district: string;
