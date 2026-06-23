@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import MerchCard from "@/components/cards/MerchCard";
+import DoodleParallaxStage from "@/components/effects/DoodleParallaxStage";
 import MerchImageLightbox from "@/components/merch/MerchImageLightbox";
 import {
   useCallback,
-  useEffect,
   useRef,
   useState,
   type KeyboardEvent,
-  type PointerEvent,
 } from "react";
 import { fallbackHomeData } from "@/lib/public-data/fallbacks";
 import type { MerchBundle, MerchDoodle } from "@/types/content";
@@ -32,17 +31,7 @@ export default function HomeMerchDrop({
     product: MerchProductContent;
     trigger: HTMLButtonElement;
   } | null>(null);
-  const doodleStageRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const animationFrameRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, []);
 
   const toggleDesign = () => setIsOpen((current) => !current);
   const openPreview = useCallback(
@@ -66,51 +55,13 @@ export default function HomeMerchDrop({
     triggerRef.current?.focus();
   };
 
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (typeof window === "undefined") return;
-    if (window.innerWidth < 900) return;
-    if (!window.matchMedia("(pointer: fine)").matches) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const stage = doodleStageRef.current;
-    if (!stage) return;
-
-    const rect = event.currentTarget.getBoundingClientRect();
-    const normalizedX = (event.clientX - rect.left) / rect.width - 0.5;
-    const normalizedY = (event.clientY - rect.top) / rect.height - 0.5;
-
-    if (animationFrameRef.current !== null) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
-
-    animationFrameRef.current = requestAnimationFrame(() => {
-      stage.style.setProperty("--parallax-x", `${(-normalizedX * 12).toFixed(1)}px`);
-      stage.style.setProperty("--parallax-y", `${(-normalizedY * 9).toFixed(1)}px`);
-    });
-  };
-
-  const resetParallax = () => {
-    const stage = doodleStageRef.current;
-    if (!stage) return;
-    stage.style.setProperty("--parallax-x", "0px");
-    stage.style.setProperty("--parallax-y", "0px");
-  };
-
   if (!products.length && !bundles.length) return null;
 
   return (
     <>
       <section className="section merch-drop-section home-merch-cartoon" id="merch-drop">
-      <div
-        className="merch-panel-shell home-merch-panel reveal"
-        onPointerLeave={resetParallax}
-        onPointerMove={handlePointerMove}
-      >
-        <div
-          ref={doodleStageRef}
-          aria-hidden="true"
-          className="merch-doodle-stage home-merch-doodles"
-        >
+      <div className="merch-panel-shell home-merch-panel reveal">
+        <DoodleParallaxStage className="merch-doodle-stage home-merch-doodles">
           {doodles.map((doodle) => (
             <img
               key={doodle.src}
@@ -137,7 +88,7 @@ export default function HomeMerchDrop({
           <span className="merch-spark merch-spark-one">✦</span>
           <span className="merch-spark merch-spark-two">✦</span>
           <span className="merch-spark merch-spark-three">✦</span>
-        </div>
+        </DoodleParallaxStage>
 
         <div className="container home-merch-content home-merch-v12">
           <header className="home-merch-header">

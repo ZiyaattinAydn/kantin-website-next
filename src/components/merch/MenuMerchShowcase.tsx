@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import MerchCard from "@/components/cards/MerchCard";
+import DoodleParallaxStage from "@/components/effects/DoodleParallaxStage";
 import MerchImageLightbox from "@/components/merch/MerchImageLightbox";
 import { fallbackHomeData } from "@/lib/public-data/fallbacks";
 import type { MerchBundle, MerchDoodle, MerchProductContent } from "@/types/content";
@@ -43,7 +44,7 @@ export default function MenuMerchShowcase({
     <>
       <section className="alsancak-merch-section reveal" id="merch-drop">
       <div className="merch-panel-shell">
-        <div aria-hidden="true" className="merch-doodle-stage">
+        <DoodleParallaxStage className="merch-doodle-stage">
           {doodles.slice(0, 8).map((doodle) => (
             <img key={doodle.src} alt="" className={`merch-doodle ${doodle.className}`} src={doodle.src} />
           ))}
@@ -56,7 +57,7 @@ export default function MenuMerchShowcase({
           <span className="merch-spark merch-spark-one">✦</span>
           <span className="merch-spark merch-spark-two">✦</span>
           <span className="merch-spark merch-spark-three">✦</span>
-        </div>
+        </DoodleParallaxStage>
 
         <div className="merch-panel-intro">
           <div>

@@ -1,3 +1,5 @@
+import DoodleParallaxStage from "./DoodleParallaxStage";
+
 type AmbientDoodle = {
   id: string;
   src: string;
@@ -73,8 +75,7 @@ export default function AmbientDoodles({
   );
 
   return (
-    <div
-      aria-hidden="true"
+    <DoodleParallaxStage
       className={`merch-doodle-stage ambient-doodle-stage${
         className ? ` ${className}` : ""
       }`}
@@ -87,6 +88,6 @@ export default function AmbientDoodles({
           src={doodle.src}
         />
       ))}
-    </div>
+    </DoodleParallaxStage>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import DoodleParallaxStage from "@/components/effects/DoodleParallaxStage";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   careerAvailabilityDays,
@@ -169,18 +170,18 @@ export default function CareersPage({
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
-        <img
-          alt=""
-          aria-hidden="true"
-          className={`${styles.doodle} ${styles.doodleOne}`}
-          src="/assets/img/merch/doodles/table-friends.png"
-        />
-        <img
-          alt=""
-          aria-hidden="true"
-          className={`${styles.doodle} ${styles.doodleTwo}`}
-          src="/assets/img/merch/doodles/high-five.png"
-        />
+        <DoodleParallaxStage className={styles.heroDoodles}>
+          <img
+            alt=""
+            className={`${styles.doodle} ${styles.doodleOne}`}
+            src="/assets/img/merch/doodles/table-friends.png"
+          />
+          <img
+            alt=""
+            className={`${styles.doodle} ${styles.doodleTwo}`}
+            src="/assets/img/merch/doodles/high-five.png"
+          />
+        </DoodleParallaxStage>
 
         <div className={`container ${styles.heroGrid}`}>
           <div className={styles.heroCopy}>
@@ -252,7 +253,7 @@ export default function CareersPage({
       </section>
 
       <section className={styles.formSection} id="basvuru" aria-labelledby="application-title">
-        <div className={styles.formDoodles} aria-hidden="true">
+        <DoodleParallaxStage className={styles.formDoodles}>
           {careerFormDoodles.map((src, index) => (
             <img
               alt=""
@@ -261,7 +262,7 @@ export default function CareersPage({
               src={src}
             />
           ))}
-        </div>
+        </DoodleParallaxStage>
 
         <div className={`container ${styles.formLayout}`}>
           <aside className={styles.formIntro}>

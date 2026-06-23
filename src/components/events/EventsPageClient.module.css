@@ -1,5 +1,57 @@
 .page {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   padding-top: 40px;
+}
+
+.page > :global(.ambient-doodle-stage) {
+  z-index: 0;
+}
+
+.page > :global(.container) {
+  position: relative;
+  z-index: 1;
+}
+
+.page :global(.events-page-lower-doodles .merch-doodle) {
+  --ambient-doodle-opacity: 0.16;
+}
+
+.page :global(.events-page-lower-doodles .ambient-doodle-table) {
+  --doodle-width: 178px;
+  left: -54px;
+  top: 8%;
+}
+
+.page :global(.events-page-lower-doodles .ambient-doodle-walk) {
+  --doodle-width: 170px;
+  left: 8%;
+  bottom: 2%;
+}
+
+.page :global(.events-page-lower-doodles .ambient-doodle-hug) {
+  --doodle-width: 188px;
+  right: 6%;
+  bottom: 5%;
+}
+
+.page :global(.events-page-lower-doodles .ambient-doodle-share) {
+  --doodle-width: 172px;
+  right: -44px;
+  top: 32%;
+}
+
+.page :global(.events-page-lower-doodles .ambient-doodle-highfive) {
+  --doodle-width: 150px;
+  left: 32%;
+  bottom: -26px;
+}
+
+.page :global(.events-page-lower-doodles .ambient-doodle-cats) {
+  --doodle-width: 150px;
+  right: 28%;
+  top: 62%;
 }
 
 .filterStack {

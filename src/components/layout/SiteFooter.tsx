@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DoodleParallaxStage from "@/components/effects/DoodleParallaxStage";
 import { fallbackCommonData } from "@/lib/public-data/fallbacks";
 import type { CommonPublicData } from "@/lib/public-data/types";
 import styles from "./SiteFooter.module.css";
@@ -20,18 +21,18 @@ export default function SiteFooter({
 
   return (
     <footer className={styles.footer}>
-      <img
-        aria-hidden="true"
-        alt=""
-        className={`${styles.doodle} ${styles.doodleLeft}`}
-        src="/assets/img/merch/doodles/table-friends.png"
-      />
-      <img
-        aria-hidden="true"
-        alt=""
-        className={`${styles.doodle} ${styles.doodleRight}`}
-        src="/assets/img/merch/doodles/walking.png"
-      />
+      <DoodleParallaxStage className={styles.doodleStage} movementX={10} movementY={7}>
+        <img
+          alt=""
+          className={`${styles.doodle} ${styles.doodleLeft}`}
+          src="/assets/img/merch/doodles/table-friends.png"
+        />
+        <img
+          alt=""
+          className={`${styles.doodle} ${styles.doodleRight}`}
+          src="/assets/img/merch/doodles/walking.png"
+        />
+      </DoodleParallaxStage>
 
       <div className={`container ${styles.topGrid}`}>
         <section className={styles.brandBlock} aria-labelledby="footer-brand-title">

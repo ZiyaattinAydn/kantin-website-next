@@ -102,6 +102,7 @@ export default function EventsPageClient({
       </section>
 
       <section className={`section ${styles.page}`}>
+        <AmbientDoodles className="events-page-lower-doodles" preset="memories" />
         <div className="container">
           <div className={styles.filterStack}>
             <div aria-label="İçerik tipine göre filtrele" className={`${styles.filterBar} reveal`}>

@@ -21,6 +21,17 @@
   pointer-events: none;
 }
 
+.doodleStage {
+  --parallax-x: 0px;
+  --parallax-y: 0px;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  transform: translate3d(var(--parallax-x), var(--parallax-y), 0);
+  transition: transform 420ms var(--ease);
+}
+
 .doodle {
   position: absolute;
   z-index: 0;

@@ -75,7 +75,7 @@ describe("EventsPageClient", () => {
   });
 
   it("hiç içerik yoksa genel boş durumu gösterir", () => {
-    render(
+    const { container } = render(
       <EventsPageClient
         branchAddresses={branchAddresses}
         branchLabels={branchLabels}
@@ -85,5 +85,6 @@ describe("EventsPageClient", () => {
     );
 
     expect(screen.getByText("Şu an yayınlanmış içerik yok")).toBeInTheDocument();
+    expect(container.querySelector(".events-page-lower-doodles")).toBeInTheDocument();
   });
 });
