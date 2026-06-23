@@ -45,6 +45,9 @@ const privacyLabels = {
   anonymized: "Anonimleştirildi",
 } as const;
 
+const APPLICATION_DETAIL_COLUMNS =
+  "id, full_name, email, phone, preferred_branch_id, is_branch_flexible, department, shift_preference, availability_days, experience, introduction, cv_media_id, status, admin_notes, privacy_status, retention_until, anonymization_error" as const;
+
 const departmentLabels: Record<string, string> = {
   service: "Servis",
   kitchen: "Mutfak",
@@ -106,8 +109,12 @@ export default async function AdminApplicationsPage({ searchParams }: Props) {
   const [listResult, selectedResult, { data: branches }] = await Promise.all([
     applicationsQuery.order("created_at", { ascending: false }).range(from, to),
     editId
-      ? supabase.from("job_applications").select("*").eq("id", editId).maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
+  ? supabase
+      .from("job_applications")
+      .select(APPLICATION_DETAIL_COLUMNS)
+      .eq("id", editId)
+      .maybeSingle()
+  : Promise.resolve({ data: null, error: null }),
     supabase.from("branches").select("id, name"),
   ]);
   if (listResult.error) throw new Error(listResult.error.message);

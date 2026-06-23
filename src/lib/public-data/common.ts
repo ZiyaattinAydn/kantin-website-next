@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getPublicBranchRows } from "./branches";
 import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 import { fallbackCommonData } from "./fallbacks";
@@ -105,19 +106,14 @@ export function mapBranch(row: {
 async function loadCommonPublicData(): Promise<PublicDataEnvelope<CommonPublicData>> {
   try {
     const client = createPublicClient();
-    const [branchesResult, settingsResult] = await Promise.all([
-      client
-        .from("branches")
-        .select("slug, code, name, address_line, district, city, maps_url, short_description, phone, public_email, opening_hours, features, is_active, sort_order")
-        .order("sort_order"),
+    const [branchRows, settingsResult] = await Promise.all([
+      getPublicBranchRows(),
       client
         .from("site_settings")
         .select("key, value")
         .eq("is_public", true)
         .order("sort_order"),
     ]);
-
-    if (branchesResult.error) throw branchesResult.error;
     if (settingsResult.error) throw settingsResult.error;
 
     const settings = new Map(
@@ -128,7 +124,7 @@ async function loadCommonPublicData(): Promise<PublicDataEnvelope<CommonPublicDa
     const contact = asRecord(settings.get("site.contact"));
     const footerContent = asRecord(settings.get("footer.content"));
 
-    const mappedBranches = (branchesResult.data ?? [])
+    const mappedBranches = branchRows
       .map(mapBranch)
       .filter((branch): branch is Branch => Boolean(branch));
 

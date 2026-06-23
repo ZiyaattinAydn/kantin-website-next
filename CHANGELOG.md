@@ -85,3 +85,8 @@
 - Supabase production Site URL / Redirect URL ayarlarını kontrol et
 - `npm run verify:deployment -- <url> production` komutunu çalıştır
 - Final responsive ve içerik kabul turunu tamamla
+
+- Generic CRUD liste ve detay sorguları yalnız ihtiyaç duyulan kolonları okuyacak şekilde daraltıldı.
+- Medya listesi ve kariyer detay sorgularındaki gereksiz kolon okumaları kaldırıldı.
+- Admin ilişki seçimleri güvenli kayıt sınırı ve açık sorgu hata yönetimiyle güçlendirildi.
+- Public adaptörlerdeki tekrar eden şube sorguları ortak request-level cache katmanında birleştirildi.

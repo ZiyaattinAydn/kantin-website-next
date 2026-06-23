@@ -17,20 +17,37 @@ function adminRows(value: unknown): Record<string, unknown>[] {
   return Array.isArray(value) ? value.filter(isAdminRow) : [];
 }
 
+function uniqueColumnList(columns: readonly string[]): string {
+  return [...new Set(columns)].join(",");
+}
+
+function resourceListColumns(resource: AdminResource): string {
+  return uniqueColumnList(["id", ...resource.listFields]);
+}
+
+function resourceRecordColumns(resource: AdminResource): string {
+  return uniqueColumnList([
+    "id",
+    ...resource.fields.map((field) => field.name),
+  ]);
+}
+
 export async function loadAdminResourceRows(
   resource: AdminResource,
   { page, search }: { page: number; search: string },
 ) {
   const supabase: SupabaseClient = await createClient();
   const { from, to } = adminPageRange(page);
+
   let query = supabase
     .from(resource.table)
-    .select("*", { count: "exact" });
+    .select(resourceListColumns(resource), { count: "exact" });
 
   if (search && resource.searchFields.length) {
     const filter = resource.searchFields
       .map((field) => `${field}.ilike.%${search}%`)
       .join(",");
+
     query = query.or(filter);
   }
 
@@ -38,16 +55,35 @@ export async function loadAdminResourceRows(
     .order(resource.orderField, { ascending: true })
     .range(from, to);
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw new Error(error.message);
+  }
+
   return {
     rows: adminRows(data),
-    pagination: createAdminPagination(count ?? 0, page, ADMIN_PAGE_SIZE),
+    pagination: createAdminPagination(
+      count ?? 0,
+      page,
+      ADMIN_PAGE_SIZE,
+    ),
   };
 }
 
-export async function loadAdminResourceRecord(resource: AdminResource, id: string) {
+export async function loadAdminResourceRecord(
+  resource: AdminResource,
+  id: string,
+) {
   const supabase: SupabaseClient = await createClient();
-  const { data, error } = await supabase.from(resource.table).select("*").eq("id", id).maybeSingle();
-  if (error) throw new Error(error.message);
+
+  const { data, error } = await supabase
+    .from(resource.table)
+    .select(resourceRecordColumns(resource))
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
   return isAdminRow(data) ? data : null;
 }

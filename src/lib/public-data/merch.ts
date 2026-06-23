@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getPublicBranchRows } from "./branches";
 import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 import { fallbackHomeData } from "./fallbacks";
@@ -30,7 +31,8 @@ export function parseMerchDoodles(value: Record<string, unknown> | undefined): M
 async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublicData>> {
   try {
     const client = createPublicClient();
-    const [blocks, productsResult, linksResult, branchesResult] = await Promise.all([
+    const [blocks, productsResult, linksResult, branchRows] =
+    await Promise.all([
       getPageBlocks(client, "home"),
       client
         .from("merch_products")
@@ -40,10 +42,10 @@ async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublic
         .from("merch_product_branches")
         .select("merch_product_id, branch_id, is_available, sort_order")
         .order("sort_order"),
-      client.from("branches").select("id, slug").order("sort_order"),
+      getPublicBranchRows(),
     ]);
 
-    for (const result of [productsResult, linksResult, branchesResult]) {
+    for (const result of [productsResult, linksResult]) {
       if (result.error) throw result.error;
     }
 
@@ -63,7 +65,9 @@ async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublic
     }
 
     const mediaById = new Map(mediaRows.map((media) => [media.id, media]));
-    const branchById = new Map((branchesResult.data ?? []).map((branch) => [branch.id, branch.slug]));
+    const branchById = new Map(
+      branchRows.map((branch) => [branch.id, branch.slug]),
+    );
     const branchIdsByProduct = new Map<string, BranchId[]>();
     for (const link of linksResult.data ?? []) {
       if (!link.is_available) continue;
