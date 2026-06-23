@@ -1,5 +1,5 @@
 import "server-only";
-
+import { getPublicBranchRows } from "./branches";
 import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 import { getEventPublicData } from "./events";
@@ -280,8 +280,14 @@ export function mergeLocationsWithAdmin(
 async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>> {
   try {
     const client = createPublicClient();
-    const [blocks, productsResult, productLinksResult, instagramResult, branchesResult, eventEnvelope] =
-      await Promise.all([
+    const [
+  blocks,
+  productsResult,
+  productLinksResult,
+  instagramResult,
+  branchRows,
+  eventEnvelope,
+] = await Promise.all([
         getPageBlocks(client, "home"),
         client
           .from("merch_products")
@@ -295,17 +301,13 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
           .from("instagram_posts")
           .select("id, external_id, image_media_id, branch_id, metadata, image_alt, caption, published_at, permalink")
           .order("sort_order"),
-        client
-          .from("branches")
-          .select("id, slug, name, short_description, address_line, district, city, maps_url, features")
-          .order("sort_order"),
+        getPublicBranchRows(),
         getEventPublicData(),
       ]);
 
     if (productsResult.error) throw productsResult.error;
     if (productLinksResult.error) throw productLinksResult.error;
     if (instagramResult.error) throw instagramResult.error;
-    if (branchesResult.error) throw branchesResult.error;
 
     const mediaIds = [...new Set([
       ...(productsResult.data ?? []).map((product) => product.image_media_id),
@@ -325,7 +327,7 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
       mediaRows.map((media) => [media.id, media]),
     );
     const branchByUuid = new Map(
-      (branchesResult.data ?? []).map((branch) => [branch.id, branch]),
+      branchRows.map((branch) => [branch.id, branch]),
     );
     const branchIdsByProduct = new Map<string, BranchId[]>();
 
@@ -419,7 +421,6 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
       },
     );
 
-    const branchRows = branchesResult.data ?? [];
     const menuBranches = mergeMenuBranchesWithAdmin(
       parseMenuBranches(blocks.get("menu-branches")),
       branchRows,

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getPublicBranchRows } from "./branches";
 import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 import { fallbackMenuData } from "./fallbacks";
@@ -147,14 +148,14 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
     const client = createPublicClient();
     const [
       blocks,
-      branchesResult,
+      branchRows,
       categoriesResult,
       itemsResult,
       itemLinksResult,
       variantsResult,
     ] = await Promise.all([
       getPageBlocks(client, "menu"),
-      client.from("branches").select("id, slug, name, short_description").order("sort_order"),
+      getPublicBranchRows(),
       client.from("menu_categories").select("id, slug, metadata").order("sort_order"),
       client
         .from("menu_items")
@@ -171,7 +172,6 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
     ]);
 
     for (const result of [
-      branchesResult,
       categoriesResult,
       itemsResult,
       itemLinksResult,
@@ -196,7 +196,7 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
     }
 
     const branchByUuid = new Map(
-      (branchesResult.data ?? []).map((branch) => [branch.id, branch]),
+      branchRows.map((branch) => [branch.id, branch]),
     );
     const categoryByUuid = new Map(
       (categoriesResult.data ?? []).map((category) => [category.id, category]),
@@ -317,7 +317,7 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
     const alsancakIntroBlock = blocks.get("alsancak-intro") ?? {};
     const atakentIntroBlock = blocks.get("atakent-intro") ?? {};
     const branchesBySlug = new Map(
-      (branchesResult.data ?? []).map((branch) => [branch.slug, branch]),
+      branchRows.map((branch) => [branch.slug, branch]),
     );
 
     const hasMenuData = entries.length > 0;

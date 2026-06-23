@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getPublicBranchRows } from "./branches";
 import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 import { normalisePublishedEvents, type KantinEvent, type RawEvent } from "@/lib/events";
@@ -34,7 +35,7 @@ async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData
 
   try {
     const client = createPublicClient();
-    const [eventsResult, linksResult, branchesResult] = await Promise.all([
+    const [eventsResult, linksResult, branchRows] = await Promise.all([
       client
         .from("events")
         .select("id, title, description, start_at, end_at, venue_name, location_text, external_url, image_media_id")
@@ -43,15 +44,11 @@ async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData
         .from("event_branches")
         .select("event_id, branch_id, sort_order")
         .order("sort_order"),
-      client
-        .from("branches")
-        .select("id, slug, name, address_line, district, city")
-        .order("sort_order"),
+      getPublicBranchRows(),
     ]);
 
     if (eventsResult.error) throw eventsResult.error;
     if (linksResult.error) throw linksResult.error;
-    if (branchesResult.error) throw branchesResult.error;
     const mediaIds = [...new Set(
       (eventsResult.data ?? [])
         .map((event) => event.image_media_id)
@@ -68,7 +65,7 @@ async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData
     }
 
     const branchByUuid = new Map(
-      (branchesResult.data ?? []).map((branch) => [branch.id, branch]),
+      branchRows.map((branch) => [branch.id, branch]),
     );
     const mediaByUuid = new Map(
       mediaRows.map((media) => [media.id, media]),
@@ -112,7 +109,7 @@ async function loadEventPublicData(): Promise<PublicDataEnvelope<EventPublicData
 
     const events: KantinEvent[] = normalisePublishedEvents(rawEvents);
     const branchBySlug = new Map(
-      (branchesResult.data ?? []).map((branch) => [branch.slug, branch]),
+      branchRows.map((branch) => [branch.slug, branch]),
     );
     const alsancak = branchBySlug.get("alsancak");
     const atakent = branchBySlug.get("atakent");

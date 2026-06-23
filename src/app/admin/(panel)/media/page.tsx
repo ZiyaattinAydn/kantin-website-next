@@ -24,6 +24,9 @@ import { PUBLIC_IMAGE_BUCKETS } from "@/lib/supabase/storage";
 
 export const dynamic = "force-dynamic";
 
+const MEDIA_LIST_COLUMNS =
+  "id, kind, source, title, alt_text, local_path, external_url, bucket_name, object_path, status, is_active, created_at" as const;
+
 type Props = {
   searchParams: Promise<{
     q?: string | string[];
@@ -58,9 +61,9 @@ export default async function AdminMediaPage({ searchParams }: Props) {
   const { from, to } = adminPageRange(page);
   const supabase = await createClient();
   let mediaQuery = supabase
-    .from("media")
-    .select("*", { count: "exact" })
-    .eq("kind", "image");
+  .from("media")
+  .select(MEDIA_LIST_COLUMNS, { count: "exact" })
+  .eq("kind", "image");
   if (statusFilter === "active") {
     mediaQuery = mediaQuery.eq("is_active", true).eq("status", "published");
   } else if (statusFilter === "archived") {
