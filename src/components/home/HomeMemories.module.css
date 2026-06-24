@@ -242,7 +242,7 @@
 }
 
 .chapter:nth-child(2) {
-  background: var(--ink);
+  background: #02194b;
   color: var(--white);
 }
 

@@ -2,7 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AdminMutationPayload } from "./resource-validation";
-import type { AdminTable } from "./resources";
+import type { AdminResource, AdminTable } from "./resources";
 
 export type AdminRow = Record<string, unknown>;
 
@@ -34,6 +34,33 @@ function operationError(error: RepositoryError | null, fallback: string): Error 
 function rowOrThrow(value: unknown): AdminRow {
   if (!isAdminRow(value)) throw new AdminRepositoryError("Veritabanı beklenen kayıt biçimini döndürmedi.", "invalid_response");
   return value;
+}
+
+export async function nextAdminSortOrder(
+  client: SupabaseClient,
+  resource: AdminResource,
+  payload: AdminMutationPayload,
+): Promise<number> {
+  let query = client
+    .from(resource.table)
+    .select(resource.orderField)
+    .order(resource.orderField, { ascending: false })
+    .limit(1);
+
+  for (const field of resource.orderScopeFields ?? []) {
+    const value = payload[field];
+    query = value === null
+      ? query.is(field, null)
+      : query.eq(field, value as string | number | boolean);
+  }
+
+  const { data, error } = await query.maybeSingle();
+  if (error) throw operationError(error, "Otomatik sıra belirlenemedi.");
+
+  const row: AdminRow | null = isAdminRow(data) ? data as AdminRow : null;
+  const current = row?.[resource.orderField];
+  if (typeof current !== "number" || !Number.isFinite(current)) return 0;
+  return Math.min(current + 10, 1_000_000);
 }
 
 export async function insertAdminRow(
@@ -73,5 +100,11 @@ export async function deleteAdminRow(
   id: string,
 ): Promise<void> {
   const { error } = await client.from(table).delete().eq("id", id);
-  if (error) throw operationError(error, "Kayıt silinemedi.");
+  if (error?.code === "23503") {
+    throw new AdminRepositoryError(
+      "Bu kayıt başka bir ana kayıt tarafından kullanıldığı için silinemiyor. Önce bağlı kayıtları kaldır veya pasife al.",
+      "foreign_key",
+    );
+  }
+  if (error) throw operationError(error, "Kayıt kalıcı olarak silinemedi.");
 }

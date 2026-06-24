@@ -99,10 +99,10 @@ export async function updateApplicationAction(formData: FormData): Promise<never
     if (error || !data) {
       throw new Error(error?.message || "Başvuru transaction işlemi tamamlanamadı.");
     }
-    destination = `/admin/applications?edit=${id}&notice=${encodeURIComponent("Başvuru güncellendi.")}`;
+    destination = `/admin/applications?edit=${id}&notice=${encodeURIComponent("Başvuru güncellendi.")}#application-${id}`;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Başvuru güncellenemedi.";
-    destination = `/admin/applications?edit=${id}&error=${encodeURIComponent(message)}`;
+    destination = `/admin/applications?edit=${id}&error=${encodeURIComponent(message)}#application-${id}`;
   }
 
   revalidatePath("/admin");
@@ -123,7 +123,7 @@ export async function anonymizeApplicationAction(formData: FormData): Promise<ne
     if (intent === DRY_RUN_INTENT) {
       const supabase = await createClient();
       const notice = await previewApplicationAnonymization(supabase, id);
-      destination = `/admin/applications?edit=${id}&notice=${encodeURIComponent(notice)}`;
+      destination = `/admin/applications?edit=${id}&notice=${encodeURIComponent(notice)}#application-${id}`;
     } else {
       if (confirmation !== ANONYMIZE_CONFIRMATION) {
         throw new Error("Onay alanına ANONIMLESTIR yazılmalı.");
@@ -181,7 +181,7 @@ export async function anonymizeApplicationAction(formData: FormData): Promise<ne
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Başvuru anonimleştirilemedi.";
-    destination = `/admin/applications?edit=${id}&error=${encodeURIComponent(message)}`;
+    destination = `/admin/applications?edit=${id}&error=${encodeURIComponent(message)}#application-${id}`;
   }
 
   revalidatePath("/admin");

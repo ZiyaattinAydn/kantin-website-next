@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   deleteAdminRow,
   insertAdminRow,
+  nextAdminSortOrder,
   readAdminRow,
   updateAdminRow,
 } from "./resource-repository";
@@ -44,19 +45,6 @@ function resourcePath(resourceKey: string, params?: Record<string, string>) {
   return `/admin/manage/${resourceKey}${search.size ? `?${search.toString()}` : ""}`;
 }
 
-function adminPath(params?: Record<string, string>) {
-  const search = new URLSearchParams(params);
-  return `/admin${search.size ? `?${search.toString()}` : ""}`;
-}
-
-function isTestRecord(resource: AdminResource, row: Record<string, unknown>): boolean {
-  const fields = resource.testFields ?? [];
-  return fields.some((field) => {
-    const value = row[field];
-    return typeof value === "string" && (/^TEST[_\s-]/i.test(value) || /^test-/i.test(value));
-  });
-}
-
 function assertDatabaseAudit(resource: AdminResource): void {
   if (!DATABASE_AUDITED_TABLES.has(resource.table)) {
     throw new Error("Bu yönetim kaynağı için transaction audit yapılandırılmamış.");
@@ -67,7 +55,7 @@ export async function saveAdminResource(formData: FormData): Promise<never> {
   const resourceKey = textValue(formData, "_resource");
   const id = textValue(formData, "_id");
   const resource = getAdminResource(resourceKey);
-  if (!resource) redirect(adminPath({ error: "Geçersiz yönetim modülü." }));
+  if (!resource) redirect("/admin?error=Geçersiz yönetim modülü.");
 
   await requireAdmin();
   let destination: string;
@@ -78,10 +66,21 @@ export async function saveAdminResource(formData: FormData): Promise<never> {
     const supabase = await createClient();
 
     if (id) {
+      if (resource.orderScopeFields?.length) {
+        const current = await readAdminRow(supabase, resource.table, id);
+        const scopeChanged = resource.orderScopeFields.some(
+          (field) => current[field] !== payload[field],
+        );
+        if (scopeChanged) {
+          payload[resource.orderField] = await nextAdminSortOrder(supabase, resource, payload);
+        }
+      }
+
       await updateAdminRow(supabase, resource.table, id, payload);
       destination = resourcePath(resource.key, { notice: "Kayıt güncellendi." });
     } else {
       if (!resource.allowCreate) throw new Error("Bu modülde yeni kayıt oluşturma kapalı.");
+      payload[resource.orderField] = await nextAdminSortOrder(supabase, resource, payload);
       await insertAdminRow(supabase, resource.table, payload);
       destination = resourcePath(resource.key, { notice: "Yeni kayıt oluşturuldu." });
     }
@@ -107,7 +106,7 @@ export async function archiveAdminResource(formData: FormData): Promise<never> {
   const id = textValue(formData, "_id");
   const resource = getAdminResource(resourceKey);
   if (!resource || !id || !resource.allowArchive) {
-    redirect(adminPath({ error: "Geçersiz arşivleme isteği." }));
+    redirect("/admin?error=Geçersiz arşivleme isteği.");
   }
 
   await requireAdmin();
@@ -135,12 +134,25 @@ export async function archiveAdminResource(formData: FormData): Promise<never> {
   redirect(destination);
 }
 
-export async function deleteTestAdminResource(formData: FormData): Promise<never> {
+function isAdminResourceInactive(
+  resource: AdminResource,
+  row: Record<string, unknown>,
+): boolean {
+  const inactiveByFlag = resource.activeField
+    ? row[resource.activeField] === false
+    : false;
+  const inactiveByStatus = resource.statusField
+    ? row[resource.statusField] === "archived"
+    : false;
+  return inactiveByFlag || inactiveByStatus;
+}
+
+export async function deleteAdminResource(formData: FormData): Promise<never> {
   const resourceKey = textValue(formData, "_resource");
   const id = textValue(formData, "_id");
   const resource = getAdminResource(resourceKey);
-  if (!resource || !id || !resource.allowHardDeleteTest) {
-    redirect(adminPath({ error: "Kalıcı silme bu modülde kapalı." }));
+  if (!resource || !id || !resource.allowHardDelete) {
+    redirect("/admin?error=Kalıcı silme bu modülde kapalı.");
   }
 
   await requireAdmin();
@@ -150,18 +162,19 @@ export async function deleteTestAdminResource(formData: FormData): Promise<never
     assertDatabaseAudit(resource);
     const supabase = await createClient();
     const row = await readAdminRow(supabase, resource.table, id);
-    if (!isTestRecord(resource, row)) {
-      throw new Error("Yalnız TEST_ adı veya test- slug öneki taşıyan kayıtlar kalıcı silinebilir.");
+    if (!isAdminResourceInactive(resource, row)) {
+      throw new Error("Kalıcı silmeden önce kaydı pasife almalı veya arşivlemelisin.");
     }
 
     await deleteAdminRow(supabase, resource.table, id);
-    destination = resourcePath(resource.key, { notice: "TEST kaydı kalıcı olarak silindi." });
+    destination = resourcePath(resource.key, { notice: "Kayıt ve ona ait alt bağlantılar kalıcı olarak silindi." });
   } catch (error) {
     destination = resourcePath(resource.key, { error: adminActionError(error).message, edit: id });
   }
 
   revalidatePath("/admin");
   revalidatePath(`/admin/manage/${resource.key}`);
+  revalidatePath("/admin/pricing");
   revalidatePath("/");
   revalidatePath("/menu");
   revalidatePath("/events");

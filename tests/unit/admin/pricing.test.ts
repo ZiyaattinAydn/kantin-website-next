@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   assertUuid,
   formatTryPriceInput,
+  hasMissingBranchPrice,
   parseTryPrice,
   pricingResultPath,
+  resolveBranchDisplayPrice,
   safePricingReturnPath,
 } from "@/lib/admin/pricing";
 
@@ -27,6 +29,27 @@ describe("admin fiyat yardımcıları", () => {
     expect(formatTryPriceInput(null)).toBe("");
   });
 
+
+  it("şube özetinde aktif fiyatlar arasından en yüksek olanı gösterir", () => {
+    expect(
+      resolveBranchDisplayPrice(
+        { id: "price-a", price_cents: null },
+        [
+          { menu_item_branch_id: "price-a", label: "33 cl", price_cents: 23000, is_active: true },
+          { menu_item_branch_id: "price-a", label: "50 cl", price_cents: 25000, is_active: true },
+          { menu_item_branch_id: "price-a", label: "Pasif", price_cents: 99900, is_active: false },
+        ],
+      ),
+    ).toEqual({ priceCents: 25000, source: "variant", variantLabel: "50 cl" });
+
+    expect(
+      resolveBranchDisplayPrice(
+        { id: "price-b", price_cents: 24000 },
+        [],
+      ),
+    ).toEqual({ priceCents: 24000, source: "branch", variantLabel: null });
+  });
+
   it("yalnız UUID ve güvenli pricing dönüş yolunu kabul eder", () => {
     const id = "11111111-1111-4111-8111-111111111111";
     expect(assertUuid(id, "Ürün")).toBe(id);
@@ -37,6 +60,24 @@ describe("admin fiyat yardımcıları", () => {
     expect(safePricingReturnPath("https://example.com/admin/pricing")).toBe(
       "/admin/pricing",
     );
+  });
+
+
+  it("fiyatı eksik ürün filtresini ana veya aktif varyant fiyatına göre hesaplar", () => {
+    const prices = [
+      { id: "price-a", menu_item_id: "item-1", branch_id: "branch-a", price_cents: 8500 },
+      { id: "price-b", menu_item_id: "item-1", branch_id: "branch-b", price_cents: null },
+      { id: "price-c", menu_item_id: "item-2", branch_id: "branch-b", price_cents: 9000 },
+    ];
+    const variants = [
+      { menu_item_branch_id: "price-b", price_cents: 23000, is_active: true },
+      { menu_item_branch_id: "price-b", price_cents: 25000, is_active: true },
+    ];
+
+    expect(hasMissingBranchPrice("item-1", ["branch-a"], prices, variants)).toBe(false);
+    expect(hasMissingBranchPrice("item-1", ["branch-a", "branch-b"], prices, variants)).toBe(false);
+    expect(hasMissingBranchPrice("item-2", ["branch-a", "branch-b"], prices, variants)).toBe(true);
+    expect(hasMissingBranchPrice("item-1", ["branch-a", "branch-b"], prices, [])).toBe(true);
   });
 
   it("sonuç mesajını mevcut filtreleri bozmadan ekler", () => {

@@ -46,6 +46,30 @@ export async function getPublicMediaRows(
   return ((data ?? []) as PublicMediaRow[]).filter(isPublicMedia);
 }
 
+export type PublicMediaWithMetadataRow = PublicMediaRow & Pick<
+  TableRow<"media">,
+  "metadata"
+>;
+
+export const PUBLIC_MEDIA_WITH_METADATA_SELECT =
+  `${PUBLIC_MEDIA_SELECT}, metadata` as const;
+
+export async function getPublicMediaRowsByMetadata(
+  client: PublicSupabaseClient,
+  metadata: Record<string, unknown>,
+): Promise<PublicMediaWithMetadataRow[]> {
+  const { data, error } = await client
+    .from("media")
+    .select(PUBLIC_MEDIA_WITH_METADATA_SELECT)
+    .eq("kind", "image")
+    .eq("status", "published")
+    .eq("is_active", true)
+    .contains("metadata", metadata);
+
+  if (error) throw error;
+  return ((data ?? []) as PublicMediaWithMetadataRow[]).filter(isPublicMedia);
+}
+
 export async function getPublicMediaReferenceSet(
   client: PublicSupabaseClient,
 ): Promise<ReadonlySet<string>> {

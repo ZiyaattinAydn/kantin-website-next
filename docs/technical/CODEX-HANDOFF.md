@@ -2,122 +2,111 @@
 
 ### Görev
 
-Kariyer formu karikatür katmanının kapatılması; etkinlik + duyuru migration hazırlığı; medya ayarları, güvenli kalıcı silme ve public arşiv görünürlüğü düzeltmesi; birleşik fiyat yönetimi ekranı.
+Admin medya kütüphanesinde bütün görsellerin bağlantıları korunarak değiştirilebilmesi, kalıcı silmede bağlantıların otomatik kaldırılması ve editörün responsive/kısayollu kullanım akışına geçirilmesi.
 
 ### Durum
 
-Kod, unit testler ve production build tamamlandı. Production Supabase'e migration uygulanmadı. Docker kullanılmadığı için pgTAP ve yerel Supabase E2E testleri çalıştırılmadı.
+Kod, unit testler, ESLint, TypeScript, production build ve npm audit tamamlandı. Production Supabase'e migration uygulanmadı. Docker olmadığı için pgTAP ve yerel Supabase E2E çalıştırılmadı.
 
 ### Yapılanlar
 
-#### Karikatür katmanları
+#### Görseli yerinde değiştirme
 
-- `/careers#basvuru` form bölümü `isolation: isolate` ile ayrı stacking context'e alındı.
-- Doodle/parallax katmanı altta, form layout ve opak form kartı üstte kalıyor.
-- Hareket ve reduced-motion davranışı korunuyor.
+- `/admin/media` editörüne **Yerine başka görsel koy** formu eklendi.
+- Yeni dosya Storage'a yüklendikten sonra `replace_admin_media_file` RPC'si aynı medya UUID'sini koruyor.
+- Menü, etkinlik, merch ve Instagram gibi UUID/FK tabanlı bağlantılar değişmeden devam ediyor.
+- `content_blocks` içindeki eski local path, object path veya public URL referansları yeni public URL ile transaction içinde değiştiriliyor.
+- Eski Storage nesnesi replacement tamamlandıktan sonra temizleniyor. Temizlik hatası yeni görseli geri almıyor; admin kullanıcıya uyarı veriliyor.
+- Local ve external medya kayıtları da aynı ekran üzerinden Storage görseline dönüştürülebiliyor.
 
-#### Etkinlikler ve duyurular
+#### Otomatik bağlantı temizleyerek kalıcı silme
 
-- Daha önce hazırlanan etkinlik + duyuru sistemi korunup migration transaction sınırına alındı.
-- Bekleyen migration: `supabase/migrations/20260623030000_event_announcements.sql`.
-- Production uygulama ve smoke test sırası teknik nota yazıldı.
+- Kalıcı silme artık kullanım sayısına göre engellenmiyor; önce arşivleme ve güçlü onay zorunlu.
+- Silme tamamlanırken `menu_items`, `events`, `merch_products`, `instagram_posts` ve ilgili JSON içerik bağlantıları otomatik ayrılıyor.
+- Storage kaynağında fiziksel nesne önce siliniyor; ardından bağlantı temizleme + DB silme + audit transaction içinde tamamlanıyor.
+- Local/external kayıtlarda Storage çağrısı yapılmadan DB/public bağlantı temizliği gerçekleştiriliyor. Repository içindeki fiziksel local dosya otomatik silinmiyor.
+- Yarım kalan silme işlemleri mevcut pending-marker akışıyla tekrar tamamlanabiliyor.
 
-#### Medya yönetimi
+#### Kullanılabilir admin arayüzü
 
-- Public medya sorguları `status = published` ve `is_active = true` filtrelerini açıkça uyguluyor.
-- Home ve merch content block görsel yolları aktif medya referans allowlist'iyle doğrulanıyor. Arşivli Storage URL'si JSON içinde bağlı kalsa bile public alanda render edilmiyor.
-- Arşivlenmiş Instagram medyası boş `src` üretmeden listeden çıkarılıyor.
-- `/admin/media` ekranında medya adı, alt metin, yayın durumu, aktiflik ve sıralama düzenlenebiliyor.
-- Kaynak, bucket ve object path salt okunur bırakıldı.
-- Bağlantılı medya arşivlenebiliyor; kullanım bağlantıları kalıcı silmeyi engellemeye devam ediyor.
-- Kalıcı silme yalnız bağlantısız, arşivlenmiş ve pasif public Storage görsellerinde açılıyor ve yazılı onay istiyor.
-- Silme begin → Storage remove → DB complete akışında yürütülüyor. Storage nesnesi zaten yoksa DB tamamlama güvenli şekilde devam ediyor. Storage hatasında pending marker kaldırılıyor; DB tamamlama yarıda kalırsa `SİLMEYİ TAMAMLA` ile tekrar denenebiliyor.
-- Metadata güncelleme ve kalıcı silme admin kontrolü ve semantic audit içeren SECURITY DEFINER RPC'lere taşındı.
-- `/`, `/menu`, `/events`, `/careers` ve `/admin/media` medya işlemlerinden sonra revalidate ediliyor.
+- 1280 px ve üzerindeki ekranlarda liste solda, sticky editör sağda gösteriliyor.
+- Dar ekranlarda editör listenin üstüne taşınıyor; mobil tablolar kart görünümünü koruyor.
+- **Düzenle / değiştir** bağlantısı `#media-editor` anchor'ına gider; global smooth-scroll davranışıyla forma geçilir.
+- Yeni görsel, yayındakiler, arşiv/pasif ve tüm görseller kısayolları eklendi.
+- Seçilen satır vurgulanıyor; editör mevcut görseli ve kullanım sayısını özetliyor.
+- Teknik sıra numarası kullanıcı arayüzünde gizli kalmaya devam ediyor.
 
-#### Birleşik fiyat yönetimi
+#### Public merch güvenliği
 
-- `/admin/pricing` ekranı eklendi.
-- Ürün arama, kategori, şube, aktiflik ve eksik fiyat filtreleri eklendi.
-- Aynı ürünün bütün aktif şube fiyatları tek kartta düzenlenebiliyor.
-- Temel fiyat, fiyat etiketi, fiyat/bulunabilirlik notu ve şube aktifliği güncellenebiliyor.
-- Eksik ürün-şube fiyat bağlantısı aynı ekrandan oluşturulabiliyor.
-- Varyant fiyatı, fiyat notu ve aktifliği ürün/şube bağlamında inline güncellenebiliyor.
-- `Ürünler`, `Şube fiyatları` ve `Fiyat varyantları` generic ekranları silinmedi; gelişmiş yönetim bağlantıları olarak korundu.
-- Türkçe ondalık fiyatlar güvenli şekilde `price_cents` değerine çevriliyor.
-- Fiyat ekranı mevcut RLS ve transaction audit trigger'larını kullanıyor; yeni migration gerektirmiyor.
+- Oversize tişörtün ön ve arka yüz görselleri artık aktif medya kayıtlarından çözülüyor.
+- Public bileşenlerde `tee-front.jpg` ve `tee-back.jpg` sabit fallback yolları kaldırıldı.
+- Medya arşivlenir veya silinirse kırık `<img>` ya da eski görsel yerine kontrollü placeholder render ediliyor.
 
 ### Önemli değişen dosyalar
 
-- `src/components/careers/CareersPage.module.css`
-- `src/lib/public-data/helpers.ts`
-- `src/lib/public-data/home.ts`
-- `src/lib/public-data/menu.ts`
-- `src/lib/public-data/merch.ts`
-- `src/lib/public-data/events.ts`
+- `supabase/migrations/20260624020000_media_replace_and_auto_detach.sql`
+- `src/lib/admin/media-actions.ts`
 - `src/app/admin/(panel)/media/page.tsx`
 - `src/app/admin/(panel)/media/MediaLibrary.module.css`
-- `src/components/admin/crud/TypedConfirmSubmitButton.tsx`
-- `src/lib/admin/media-actions.ts`
 - `src/lib/supabase/database.types.ts`
-- `supabase/migrations/20260623030000_event_announcements.sql`
-- `supabase/migrations/20260624010000_media_management.sql`
-- `supabase/tests/transactional_admin_mutations.test.sql`
-- `src/app/admin/(panel)/pricing/page.tsx`
-- `src/app/admin/(panel)/pricing/PricingManagement.module.css`
-- `src/lib/admin/pricing.ts`
-- `src/lib/admin/pricing-actions.ts`
-- `src/components/admin/AdminShell.tsx`
-- `src/app/admin/page.tsx`
+- `src/lib/public-data/helpers.ts`
+- `src/lib/public-data/home.ts`
+- `src/lib/public-data/merch.ts`
+- `src/types/content.ts`
+- `src/components/home/HomeMerchDrop.tsx`
+- `src/components/merch/MenuMerchShowcase.tsx`
+- `src/components/cards/MerchCard.tsx`
+- `src/styles/legacy.css`
 - `tests/unit/admin/media-actions.test.ts`
-- `tests/unit/public-data/media-visibility.test.ts`
-- `tests/unit/admin/pricing.test.ts`
-- `tests/unit/admin/pricing-actions.test.ts`
-- `tests/e2e/media-lifecycle.spec.ts`
+- `tests/unit/styles/admin-media-responsive.test.ts`
+- `tests/unit/public-data/merch-media-replacement.test.ts`
+- `docs/backend/20260624-media-ve-duyuru-migration-uygulama.md`
+- `docs/technical/20260624-medya-yerinde-degistirme-ve-otomatik-baglanti-temizleme.md`
+- `docs/operations/admin-kullanim-rehberi.md`
+- `CHANGELOG.md`
 
 ### Veritabanı etkisi
 
-Bekleyen production migration sırası:
+Production migration sırası:
 
-1. `20260623030000_event_announcements.sql`
-2. `20260624010000_media_management.sql`
-3. `notify pgrst, 'reload schema';`
+1. `supabase/migrations/20260623030000_event_announcements.sql`
+2. `supabase/migrations/20260624010000_media_management.sql`
+3. `supabase/migrations/20260624020000_media_replace_and_auto_detach.sql`
+4. `notify pgrst, 'reload schema';`
 
-Birleşik fiyat yönetimi mevcut menü tablolarını kullanır ve ek migration gerektirmez.
+Üçüncü migration uygulanmadan `replace_admin_media_file` ve genişletilmiş otomatik detach silme akışı kullanılamaz.
 
 ### Test ve doğrulama
 
 Geçen kontroller:
 
-- `npm ci --ignore-scripts`: geçti, 475 paket kuruldu.
-- `npm run test:unit`: geçti, **38 test dosyası / 117 test**.
-- `npm run lint`: geçti.
+- Hedefli test: **3 dosya / 21 test** geçti.
+- `npm run test:unit`: **41 dosya / 128 test** geçti.
 - `npx tsc --noEmit`: geçti.
-- Temiz `.next` sonrası `npm run build`: geçti; `/admin/pricing` dynamic route olarak build listesinde yer aldı.
-- `npm audit --audit-level=high`: geçti, 0 güvenlik bulgusu.
-- 161 TypeScript/TSX dosyası compiler parser ile ayrıca tarandı: sözdizimi temiz.
-- CSS brace ve SQL transaction/dollar-quote statik kontrolleri temiz.
+- `npm run lint`: geçti.
+- Temiz `.next` sonrası `npm run build`: geçti; `/admin/media` ve public rotalar build edildi.
+- `npm audit --audit-level=high`: geçti, **0 güvenlik bulgusu**.
 
 Çalıştırılmayan kontroller:
 
 - `npm run test:db`: Docker/yerel Supabase olmadığı için çalıştırılmadı.
 - `npm run test:e2e`: yerel Supabase ve TEST admin oturumu olmadığı için çalıştırılmadı.
-- Production migration, canlı Storage silme ve canlı veri değişikliği yapılmadı.
+- Production migration veya canlı Storage/DB işlemi yapılmadı.
 
 ### Açık riskler
 
-- Production schema event ve medya migration'ları uygulanmadan yeni duyuru alanları ve medya RPC'leri kullanılamaz.
-- RPC davranışı gerçek PostgreSQL üzerinde pgTAP ile bu ortamda doğrulanmadı.
-- Kalıcı Storage silme yalnız bağlantısız `TEST_` medya ile production smoke test edilmelidir.
-- Fiyat ekranı build ve unit düzeyinde doğrulandı; gerçek admin oturumunda responsive smoke test otomasyonda tamamlanmalıdır.
+- Yeni migration gerçek PostgreSQL üzerinde pgTAP ile bu ortamda doğrulanmadı.
+- Replacement ve bağlı kalıcı silme davranışı production'da yalnız `TEST_` medya kayıtlarıyla smoke test edilmelidir.
+- Local medya kalıcı silindiğinde repository içindeki fiziksel dosya kalır; public/DB bağlantısı kaldırılır. Fiziksel dosya ancak ayrı kod temizliği sırasında silinmelidir.
+- Migration uygulanmadan kod production'a alınırsa yeni RPC çağrıları başarısız olur.
 
 ### Sonraki görev
 
-1. İki migration'ı belgelenen sırada Supabase SQL Editor'da uygula.
+1. Üç migration'ı belgelenen sırada Supabase SQL Editor'da uygula.
 2. PostgREST schema cache'i yenile.
-3. Yalnız `TEST_` verilerle etkinlik/duyuru, medya arşiv/restore/delete ve birleşik fiyat yönetimi smoke testlerini çalıştır.
-4. 390, 768, 1024 ve 1440 piksel genişliklerde `/admin/media` ve `/admin/pricing` final görsel kontrolünü yap.
+3. `TEST_` görselde metadata düzenleme, yerinde replacement, arşiv/restore ve bağlantılı kalıcı silme smoke testi yap.
+4. 390, 768, 1024, 1280 ve 1440 px genişliklerde `/admin/media` final görsel kontrolünü yap.
 
 ### GPT'ye aktarılacak kısa özet
 
-Kantin Website güncel kaynak paketinde planlanan karikatür, medya ve fiyat yönetimi işleri tamamlandı. Kariyer formu ayrı stacking context'e alındı; hareketli karikatürler form arkasında kalıyor. Public medya adaptörleri yalnız published+active kayıtları okuyor ve content block içindeki arşivli Storage URL'lerini allowlist ile engelliyor. Admin medya ekranına metadata/status/aktiflik/sıra düzenleme, bağlantılı medyayı arşivleme ve bağlantısız arşiv Storage görselini yazılı onayla kalıcı silme eklendi. Silme işlemi retry-safe begin/remove/complete RPC akışı kullanıyor. Yeni medya migration'ı `20260624010000_media_management.sql`; önce `20260623030000_event_announcements.sql`, sonra medya migration'ı uygulanmalı ve schema cache yenilenmeli. `/admin/pricing` birleşik fiyat ekranı eklendi: ürün arama, kategori/şube/aktiflik/eksik fiyat filtreleri; bütün şube fiyatları; eksik ilişki oluşturma ve inline varyant fiyat güncelleme aynı akışta. Fiyat ekranı yeni migration gerektirmiyor. `npm run test:unit` 38 dosya/117 test, lint, TypeScript, temiz production build ve npm audit geçti. Docker olmadığı için pgTAP/E2E çalıştırılmadı ve production DB/Storage'a işlem yapılmadı.
+Kantin Website admin medya kütüphanesi geliştirildi. Yeni `20260624020000_media_replace_and_auto_detach.sql` migration'ı aynı medya UUID'si üzerinde yeni dosya yüklemeyi ve kalıcı silmede bağlantıları otomatik temizlemeyi ekliyor. `/admin/media` içindeki **Düzenle / değiştir** işlemi smooth anchor ile editöre gidiyor. 1280 px ve üzerinde editör sağda sticky, daha dar ekranlarda listenin üstünde. Yeni görsel, yayındakiler, arşiv ve tüm görseller kısayolları var. Replacement sırasında FK bağlantıları korunuyor, `content_blocks` içindeki eski yol/URL'ler yeni public URL'ye taşınıyor ve eski Storage nesnesi temizleniyor. Kalıcı silme arşiv + güçlü onay gerektiriyor; menü, etkinlik, merch, Instagram ve JSON bağlantıları otomatik kaldırılıyor. Local dosyada fiziksel repository dosyası silinmiyor, yalnız DB/public kullanım kaldırılıyor. Oversize tişörtün ön/arka görselleri artık medya tablosundan geliyor; arşiv/silme durumunda eski hardcoded görsele dönmek yerine placeholder gösteriliyor. Unit testler 41 dosya/128 test, TypeScript, lint, production build ve npm audit geçti. Docker olmadığı için pgTAP/E2E çalıştırılmadı; production DB/Storage'a işlem yapılmadı. Migration sırası: event announcements, media management, media replace/auto detach, ardından `notify pgrst, 'reload schema';`.

@@ -11,6 +11,7 @@ import {
   getPageBlocks,
   getPublicMediaReferenceSet,
   getPublicMediaRows,
+  getPublicMediaRowsByMetadata,
   isAllowedPublicMediaReference,
   normaliseIssue,
   resolveMediaUrl,
@@ -334,6 +335,7 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
   branchRows,
   eventEnvelope,
   activeMediaReferences,
+  merchPresentationMedia,
 ] = await Promise.all([
         getPageBlocks(client, "home"),
         client
@@ -351,6 +353,7 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
         getPublicBranchRows(),
         getEventPublicData(),
         getPublicMediaReferenceSet(client),
+        getPublicMediaRowsByMetadata(client, { product_slug: "oversize-tshirt" }),
       ]);
 
     if (productsResult.error) throw productsResult.error;
@@ -369,6 +372,11 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
     const branchByUuid = new Map(
       branchRows.map((branch) => [branch.id, branch]),
     );
+    const oversizeBackMedia = merchPresentationMedia.find((media) => {
+      const metadata = asRecord(media.metadata);
+      return stringValue(metadata.view) === "back";
+    });
+
     const branchIdsByProduct = new Map<string, BranchId[]>();
 
     for (const link of productLinksResult.data ?? []) {
@@ -401,16 +409,19 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
           currency: "TRY",
           description: product.description,
           detail: product.detail ?? "",
-          image:
-            resolveMediaUrl(client, media) ??
-            fallbackHomeData.merchProducts.find(
-              (fallback) => fallback.slug === product.slug,
-            )?.image ??
-            "",
+          image: resolveMediaUrl(client, media) ?? "",
           imageAlt: stringValue(
             metadata.image_alt,
             media?.alt_text ?? product.name,
           ),
+          backImage:
+            product.slug === "oversize-tshirt"
+              ? resolveMediaUrl(client, oversizeBackMedia) ?? undefined
+              : undefined,
+          backImageAlt:
+            product.slug === "oversize-tshirt"
+              ? oversizeBackMedia?.alt_text ?? undefined
+              : undefined,
           branchIds: branchIdsByProduct.get(product.id) ?? [],
           active: product.is_active,
           sortOrder: product.sort_order,

@@ -17,14 +17,19 @@ vi.mock("next/navigation", () => ({
 
 import {
   createAdminBranchPrice,
+  saveAdminProductPricing,
   updateAdminBranchPrice,
   updateAdminVariantPrice,
 } from "@/lib/admin/pricing-actions";
+import { branchPricingField, variantPricingField } from "@/lib/admin/pricing";
 
 const ITEM_ID = "11111111-1111-4111-8111-111111111111";
 const BRANCH_ID = "22222222-2222-4222-8222-222222222222";
 const PRICE_ID = "33333333-3333-4333-8333-333333333333";
 const VARIANT_ID = "44444444-4444-4444-8444-444444444444";
+const BRANCH_ID_2 = "55555555-5555-4555-8555-555555555555";
+const PRICE_ID_2 = "66666666-6666-4666-8666-666666666666";
+const CATEGORY_ID = "77777777-7777-4777-8777-777777777777";
 
 function updateChain(update: ReturnType<typeof vi.fn>) {
   const single = vi.fn().mockResolvedValue({ data: { id: PRICE_ID }, error: null });
@@ -40,22 +45,35 @@ describe("birleşik fiyat yönetimi eylemleri", () => {
     mocks.requireAdmin.mockResolvedValue({ userId: "TEST_admin", role: "admin" });
   });
 
-  it("eksik ürün-şube fiyat bağlantısını oluşturur", async () => {
+  it("eksik ürün-şube fiyat bağlantısını otomatik sırayla oluşturur", async () => {
     const insert = vi.fn().mockResolvedValue({ error: null });
-    const from = vi.fn(() => ({ insert }));
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { sort_order: 20 },
+      error: null,
+    });
+    const query = {
+      eq: vi.fn(),
+      order: vi.fn(),
+      limit: vi.fn(),
+      maybeSingle,
+    };
+    query.eq.mockReturnValue(query);
+    query.order.mockReturnValue(query);
+    query.limit.mockReturnValue(query);
+    const select = vi.fn(() => query);
+    const from = vi.fn(() => ({ select, insert }));
     mocks.createClient.mockResolvedValue({ from });
     const formData = new FormData();
     formData.set("menu_item_id", ITEM_ID);
     formData.set("branch_id", BRANCH_ID);
     formData.set("price", "85,50");
     formData.set("price_label", "Porsiyon");
-    formData.set("is_active", "on");
     formData.set("return_to", "/admin/pricing?q=TEST");
 
     await expect(createAdminBranchPrice(formData)).rejects.toThrow(
       "REDIRECT:/admin/pricing?q=TEST&notice=",
     );
-    expect(from).toHaveBeenCalledWith("menu_item_branches");
+    expect(query.eq).toHaveBeenCalledWith("branch_id", BRANCH_ID);
     expect(insert).toHaveBeenCalledWith({
       menu_item_id: ITEM_ID,
       branch_id: BRANCH_ID,
@@ -63,7 +81,7 @@ describe("birleşik fiyat yönetimi eylemleri", () => {
       currency: "TRY",
       price_label: "Porsiyon",
       is_active: true,
-      sort_order: 0,
+      sort_order: 30,
     });
   });
 
@@ -130,6 +148,207 @@ describe("birleşik fiyat yönetimi eylemleri", () => {
       is_active: true,
     });
     expect(eq).toHaveBeenCalledWith("id", VARIANT_ID);
+  });
+
+
+  it("iki şube fiyatını ve varyantı ürün üzerinden tek kaydetmede günceller", async () => {
+    const branchUpsert = vi.fn().mockResolvedValue({ error: null });
+    const variantUpsert = vi.fn().mockResolvedValue({ error: null });
+    const branchIn = vi.fn().mockResolvedValue({
+      data: [
+        {
+          id: PRICE_ID,
+          menu_item_id: ITEM_ID,
+          branch_id: BRANCH_ID,
+          price_cents: 8500,
+          currency: "TRY",
+          price_label: "Porsiyon",
+          price_note: null,
+          availability_note: null,
+          is_active: true,
+          sort_order: 0,
+        },
+        {
+          id: PRICE_ID_2,
+          menu_item_id: ITEM_ID,
+          branch_id: BRANCH_ID_2,
+          price_cents: 9000,
+          currency: "TRY",
+          price_label: null,
+          price_note: null,
+          availability_note: null,
+          is_active: true,
+          sort_order: 0,
+        },
+      ],
+      error: null,
+    });
+    const branchEq = vi.fn(() => ({ in: branchIn }));
+    const branchSelect = vi.fn(() => ({ eq: branchEq }));
+    const variantIn = vi.fn().mockResolvedValue({
+      data: [
+        {
+          id: VARIANT_ID,
+          menu_item_branch_id: PRICE_ID,
+          slug: "buyuk",
+          label: "Büyük",
+          detail: null,
+          price_cents: 10000,
+          currency: "TRY",
+          price_note: null,
+          metadata: {},
+          is_active: true,
+          sort_order: 0,
+        },
+      ],
+      error: null,
+    });
+    const variantSelect = vi.fn(() => ({ in: variantIn }));
+    const from = vi.fn((table: string) => {
+      if (table === "menu_item_branches") {
+        return { select: branchSelect, upsert: branchUpsert };
+      }
+      if (table === "menu_item_variants") {
+        return { select: variantSelect, upsert: variantUpsert };
+      }
+      throw new Error(`Beklenmeyen tablo: ${table}`);
+    });
+    mocks.createClient.mockResolvedValue({ from });
+
+    const formData = new FormData();
+    formData.set("menu_item_id", ITEM_ID);
+    formData.set("return_to", "/admin/pricing?q=TEST");
+    formData.set(branchPricingField(BRANCH_ID, "record_id"), PRICE_ID);
+    formData.set(branchPricingField(BRANCH_ID, "price"), "87,50");
+    formData.set(branchPricingField(BRANCH_ID, "price_label"), "Porsiyon");
+    formData.set(branchPricingField(BRANCH_ID, "is_active"), "on");
+    formData.set(branchPricingField(BRANCH_ID_2, "record_id"), PRICE_ID_2);
+    formData.set(branchPricingField(BRANCH_ID_2, "price"), "95");
+    formData.set(branchPricingField(BRANCH_ID_2, "is_active"), "on");
+    formData.set(variantPricingField(VARIANT_ID, "record_id"), VARIANT_ID);
+    formData.set(variantPricingField(VARIANT_ID, "price"), "105,25");
+    formData.set(variantPricingField(VARIANT_ID, "price_note"), "TEST_ büyük boy");
+    formData.set(variantPricingField(VARIANT_ID, "is_active"), "on");
+
+    await expect(saveAdminProductPricing(formData)).rejects.toThrow(
+      "REDIRECT:/admin/pricing?q=TEST&notice=",
+    );
+
+    expect(branchUpsert).toHaveBeenCalledTimes(1);
+    const [branchRows, branchOptions] = branchUpsert.mock.calls[0];
+    expect(branchOptions).toEqual({ onConflict: "menu_item_id,branch_id" });
+    expect(branchRows).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: PRICE_ID, branch_id: BRANCH_ID, price_cents: 8750 }),
+      expect.objectContaining({ id: PRICE_ID_2, branch_id: BRANCH_ID_2, price_cents: 9500 }),
+    ]));
+
+    expect(variantUpsert).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: VARIANT_ID,
+        menu_item_branch_id: PRICE_ID,
+        price_cents: 10525,
+        price_note: "TEST_ büyük boy",
+      }),
+    ], { onConflict: "id" });
+    expect(from).not.toHaveBeenCalledWith("admin_activity_logs");
+  });
+
+  it("eksik şubeyi otomatik konumla ekler ve varyant yönetimine yönlendirir", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: [{
+        branch_price_id: PRICE_ID,
+        category_branch_id: "88888888-8888-4888-8888-888888888888",
+        variants_copied: 2,
+      }],
+      error: null,
+    });
+
+    const from = vi.fn((table: string) => ({
+      select: (columns: string) => {
+        const filters: Record<string, unknown> = {};
+        const query = {
+          eq: vi.fn((field: string, value: unknown) => {
+            filters[field] = value;
+            return query;
+          }),
+          in: vi.fn(async () => ({
+            data: table === "menu_item_branches" && columns.startsWith("id,") ? [] : null,
+            error: null,
+          })),
+          order: vi.fn(() => query),
+          limit: vi.fn(() => query),
+          maybeSingle: vi.fn(async () => {
+            if (table === "menu_category_branches" && filters.category_id) {
+              return { data: null, error: null };
+            }
+            if (table === "menu_category_branches") {
+              return { data: { sort_order: 40 }, error: null };
+            }
+            if (table === "menu_item_branches" && columns === "sort_order") {
+              return { data: { sort_order: 70 }, error: null };
+            }
+            throw new Error(`Beklenmeyen sorgu: ${table}.${columns}`);
+          }),
+        };
+        return query;
+      },
+    }));
+    mocks.createClient.mockResolvedValue({ from, rpc });
+
+    const formData = new FormData();
+    formData.set("menu_item_id", ITEM_ID);
+    formData.set("return_to", "/admin/pricing?q=TEST");
+    formData.set(branchPricingField(BRANCH_ID, "record_id"), "");
+    formData.set(branchPricingField(BRANCH_ID, "create"), "on");
+    formData.set(branchPricingField(BRANCH_ID, "category_id"), CATEGORY_ID);
+    formData.set(branchPricingField(BRANCH_ID, "price"), "245");
+    formData.set(branchPricingField(BRANCH_ID, "price_label"), "50 cl");
+    formData.set(
+      branchPricingField(BRANCH_ID, "copy_variants_from_branch_id"),
+      BRANCH_ID_2,
+    );
+
+    await expect(saveAdminProductPricing(formData)).rejects.toThrow(
+      "REDIRECT:/admin/manage/menu-item-variants?new=1&prefill_menu_item_branch_id=",
+    );
+
+    expect(rpc).toHaveBeenCalledWith("add_admin_menu_item_to_branch", {
+      p_menu_item_id: ITEM_ID,
+      p_branch_id: BRANCH_ID,
+      p_category_id: CATEGORY_ID,
+      p_price_cents: 24500,
+      p_price_label: "50 cl",
+      p_price_note: null,
+      p_availability_note: null,
+      p_is_active: true,
+      p_item_sort_order: 80,
+      p_category_sort_order: 50,
+      p_ensure_category_branch: true,
+      p_publish_item: false,
+      p_publish_category: false,
+      p_copy_variants_from_branch_id: BRANCH_ID_2,
+    });
+  });
+
+  it("birleşik kayıtta geçersiz fiyatı hiçbir sorgu yapmadan reddeder", async () => {
+    const formData = new FormData();
+    formData.set("menu_item_id", ITEM_ID);
+    formData.set(branchPricingField(BRANCH_ID, "record_id"), PRICE_ID);
+    formData.set(branchPricingField(BRANCH_ID, "price"), "12,345");
+
+    await expect(saveAdminProductPricing(formData)).rejects.toThrow(
+      "REDIRECT:/admin/pricing?error=",
+    );
+    expect(mocks.createClient).not.toHaveBeenCalled();
+  });
+
+  it("yetkisiz kullanıcıda fiyat sorgusuna başlamaz", async () => {
+    mocks.requireAdmin.mockRejectedValueOnce(new Error("forbidden"));
+    const formData = new FormData();
+    formData.set("menu_item_id", ITEM_ID);
+
+    await expect(saveAdminProductPricing(formData)).rejects.toThrow("forbidden");
+    expect(mocks.createClient).not.toHaveBeenCalled();
   });
 
   it("geçersiz fiyatı veritabanına gitmeden reddeder", async () => {

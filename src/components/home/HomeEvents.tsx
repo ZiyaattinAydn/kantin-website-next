@@ -1,61 +1,96 @@
-import EventCard from "@/components/cards/EventCard";
+import EventCard, {
+EventsZeroState,
+} from "@/components/cards/EventCard";
 import AmbientDoodles from "@/components/effects/AmbientDoodles";
 import SectionHeader from "@/components/ui/SectionHeader";
 import type { EventPublicData } from "@/lib/public-data/types";
+import styles from "./HomeEvents.module.css";
 
-export default function HomeEvents({ data }: { data: EventPublicData }) {
-  const events = data.events
-    .filter((event) => event.contentType === "event" && event.startAt)
-    .slice(0, 3);
+type HomeEventItem = EventPublicData["events"][number] & {
+createdAt?: string | null;
+};
 
+function getCreatedAtTimestamp(item: HomeEventItem): number {
+if (!item.createdAt) {
+return 0;
+}
+
+const timestamp = new Date(item.createdAt).getTime();
+
+return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+export default function HomeEvents({
+data,
+}: {
+data: EventPublicData;
+}) {
+const items = [...(data.events as HomeEventItem[])]
+.filter((item) => {
+if (item.contentType === "announcement") {
+return true;
+}
   return (
-    <section className="section dotted-paper home-events-illustrated" id="etkinlikler">
-      <AmbientDoodles className="home-events-doodles" preset="events" />
-      <div className="container">
-        <SectionHeader
-          eyebrow="Sadece gerçekten olduğunda"
-          title="Yaklaşan etkinlikler"
-          action={{
-            href: "/events",
-            label: (
-              <>
-                Etkinlik sayfası <span>↗</span>
-              </>
-            ),
-          }}
-        />
-
-        <div aria-live="polite" className="event-grid dynamic-events-home">
-          {events.length ? (
-            events.map((event, index) => (
-              <EventCard
-                key={event.id || `${event.title}-${index}`}
-                event={event}
-                variant="home"
-                branchLabels={data.branchLabels}
-                branchAddresses={data.branchAddresses}
-                instagramUrl={data.instagramUrl}
-              />
-            ))
-          ) : (
-            <article className="event-empty-card">
-              <span className="event-empty-icon">○</span>
-              <div>
-                <h3>Takvim şimdilik sakin.</h3>
-                <p>Yeni bir etkinlik yayınlandığında burada otomatik olarak görünecek.</p>
-              </div>
-              <a
-                className="text-link"
-                href={data.instagramUrl}
-                rel="noopener"
-                target="_blank"
-              >
-                Instagram’ı takip et ↗
-              </a>
-            </article>
-          )}
-        </div>
-      </div>
-    </section>
+    item.contentType === "event" &&
+    Boolean(item.startAt)
   );
+})
+.sort(
+  (firstItem, secondItem) =>
+    getCreatedAtTimestamp(secondItem) -
+    getCreatedAtTimestamp(firstItem),
+)
+.slice(0, 2);
+
+return ( <section
+   className="section dotted-paper home-events-illustrated"
+   id="etkinlikler"
+ > <AmbientDoodles
+     className="home-events-doodles"
+     preset="events"
+   />
+
+```
+  <div className="container">
+    <SectionHeader
+      eyebrow="Sadece gerçekten olduğunda"
+      title="Duyurular ve Etkinlikler"
+      action={{
+        href: "/events",
+        label: (
+          <>
+            Duyurular ve Etkinlikler <span>↗</span>
+          </>
+        ),
+      }}
+    />
+
+    <div
+      aria-live="polite"
+      className={styles.list}
+    >
+      {items.length > 0 ? (
+        items.map((item, index) => (
+          <EventCard
+            key={
+              item.id ||
+              `${item.title}-${index}`
+            }
+            event={item}
+            variant="list"
+            branchLabels={data.branchLabels}
+            branchAddresses={data.branchAddresses}
+            instagramUrl={data.instagramUrl}
+          />
+        ))
+      ) : (
+        <EventsZeroState
+          instagramUrl={data.instagramUrl}
+          variant="all"
+        />
+      )}
+    </div>
+  </div>
+</section>
+);
 }

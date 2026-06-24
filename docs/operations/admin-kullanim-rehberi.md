@@ -62,3 +62,14 @@ Dashboard toplam içerik ve başvuru sayılarını, hızlı bağlantıları ve s
 ## Test kaydı temizliği
 
 Yalnız `TEST_` / `test-` kayıtlarını panelden silin. Çok sayıda test kaydı oluşmuşsa `supabase/manual/cleanup_faz_9_test_records.sql` dosyasını inceleyip hedef projenin SQL Editor'ında bilinçli olarak çalıştırın.
+
+## Medya kütüphanesi
+
+- Üstteki hızlı bağlantılarla yeni görsel formuna, yayındaki kayıtlara veya arşive geçebilirsiniz.
+- Bir kayıtta **Düzenle / değiştir** seçildiğinde ekran otomatik olarak medya editörüne kayar.
+- Geniş ekranda editör sağ tarafta sabit kalır; dar ekranda listenin üstüne taşınır.
+- Ad ve alt metin mevcut dosyadan bağımsız olarak düzenlenebilir.
+- **Yerine başka görsel koy** işlemi aynı medya kaydını ve UUID'sini korur. Menü, etkinlik, merch ve benzeri bağlantıları tek tek değiştirmeniz gerekmez.
+- Görseli kaldırmak için önce arşivleyin. Kalıcı silme, bağlı kayıtları otomatik ayırır ve geri alınamaz.
+- Local kaynaklı görsellerde kalıcı silme veritabanı/public bağlantısını kaldırır; repository içindeki fiziksel dosyayı silmez.
+- Gerçek içeriklerde kalıcı silme öncesinde kullanım listesini kontrol edin; denemelerde yalnız `TEST_` kayıtlarını kullanın.

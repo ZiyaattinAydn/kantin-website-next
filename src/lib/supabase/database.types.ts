@@ -1183,6 +1183,29 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      add_admin_menu_item_to_branch: {
+        Args: {
+          p_menu_item_id: string;
+          p_branch_id: string;
+          p_category_id: string;
+          p_price_cents: number | null;
+          p_price_label: string | null;
+          p_price_note: string | null;
+          p_availability_note: string | null;
+          p_is_active: boolean;
+          p_item_sort_order: number;
+          p_category_sort_order: number;
+          p_ensure_category_branch?: boolean;
+          p_publish_item?: boolean;
+          p_publish_category?: boolean;
+          p_copy_variants_from_branch_id?: string | null;
+        };
+        Returns: {
+          branch_price_id: string;
+          category_branch_id: string | null;
+          variants_copied: number;
+        }[];
+      };
       begin_job_application: {
         Args: {
           p_full_name: string;
@@ -1313,13 +1336,30 @@ export type Database = {
           title: string | null;
         }[];
       };
+      replace_admin_media_file: {
+        Args: {
+          p_media_id: string;
+          p_bucket_name: string;
+          p_object_path: string;
+          p_mime_type: string;
+          p_size_bytes: number;
+          p_new_public_url: string;
+        };
+        Returns: {
+          media_id: string;
+          old_source: Database["public"]["Enums"]["media_source"];
+          old_bucket_name: string | null;
+          old_object_path: string | null;
+        }[];
+      };
       begin_admin_media_delete: {
         Args: { p_media_id: string };
         Returns: {
           media_id: string;
           title: string | null;
-          bucket_name: string;
-          object_path: string;
+          source: Database["public"]["Enums"]["media_source"];
+          bucket_name: string | null;
+          object_path: string | null;
         }[];
       };
       cancel_admin_media_delete: {

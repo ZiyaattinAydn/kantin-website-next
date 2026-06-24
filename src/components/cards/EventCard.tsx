@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { siteIdentity } from "@/data/site";
-import {
-  eventBranchAddresses,
-  eventBranchLabels,
-} from "@/data/events";
+import { eventBranchLabels } from "@/data/events";
 import styles from "./EventCard.module.css";
 import {
   formatEventDay,
@@ -30,11 +27,15 @@ function contentLabel(event: KantinEvent) {
   return event.contentType === "announcement" ? "Duyuru" : "Etkinlik";
 }
 
+function branchLabel(event: KantinEvent, branchLabels: BranchMap) {
+  if (event.branch === "both") return "Tüm şubeler";
+  return branchLabels[event.branch] ?? "Kantin";
+}
+
 export default function EventCard({
   event,
   variant,
   branchLabels = eventBranchLabels,
-  branchAddresses = eventBranchAddresses,
 }: EventCardProps) {
   const externalLink = safeExternalUrl(event.link);
   const imageUrl = safeImageUrl(event.imageUrl);
@@ -62,7 +63,7 @@ export default function EventCard({
         </div>
         <div className="event-content">
           <div className="event-tags">
-            <span>{branchLabels[event.branch] ?? "Kantin"}</span>
+            <span>{branchLabel(event, branchLabels)}</span>
             <span>{formatEventTime(event.startAt)}</span>
           </div>
           <h3>{event.title}</h3>
@@ -79,13 +80,16 @@ export default function EventCard({
     );
   }
 
-  const address = event.location || branchAddresses[event.branch] || "Kantin";
   const timeRange = event.startAt
     ? `${formatEventTime(event.startAt)}${event.endAt ? `-${formatEventTime(event.endAt)}` : ""}`
     : null;
 
   return (
-    <article className={styles.listCard} data-branch={event.branch} data-content-type={event.contentType}>
+    <article
+      className={`${styles.listCard}${imageUrl ? ` ${styles.hasImage}` : ""}`}
+      data-branch={event.branch}
+      data-content-type={event.contentType}
+    >
       {event.startAt ? (
         <div className={styles.listDate}>
           <span>{formatEventMonth(event.startAt)}</span>
@@ -110,11 +114,10 @@ export default function EventCard({
         </figure>
       ) : null}
       <div className={styles.listBody}>
-        <div className="event-tags">
+        <div className={`${styles.listTags} event-tags`}>
           <span className={styles.typeBadge}>{contentLabel(event)}</span>
-          <span>{branchLabels[event.branch] ?? "Kantin"}</span>
+          <span>{branchLabel(event, branchLabels)}</span>
           {event.startAt ? <span>{formatEventTime(event.startAt)}</span> : null}
-          <span>{address}</span>
         </div>
         <h2>{event.title}</h2>
         {event.description ? <p>{event.description}</p> : null}

@@ -22,7 +22,15 @@ function uniqueColumnList(columns: readonly string[]): string {
 }
 
 function resourceListColumns(resource: AdminResource): string {
-  return uniqueColumnList(["id", ...resource.listFields]);
+  // Inline açılır düzenleme alanları her satırın tam kaydına ihtiyaç duyar.
+  // Yalnız görünür kolonları değil, form alanlarını da tek sorguda getiririz.
+  return uniqueColumnList([
+    "id",
+    resource.orderField,
+    ...resource.listFields,
+    ...resource.fields.map((field) => field.name),
+    "updated_at",
+  ]);
 }
 
 function resourceRecordColumns(resource: AdminResource): string {

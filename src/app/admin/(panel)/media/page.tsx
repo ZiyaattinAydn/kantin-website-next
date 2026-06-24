@@ -15,14 +15,18 @@ import {
 import {
   archiveAdminMedia,
   deleteAdminMedia,
+  replaceAdminMedia,
   restoreAdminMedia,
   updateAdminMedia,
   uploadAdminMedia,
 } from "@/lib/admin/media-actions";
-import { loadMediaUsageMap } from "@/lib/admin/media-usage";
+import {
+  loadMediaUsageMap,
+  type MediaUsageRecord,
+} from "@/lib/admin/media-usage";
 import { getSupabasePublicEnv } from "@/lib/env/public";
 import { createClient } from "@/lib/supabase/server";
-import { PUBLIC_IMAGE_BUCKETS } from "@/lib/supabase/storage";
+import { PUBLIC_IMAGE_BUCKETS, type StorageBucket } from "@/lib/supabase/storage";
 import type { Json } from "@/lib/supabase/database.types";
 
 export const dynamic = "force-dynamic";
@@ -36,6 +40,7 @@ type Props = {
     status?: string | string[];
     page?: string | string[];
     edit?: string | string[];
+    new?: string | string[];
     notice?: string | string[];
     error?: string | string[];
   }>;
@@ -84,19 +89,35 @@ function mediaListHref({
   q,
   status,
   page,
-  edit,
 }: {
   q?: string;
   status?: string;
   page?: number;
-  edit?: string;
 }) {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
   if (status && status !== "all") params.set("status", status);
   if (page && page > 1) params.set("page", String(page));
-  if (edit) params.set("edit", edit);
   return `/admin/media${params.size ? `?${params.toString()}` : ""}`;
+}
+
+function isPublicImageBucket(value: string | null): value is StorageBucket {
+  return Boolean(
+    value
+    && PUBLIC_IMAGE_BUCKETS.includes(value as (typeof PUBLIC_IMAGE_BUCKETS)[number]),
+  );
+}
+
+function defaultReplacementBucket(
+  row: MediaRow,
+  usages: MediaUsageRecord[],
+): StorageBucket {
+  if (isPublicImageBucket(row.bucket_name)) return row.bucket_name;
+  if (usages.some((usage) => usage.source === "menu_items")) return "menu-images";
+  if (usages.some((usage) => usage.source === "events")) return "event-images";
+  if (usages.some((usage) => usage.source === "merch_products")) return "merch-images";
+  if (usages.some((usage) => usage.source === "instagram_posts")) return "instagram-media";
+  return "gallery-images";
 }
 
 export default async function AdminMediaPage({ searchParams }: Props) {
@@ -104,6 +125,7 @@ export default async function AdminMediaPage({ searchParams }: Props) {
   const q = normaliseAdminSearch(firstString(params.q));
   const statusFilter = firstString(params.status) ?? "all";
   const editId = firstString(params.edit);
+  const showNew = firstString(params.new) === "1" || Boolean(firstString(params.error) && !editId);
   const page = parseAdminPage(firstString(params.page));
   const { from, to } = adminPageRange(page);
   const supabase = await createClient();
@@ -128,11 +150,8 @@ export default async function AdminMediaPage({ searchParams }: Props) {
     .range(from, to);
   if (error) throw new Error(error.message);
 
-  const rows = (data ?? []) as MediaRow[];
-  const usageMap = await loadMediaUsageMap(supabase, rows);
-  const pagination = createAdminPagination(count ?? 0, page, ADMIN_PAGE_SIZE);
-
-  let selectedRow = editId ? rows.find((row) => row.id === editId) ?? null : null;
+  const listedRows = (data ?? []) as MediaRow[];
+  let selectedRow = editId ? listedRows.find((row) => row.id === editId) ?? null : null;
   if (editId && !selectedRow) {
     const { data: selected, error: selectedError } = await supabase
       .from("media")
@@ -144,10 +163,12 @@ export default async function AdminMediaPage({ searchParams }: Props) {
     selectedRow = selected as MediaRow | null;
   }
 
+  const rows = selectedRow && !listedRows.some((row) => row.id === selectedRow?.id)
+    ? [selectedRow, ...listedRows]
+    : listedRows;
+  const usageMap = await loadMediaUsageMap(supabase, rows);
+  const pagination = createAdminPagination(count ?? 0, page, ADMIN_PAGE_SIZE);
   const listHref = mediaListHref({ q, status: statusFilter, page });
-  const selectedDeletePending = selectedRow
-    ? isDeletePending(selectedRow.metadata)
-    : false;
 
   return (
     <section className={styles.page}>
@@ -155,252 +176,313 @@ export default async function AdminMediaPage({ searchParams }: Props) {
         <div>
           <p className="eyebrow">Storage ve medya</p>
           <h1>Medya kütüphanesi<span>.</span></h1>
-          <p>Görselleri yükle, erişilebilirlik bilgilerini düzenle, yayın durumunu yönet ve yalnız bağlantısız arşiv kayıtlarını kalıcı sil.</p>
+          <p>Satırın herhangi bir yerine dokunarak görseli aç. Dosyayı değiştirirken mevcut menü, etkinlik, merch ve içerik bağlantıları korunur.</p>
         </div>
       </div>
+
+      <nav aria-label="Medya hızlı işlemleri" className={mediaStyles.shortcuts}>
+        <Link className={mediaStyles.shortcutPrimary} href="/admin/media?new=1#media-editor">＋ Yeni görsel</Link>
+        <Link href="/admin/media?status=active#media-list">Yayındakiler</Link>
+        <Link href="/admin/media?status=archived#media-list">Arşiv / pasif</Link>
+        <Link href="/admin/media#media-list">Tüm görseller</Link>
+      </nav>
 
       {firstString(params.notice) ? <p className={styles.notice}>{firstString(params.notice)}</p> : null}
       {firstString(params.error) ? <p className={styles.error}>{firstString(params.error)}</p> : null}
 
-      <div className={`${styles.layout} ${styles.layoutWithEditor} ${mediaStyles.mediaLayout}`}>
-        <div className={styles.panel}>
-          <form className={`${styles.search} ${mediaStyles.mediaSearch}`} method="get">
-            <input defaultValue={q} name="q" placeholder="Medya ara…" type="search" />
+      <details className={mediaStyles.uploadCard} id="media-editor" open={showNew}>
+        <summary className={mediaStyles.uploadSummary}>
+          <span>
+            <strong>＋ Yeni görsel yükle</strong>
+            <small>Public içeriklerde kullanılacak yeni bir medya kaydı oluştur.</small>
+          </span>
+          <span className={mediaStyles.chevron}>⌄</span>
+        </summary>
+        <div className={mediaStyles.uploadBody}>
+          <div className={mediaStyles.uploadIntro}>
+            <p className="eyebrow">Yeni medya</p>
+            <h2>Görseli yükle</h2>
+            <p>Dosya en fazla 8 MB olabilir. Kullanım alanı doğru Storage bucket’ını belirler.</p>
+          </div>
+          <form action={uploadAdminMedia} className={`${styles.form} ${mediaStyles.uploadForm}`}>
+            <label className={styles.field}>
+              <span>Kullanım alanı</span>
+              <select name="bucket" required>{PUBLIC_IMAGE_BUCKETS.map((bucket) => <option key={bucket} value={bucket}>{bucket}</option>)}</select>
+            </label>
+            <label className={styles.field}>
+              <span>Medya adı</span>
+              <input name="title" placeholder="Menü görseli" required />
+            </label>
+            <label className={styles.field}>
+              <span>Alt metin</span>
+              <input name="alt_text" placeholder="Görseli erişilebilir biçimde açıkla" required />
+            </label>
+            <label className={styles.field}>
+              <span>Dosya</span>
+              <input accept="image/jpeg,image/png,image/webp,image/avif" name="file" required type="file" />
+            </label>
+            <button className={styles.primary} type="submit">Görseli yükle</button>
+          </form>
+        </div>
+      </details>
+
+      <section className={mediaStyles.filterPanel} id="media-list" aria-label="Medya filtreleri">
+        <form className={mediaStyles.mediaSearch} method="get">
+          <label>
+            <span>Medya ara</span>
+            <input defaultValue={q} name="q" placeholder="Ad, alt metin veya dosya yolu" type="search" />
+          </label>
+          <label>
+            <span>Yayın durumu</span>
             <select defaultValue={statusFilter} name="status">
               <option value="all">Tüm durumlar</option>
               <option value="active">Aktif</option>
               <option value="archived">Arşiv / pasif</option>
             </select>
-            <button className={styles.secondary} type="submit">Filtrele</button>
-          </form>
-
-          <div className={`${styles.tableWrap} ${mediaStyles.tableWrap}`}>
-            <table className={`${styles.table} ${mediaStyles.mediaTable}`}>
-              <thead>
-                <tr>
-                  <th>Önizleme</th>
-                  <th>Medya</th>
-                  <th>Durum</th>
-                  <th>Kullanım</th>
-                  <th>Güncelleme</th>
-                  <th>İşlem</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => {
-                  const url = mediaUrl(row);
-                  const usages = usageMap.get(row.id) ?? [];
-                  const pendingDelete = isDeletePending(row.metadata);
-                  const canDelete =
-                    row.source === "storage"
-                    && row.status === "archived"
-                    && !row.is_active
-                    && !usages.length
-                    && !pendingDelete;
-                  const canResumeDelete =
-                    row.source === "storage"
-                    && row.status === "archived"
-                    && !row.is_active
-                    && !usages.length
-                    && pendingDelete;
-                  const editHref = mediaListHref({
-                    q,
-                    status: statusFilter,
-                    page,
-                    edit: row.id,
-                  });
-
-                  return (
-                    <tr key={row.id}>
-                      <td>
-                        {url ? (
-                          <img
-                            alt={row.alt_text ?? ""}
-                            className={mediaStyles.preview}
-                            height={64}
-                            loading="lazy"
-                            src={url}
-                            width={82}
-                          />
-                        ) : "—"}
-                      </td>
-                      <td className={mediaStyles.mediaIdentity}>
-                        <strong>{row.title || row.alt_text || "Adsız görsel"}</strong>
-                        <small>{row.alt_text || "Alt metin yok"}</small>
-                        <code>{row.object_path || row.local_path || row.external_url || "—"}</code>
-                      </td>
-                      <td data-label="Durum">
-                        <span className={row.is_active && row.status === "published" ? mediaStyles.statusActive : mediaStyles.statusPassive}>
-                          {row.is_active && row.status === "published" ? "Public" : "Public değil"}
-                        </span>
-                        <small className={mediaStyles.statusMeta}>{row.status} · {row.source}</small>
-                        {pendingDelete ? <small className={mediaStyles.pendingDelete}>Silme bekliyor</small> : null}
-                      </td>
-                      <td data-label="Kullanım">
-                        <span className={usages.length ? mediaStyles.usageBusy : mediaStyles.usageFree}>
-                          {usages.length ? `${usages.length} bağlantı` : "Kullanılmıyor"}
-                        </span>
-                        {usages.length ? (
-                          <details className={mediaStyles.usageDetails}>
-                            <summary>Bağlantıları gör</summary>
-                            <ul>
-                              {usages.map((usage) => (
-                                <li key={`${usage.source}-${usage.sourceId}`}>
-                                  <Link href={usage.href}>{usage.label}</Link>
-                                  <small>{usage.field === "content" ? "JSON içindeki yolu değiştir" : "Görsel alanını değiştir veya boşalt"}</small>
-                                </li>
-                              ))}
-                            </ul>
-                          </details>
-                        ) : null}
-                      </td>
-                      <td data-label="Güncelleme">
-                        {formatAdminDate(row.updated_at)}
-                      </td>
-                      <td className={mediaStyles.actions} data-label="İşlemler">
-                        {!pendingDelete ? (
-                          <Link className={styles.secondary} href={editHref}>Düzenle</Link>
-                        ) : null}
-
-                        {!pendingDelete && row.is_active && row.status !== "archived" ? (
-                          <form action={archiveAdminMedia}>
-                            <input name="id" type="hidden" value={row.id} />
-                            <ConfirmSubmitButton
-                              className={styles.linkButton}
-                              confirmMessage={usages.length
-                                ? "Bu medya içeriklerde kullanılıyor. Arşivlenirse public sayfalarda görsel yerine güvenli fallback/boş görünüm kullanılacak. Storage nesnesi silinmeyecek. Devam edilsin mi?"
-                                : "Bu medya arşivlensin ve public görünümlerden kaldırılsın mı? Storage nesnesi silinmez."}
-                              type="submit"
-                            >
-                              Arşivle
-                            </ConfirmSubmitButton>
-                          </form>
-                        ) : null}
-
-                        {!pendingDelete && (!row.is_active || row.status === "archived") ? (
-                          <form action={restoreAdminMedia}>
-                            <input name="id" type="hidden" value={row.id} />
-                            <button className={styles.secondary} type="submit">Yayına al</button>
-                          </form>
-                        ) : null}
-
-                        {canDelete || canResumeDelete ? (
-                          <form action={deleteAdminMedia}>
-                            <input name="id" type="hidden" value={row.id} />
-                            <TypedConfirmSubmitButton
-                              className={styles.danger}
-                              confirmMessage={canResumeDelete
-                                ? "Önceki kalıcı silme işlemi yarıda kaldı. Storage ve veritabanı adımları güvenli biçimde tekrar denenecek."
-                                : "Bu görsel Storage ve veritabanından geri alınamaz biçimde silinecek."}
-                              confirmPhrase={canResumeDelete ? "SİLMEYİ TAMAMLA" : "KALICI SİL"}
-                              type="submit"
-                            >
-                              {canResumeDelete ? "Silmeyi tamamla" : "Kalıcı sil"}
-                            </TypedConfirmSubmitButton>
-                          </form>
-                        ) : null}
-
-                        {row.status === "archived" && usages.length ? (
-                          <small>Kalıcı silmek için önce {usages.length} bağlantıyı kaldır.</small>
-                        ) : null}
-                        {row.status === "archived" && row.source !== "storage" ? (
-                          <small>Yerel/harici kaynak fiziksel olarak buradan silinmez.</small>
-                        ) : null}
-                      </td>
-                    </tr>
-                  );
-                })}
-                {!rows.length ? (
-                  <tr>
-                    <td className={mediaStyles.emptyState} colSpan={6}>Bu filtreye uygun medya bulunamadı.</td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
+          </label>
+          <div className={mediaStyles.filterActions}>
+            <button className={styles.primary} type="submit">Filtrele</button>
+            <Link className={styles.secondary} href="/admin/media">Temizle</Link>
           </div>
+        </form>
+        <p className={mediaStyles.resultSummary}>{pagination.total} görsel · Sayfa {pagination.page}/{pagination.pageCount || 1}</p>
+      </section>
 
-          <AdminPagination
-            basePath="/admin/media"
-            pagination={pagination}
-            query={{ q: q || undefined, status: statusFilter === "all" ? undefined : statusFilter }}
-          />
+      <section className={mediaStyles.mediaTable} aria-label="Medya kütüphanesi tablosu">
+        <div className={mediaStyles.tableHeader} aria-hidden="true">
+          <span>Önizleme</span>
+          <span>Medya</span>
+          <span>Durum</span>
+          <span>Kullanım</span>
+          <span>Güncelleme</span>
+          <span>İşlem</span>
         </div>
 
-        <aside className={`${styles.panel} ${styles.editorPanel} ${mediaStyles.mediaEditor}`}>
-          {selectedRow ? (
-            <>
-              <div className={styles.panelTitle}>
-                <h2>Görsel ayarları</h2>
-                <Link href={listHref}>Kapat</Link>
-              </div>
-              {selectedDeletePending ? (
-                <>
-                  <p className={styles.warning}>
-                    Bu kayıtta yarım kalmış kalıcı silme işlemi var. Metadata düzenleme ve geri yükleme kilitli. Listeye dönüp “Silmeyi tamamla” işlemini kullan.
-                  </p>
-                  <div className={mediaStyles.readOnlySource}>
-                    <strong>Bekleyen Storage kaydı</strong>
-                    <span>{selectedRow.source} · {selectedRow.bucket_name || "bucket yok"}</span>
-                    <code>{selectedRow.object_path || selectedRow.local_path || selectedRow.external_url || "—"}</code>
-                  </div>
-                  <Link className={styles.secondary} href={listHref}>Listeye dön</Link>
-                </>
-              ) : (
-                <>
-                  <form action={updateAdminMedia} className={styles.form}>
-                    <input name="id" type="hidden" value={selectedRow.id} />
-                    <label className={styles.field}>
-                      <span>Medya adı</span>
-                      <input defaultValue={selectedRow.title ?? ""} maxLength={180} name="title" required />
-                    </label>
-                    <label className={styles.field}>
-                      <span>Alt metin</span>
-                      <textarea defaultValue={selectedRow.alt_text ?? ""} maxLength={500} name="alt_text" required rows={4} />
-                    </label>
-                    <label className={styles.field}>
-                      <span>Yayın durumu</span>
-                      <select defaultValue={selectedRow.status} name="status" required>
-                        <option value="draft">Taslak</option>
-                        <option value="published">Yayında</option>
-                        <option value="archived">Arşiv</option>
-                      </select>
-                    </label>
-                    <label className={styles.checkbox}>
-                      <input defaultChecked={selectedRow.is_active} name="is_active" type="checkbox" />
-                      <span>Aktif</span>
-                    </label>
-                    <input name="sort_order" type="hidden" value={selectedRow.sort_order} />
-                    <div className={mediaStyles.readOnlySource}>
-                      <strong>Dosya kaynağı değiştirilemez</strong>
-                      <span>{selectedRow.source} · {selectedRow.bucket_name || "bucket yok"}</span>
-                      <code>{selectedRow.object_path || selectedRow.local_path || selectedRow.external_url || "—"}</code>
+        <div className={mediaStyles.mediaList}>
+          {rows.map((row) => {
+            const url = mediaUrl(row);
+            const usages = usageMap.get(row.id) ?? [];
+            const pendingDelete = isDeletePending(row.metadata);
+            const canDelete = row.status === "archived" && !row.is_active && !pendingDelete;
+            const replacementBucket = defaultReplacementBucket(row, usages);
+            const isSelected = editId === row.id;
+
+            return (
+              <details
+                className={mediaStyles.mediaCard}
+                id={`media-${row.id}`}
+                key={row.id}
+                open={isSelected}
+              >
+                <summary className={mediaStyles.mediaSummary}>
+                  <span className={mediaStyles.summaryCell} data-label="Önizleme">
+                    {url ? (
+                      <img alt={row.alt_text ?? ""} className={mediaStyles.preview} height={64} loading="lazy" src={url} width={82} />
+                    ) : <span className={mediaStyles.noPreview}>Görsel yok</span>}
+                  </span>
+                  <span className={mediaStyles.summaryCell} data-label="Medya">
+                    <span className={mediaStyles.mediaIdentity}>
+                      <strong>{row.title || row.alt_text || "Adsız görsel"}</strong>
+                      <small>{row.alt_text || "Alt metin yok"}</small>
+                      <code>{row.object_path || row.local_path || row.external_url || "—"}</code>
+                    </span>
+                  </span>
+                  <span className={mediaStyles.summaryCell} data-label="Durum">
+                    <span className={row.is_active && row.status === "published" ? mediaStyles.statusActive : mediaStyles.statusPassive}>
+                      {row.is_active && row.status === "published" ? "Public" : "Public değil"}
+                    </span>
+                    <small className={mediaStyles.statusMeta}>{row.status} · {row.source}</small>
+                    {pendingDelete ? <small className={mediaStyles.pendingDelete}>Silme bekliyor</small> : null}
+                  </span>
+                  <span className={mediaStyles.summaryCell} data-label="Kullanım">
+                    <span className={usages.length ? mediaStyles.usageBusy : mediaStyles.usageFree}>
+                      {usages.length ? `${usages.length} bağlantı` : "Kullanılmıyor"}
+                    </span>
+                  </span>
+                  <span className={mediaStyles.summaryCell} data-label="Güncelleme">
+                    <small>{formatAdminDate(row.updated_at)}</small>
+                  </span>
+                  <span className={mediaStyles.openAction} data-label="İşlem">
+                    <span>Yönet</span>
+                    <span className={mediaStyles.chevron}>⌄</span>
+                  </span>
+                </summary>
+
+                <div className={mediaStyles.mediaEditor}>
+                  <div className={mediaStyles.editorHeading}>
+                    <div>
+                      <p className="eyebrow">Görsel yönetimi</p>
+                      <h2>{row.title || "Adsız görsel"}</h2>
+                      <p>Değişiklikler kaydetme sonrasında uygulanır. Dosya değişiminde aynı medya kimliği ve içerik bağlantıları korunur.</p>
                     </div>
-                    <button className={styles.primary} type="submit">Ayarları kaydet</button>
-                    <Link className={styles.secondary} href={listHref}>Vazgeç</Link>
-                  </form>
-                  <p className={mediaStyles.lifecycleNote}>
-                    Taslak veya arşiv durumunda kayıt otomatik olarak pasif tutulur. Dosyanın kendisini değiştirmek için yeni görsel yükle ve ilgili içerikte medya bağlantısını güncelle.
-                  </p>
-                </>
-              )}
-            </>
-          ) : (
-            <>
-              <div className={styles.panelTitle}><h2>Yeni görsel yükle</h2><span>Maksimum 8 MB</span></div>
-              <form action={uploadAdminMedia} className={styles.form}>
-                <label className={styles.field}><span>Bucket</span><select name="bucket" required>{PUBLIC_IMAGE_BUCKETS.map((bucket) => <option key={bucket} value={bucket}>{bucket}</option>)}</select></label>
-                <label className={styles.field}><span>Medya adı</span><input name="title" placeholder="Menü görseli" required /></label>
-                <label className={styles.field}><span>Alt metin</span><input name="alt_text" placeholder="Görseli erişilebilir biçimde açıkla" required /></label>
-                <label className={styles.field}><span>Dosya</span><input accept="image/jpeg,image/png,image/webp,image/avif" name="file" required type="file" /></label>
-                <button className={styles.primary} type="submit">Görseli yükle</button>
-              </form>
-              <p className={mediaStyles.lifecycleNote}>
-                Arşivleme public görünürlüğü kapatır fakat Storage nesnesini silmez. Kalıcı silme yalnız bağlantısız, arşivlenmiş Storage görsellerinde açılır ve <strong>KALICI SİL</strong> onayı ister.
-              </p>
-            </>
-          )}
-        </aside>
-      </div>
+                    {isSelected ? <Link className={styles.secondary} href={`${listHref}#media-${row.id}`}>URL seçimini temizle</Link> : null}
+                  </div>
+
+                  {pendingDelete ? (
+                    <section className={mediaStyles.pendingPanel}>
+                      <div>
+                        <strong>Yarım kalmış kalıcı silme işlemi</strong>
+                        <p>Düzenleme ve geri yükleme kilitli. Dosya, medya kaydı ve bağlı içerik bağlantılarının temizliğini güvenli biçimde tamamla.</p>
+                        <code>{row.object_path || row.local_path || row.external_url || "—"}</code>
+                      </div>
+                      <form action={deleteAdminMedia}>
+                        <input name="id" type="hidden" value={row.id} />
+                        <TypedConfirmSubmitButton
+                          className={styles.danger}
+                          confirmMessage="Önceki kalıcı silme işlemi yarıda kaldı. Dosya, medya kaydı ve bağlı içerik bağlantıları güvenli biçimde yeniden temizlenecek."
+                          confirmPhrase="SİLMEYİ TAMAMLA"
+                          type="submit"
+                        >
+                          Silmeyi tamamla
+                        </TypedConfirmSubmitButton>
+                      </form>
+                    </section>
+                  ) : (
+                    <>
+                      <div className={mediaStyles.editorGrid}>
+                        <section className={mediaStyles.previewPanel}>
+                          {url ? <img alt={row.alt_text ?? ""} height={360} src={url} width={540} /> : <div className={mediaStyles.largeNoPreview}>Önizleme yok</div>}
+                          <div className={mediaStyles.sourceInfo}>
+                            <strong>Mevcut dosya</strong>
+                            <span>{row.source} · {row.bucket_name || "yerel kaynak"}</span>
+                            <code>{row.object_path || row.local_path || row.external_url || "—"}</code>
+                          </div>
+
+                          <div className={mediaStyles.usagePanel}>
+                            <div>
+                              <strong>Bağlı içerikler</strong>
+                              <span>{usages.length ? `${usages.length} yerde kullanılıyor` : "Bu görsel henüz bir içeriğe bağlı değil."}</span>
+                            </div>
+                            {usages.length ? (
+                              <ul>
+                                {usages.map((usage) => (
+                                  <li key={`${usage.source}-${usage.sourceId}`}>
+                                    <Link href={usage.href}>{usage.label}</Link>
+                                    <small>Değiştirmede korunur; kalıcı silmede otomatik kaldırılır.</small>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : null}
+                          </div>
+                        </section>
+
+                        <section className={mediaStyles.formPanel}>
+                          <div className={mediaStyles.sectionTitle}>
+                            <h3>Görsel bilgileri</h3>
+                            <p>Ad, erişilebilir alt metin ve yayın durumunu düzenle.</p>
+                          </div>
+                          <form action={updateAdminMedia} className={styles.form}>
+                            <input name="id" type="hidden" value={row.id} />
+                            <label className={styles.field}>
+                              <span>Medya adı</span>
+                              <input defaultValue={row.title ?? ""} maxLength={180} name="title" required />
+                            </label>
+                            <label className={styles.field}>
+                              <span>Alt metin</span>
+                              <textarea defaultValue={row.alt_text ?? ""} maxLength={500} name="alt_text" required rows={5} />
+                            </label>
+                            <label className={styles.field}>
+                              <span>Yayın durumu</span>
+                              <select defaultValue={row.status} name="status" required>
+                                <option value="draft">Taslak</option>
+                                <option value="published">Yayında</option>
+                                <option value="archived">Arşiv</option>
+                              </select>
+                            </label>
+                            <label className={styles.checkbox}>
+                              <input defaultChecked={row.is_active} name="is_active" type="checkbox" />
+                              <span>Aktif</span>
+                            </label>
+                            <input name="sort_order" type="hidden" value={row.sort_order} />
+                            <button className={styles.primary} type="submit">Bilgileri kaydet</button>
+                          </form>
+                        </section>
+                      </div>
+
+                      <section className={mediaStyles.replaceSection}>
+                        <div className={mediaStyles.sectionTitle}>
+                          <p className="eyebrow">Hızlı değiştir</p>
+                          <h3>Yerine başka görsel koy</h3>
+                          <p>Yeni dosya aynı medya kaydına bağlanır. Menü, etkinlik, merch, Instagram ve içerik bloklarındaki bağlantılar otomatik korunur.</p>
+                        </div>
+                        <form action={replaceAdminMedia} className={mediaStyles.replaceForm}>
+                          <input name="id" type="hidden" value={row.id} />
+                          <label className={styles.field}>
+                            <span>Kullanım alanı</span>
+                            <select defaultValue={replacementBucket} name="bucket" required>
+                              {PUBLIC_IMAGE_BUCKETS.map((bucket) => <option key={bucket} value={bucket}>{bucket}</option>)}
+                            </select>
+                          </label>
+                          <label className={styles.field}>
+                            <span>Yeni görsel</span>
+                            <input accept="image/jpeg,image/png,image/webp,image/avif" name="file" required type="file" />
+                          </label>
+                          <button className={styles.primary} type="submit">Görseli değiştir</button>
+                        </form>
+                      </section>
+
+                      <section className={mediaStyles.lifecycleSection}>
+                        <div className={mediaStyles.sectionTitle}>
+                          <h3>Yayın ve yaşam döngüsü</h3>
+                          <p>Arşivleme bağlantıları korur. Kalıcı silme ise bağlı alanları otomatik temizler ve geri alınamaz.</p>
+                        </div>
+                        <div className={mediaStyles.lifecycleActions}>
+                          {row.is_active && row.status !== "archived" ? (
+                            <form action={archiveAdminMedia}>
+                              <input name="id" type="hidden" value={row.id} />
+                              <ConfirmSubmitButton
+                                className={styles.secondary}
+                                confirmMessage={usages.length
+                                  ? "Bu medya içeriklerde kullanılıyor. Arşivlenirse public sayfalarda görünmez; bağlantılar korunur. Devam edilsin mi?"
+                                  : "Bu medya arşivlensin ve public görünümlerden kaldırılsın mı?"}
+                                type="submit"
+                              >
+                                Arşivle
+                              </ConfirmSubmitButton>
+                            </form>
+                          ) : null}
+
+                          {(!row.is_active || row.status === "archived") ? (
+                            <form action={restoreAdminMedia}>
+                              <input name="id" type="hidden" value={row.id} />
+                              <button className={styles.secondary} type="submit">Yayına al</button>
+                            </form>
+                          ) : null}
+
+                          {canDelete ? (
+                            <form action={deleteAdminMedia}>
+                              <input name="id" type="hidden" value={row.id} />
+                              <TypedConfirmSubmitButton
+                                className={styles.danger}
+                                confirmMessage={usages.length
+                                  ? `Bu görsel ${usages.length} yerde kullanılıyor. Kalıcı silme sırasında tüm bağlantılar otomatik kaldırılacak ve işlem geri alınamayacak.`
+                                  : "Bu görsel ve medya kaydı geri alınamaz biçimde silinecek."}
+                                confirmPhrase="KALICI SİL"
+                                type="submit"
+                              >
+                                Kalıcı sil
+                              </TypedConfirmSubmitButton>
+                            </form>
+                          ) : null}
+                        </div>
+                        {row.status === "archived" && usages.length ? <small>{usages.length} bağlantı kalıcı silmede otomatik kaldırılır.</small> : null}
+                        {row.status === "archived" && row.source !== "storage" ? <small>Medya kaydı kaldırılır; paket içindeki eski dosya kullanılmadan kalır.</small> : null}
+                      </section>
+                    </>
+                  )}
+                </div>
+              </details>
+            );
+          })}
+          {!rows.length ? <p className={mediaStyles.emptyState}>Bu filtreye uygun medya bulunamadı.</p> : null}
+        </div>
+      </section>
+
+      <AdminPagination
+        basePath="/admin/media"
+        pagination={pagination}
+        query={{ q: q || undefined, status: statusFilter === "all" ? undefined : statusFilter }}
+      />
     </section>
   );
 }

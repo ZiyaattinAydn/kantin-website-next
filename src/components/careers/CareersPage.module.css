@@ -810,7 +810,7 @@
 
 @media (min-width: 900px) {
   .heroGrid {
-    grid-template-columns: minmax(0, 1.25fr) minmax(330px, 0.75fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr);
   }
 
   .sectionHeading {

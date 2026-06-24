@@ -14,6 +14,7 @@ export type RawEvent = Partial<
   ctaLabel?: unknown;
   publishStartAt?: unknown;
   publishEndAt?: unknown;
+  createdAt?: string | null;
   sortOrder?: unknown;
 };
 
@@ -28,6 +29,7 @@ export type KantinEvent = Omit<
   branch: EventBranch;
   status: "published";
   ctaLabel?: string;
+  createdAt?: string;
   publishStartAt: Date | null;
   publishEndAt: Date | null;
   sortOrder: number;

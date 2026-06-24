@@ -20,8 +20,11 @@
 
 .filters input[type="search"],
 .filters select,
-.priceForm input:not([type="checkbox"]),
-.variantRow input:not([type="checkbox"]) {
+.priceFields input:not([type="checkbox"]),
+.noteFields input,
+.variantRow input:not([type="checkbox"]),
+.menuPlacementGrid input,
+.menuPlacementGrid select {
   width: 100%;
   min-height: 42px;
   padding: 9px 11px;
@@ -34,7 +37,8 @@
 
 .missingToggle,
 .activeToggle,
-.variantActive {
+.variantActive,
+.createToggle {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -50,7 +54,8 @@
 
 .missingToggle input,
 .activeToggle input,
-.variantActive input {
+.variantActive input,
+.createToggle input {
   width: 17px;
   height: 17px;
   accent-color: var(--blue);
@@ -63,71 +68,230 @@
   font-weight: 800;
 }
 
-.productList {
-  display: grid;
-  gap: 18px;
-}
-
-.productCard {
+.pricingTable {
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.72);
 }
 
-.productHead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
+.tableHeader,
+.productSummary {
+  display: grid;
+  grid-template-columns:
+    minmax(190px, 1.35fr)
+    minmax(105px, 0.75fr)
+    minmax(82px, 0.55fr)
+    minmax(235px, 1.65fr)
+    minmax(80px, 0.55fr)
+    minmax(125px, 0.75fr)
+    minmax(70px, 0.45fr);
+  align-items: center;
   gap: 14px;
-  padding: 18px 20px;
+}
+
+.tableHeader {
+  padding: 13px 18px;
   border-bottom: 1px solid var(--line);
+  background: rgba(0, 71, 187, 0.055);
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.productList {
+  display: grid;
+}
+
+.productCard {
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.productCard:last-child {
+  border-bottom: 0;
+}
+
+.productCard[open] {
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.productSummary {
+  position: relative;
+  min-height: 86px;
+  padding: 14px 18px;
+  cursor: pointer;
+  list-style: none;
+  transition: background 150ms ease;
+}
+
+.productSummary:hover {
   background: rgba(0, 71, 187, 0.035);
 }
 
-.productHead h2 {
-  margin: 5px 0 4px;
-  font-size: 1.35rem;
+.productSummary::-webkit-details-marker {
+  display: none;
 }
 
-.productHead p {
-  margin: 0;
+.productSummary::marker {
+  content: "";
+}
+
+.productNameCell,
+.summaryCell,
+.openAction {
+  min-width: 0;
+}
+
+.productNameCell {
+  display: grid;
+  gap: 4px;
+}
+
+.productNameCell strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.86rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.productNameCell small,
+.summaryCell {
   color: var(--muted);
-  font-size: 0.68rem;
+  font-size: 0.65rem;
+  font-weight: 800;
 }
 
-.productHead > a,
-.variantsHead a {
-  color: var(--blue);
-  font-size: 0.7rem;
+.typeBadge,
+.live,
+.passive {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 0.61rem;
   font-weight: 900;
 }
 
-.productMeta {
+.typeBadge {
+  background: rgba(0, 71, 187, 0.08);
+  color: var(--blue);
+}
+
+.live {
+  background: rgba(0, 128, 70, 0.08);
+  color: #08713f;
+}
+
+.passive {
+  background: rgba(88, 96, 113, 0.1);
+  color: #4b5563;
+}
+
+.branchSummary {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-.productMeta > span {
-  display: inline-flex;
-  padding: 5px 8px;
-  border-radius: 999px;
-  background: rgba(0, 71, 187, 0.08);
+.priceChip {
+  display: grid;
+  min-width: 94px;
+  gap: 2px;
+  padding: 7px 9px;
+  border: 1px solid rgba(0, 71, 187, 0.12);
+  border-radius: 10px;
+  background: rgba(0, 71, 187, 0.045);
+}
+
+.priceChip strong {
+  color: var(--ink);
+  font-size: 0.58rem;
+}
+
+.priceChip > span {
   color: var(--blue);
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   font-weight: 900;
 }
 
-.productMeta .live {
-  background: rgba(0, 128, 70, 0.08);
-  color: #08713f;
+.priceChip small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.54rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.productMeta .passive {
-  background: rgba(88, 96, 113, 0.1);
-  color: #4b5563;
+.priceMissing {
+  border-color: rgba(161, 38, 38, 0.16);
+  background: rgba(161, 38, 38, 0.055);
+}
+
+.priceMissing > span {
+  color: #a12626;
+}
+
+.pricePassive {
+  opacity: 0.58;
+}
+
+.openAction {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  color: var(--blue);
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+.chevron {
+  display: inline-flex;
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 160ms ease;
+}
+
+.productCard[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.productEditor {
+  border-top: 1px solid var(--line);
+  background: rgba(244, 239, 230, 0.45);
+}
+
+.editorHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.editorHead strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.editorHead p {
+  max-width: 680px;
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 0.67rem;
+  line-height: 1.5;
+}
+
+.editorHead a,
+.variantsHead a {
+  color: var(--blue);
+  font-size: 0.68rem;
+  font-weight: 900;
 }
 
 .branchGrid {
@@ -136,7 +300,7 @@
 
 .branchCard {
   min-width: 0;
-  padding: 18px;
+  padding: 20px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -147,7 +311,7 @@
 .branchHead,
 .variantsHead {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
 }
@@ -156,41 +320,150 @@
   margin-bottom: 14px;
 }
 
-.branchHead h3 {
+.branchHead h2 {
   margin: 2px 0 0;
-  font-size: 1rem;
+  font-size: 1.02rem;
 }
 
 .branchHead span,
 .branchHead small {
   color: var(--muted);
-  font-size: 0.62rem;
+  font-size: 0.61rem;
   font-weight: 900;
+}
+
+.branchState {
+  display: grid;
+  justify-items: end;
+  gap: 3px;
+  text-align: right;
 }
 
 .branchHead .missing {
   color: #a12626;
 }
 
-.priceForm {
+.createToggle {
+  margin-bottom: 12px;
+  padding: 10px 11px;
+  border: 1px solid rgba(161, 38, 38, 0.14);
+  border-radius: 11px;
+  background: rgba(161, 38, 38, 0.045);
+}
+
+.createToggle span {
+  color: #7d2020;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+
+
+.addToMenu {
+  margin-bottom: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 71, 187, 0.16);
+  border-radius: 12px;
+  background: rgba(0, 71, 187, 0.035);
+}
+
+.addToMenu > summary {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  color: var(--blue);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 900;
+  list-style: none;
+}
+
+.addToMenu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.addToMenu > summary::marker {
+  content: "";
+}
+
+.addToMenu[open] > summary {
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.addToMenu[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.addToMenuBody {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.impactNote {
+  padding: 10px 11px;
+  border: 1px solid rgba(0, 71, 187, 0.13);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.impactNote strong {
+  color: var(--ink);
+  font-size: 0.68rem;
+}
+
+.impactNote p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.62rem;
+  line-height: 1.5;
+}
+
+.menuPlacementGrid {
   display: grid;
   gap: 10px;
 }
 
-.priceForm label:not(.activeToggle),
-.notes label,
+.menuPlacementGrid label {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.menuPlacementGrid label > span {
+  color: var(--muted);
+  font-size: 0.63rem;
+  font-weight: 900;
+}
+
+.menuPlacementGrid small {
+  color: #765500;
+  font-size: 0.58rem;
+  line-height: 1.4;
+}
+
+.priceFields {
+  display: grid;
+  gap: 10px;
+}
+
+.priceFields label:not(.activeToggle),
+.noteFields label,
 .variantRow label:not(.variantActive) {
   display: grid;
   gap: 5px;
 }
 
-.priceForm label > span,
-.notes label > span,
+.priceFields label > span,
+.noteFields label > span,
 .variantRow label > span,
 .activeToggle span,
 .variantActive span {
   color: var(--muted);
-  font-size: 0.64rem;
+  font-size: 0.63rem;
   font-weight: 900;
 }
 
@@ -203,22 +476,24 @@
 }
 
 .notes {
+  margin-top: 10px;
   padding: 10px 11px;
   border: 1px solid var(--line);
   border-radius: 11px;
   background: rgba(0, 71, 187, 0.025);
 }
 
-.notes summary {
+.notes > summary {
   cursor: pointer;
   color: var(--blue);
-  font-size: 0.68rem;
+  font-size: 0.67rem;
   font-weight: 900;
 }
 
-.notes[open] {
+.noteFields {
   display: grid;
   gap: 10px;
+  margin-top: 10px;
 }
 
 .variants {
@@ -265,23 +540,40 @@
 }
 
 .noVariants,
-.missingText,
 .empty {
   color: var(--muted);
   font-size: 0.72rem;
   line-height: 1.5;
 }
 
-.missingText {
-  margin: 0;
-  padding: 10px 11px;
-  border-radius: 11px;
-  background: rgba(161, 38, 38, 0.055);
-}
-
 .empty {
   padding: 30px;
   text-align: center;
+}
+
+.saveBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+  background: rgba(244, 239, 230, 0.96);
+  backdrop-filter: blur(14px);
+}
+
+.saveBar p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.64rem;
+  line-height: 1.45;
+}
+
+.saveBar button {
+  flex: 0 0 auto;
 }
 
 @media (min-width: 720px) {
@@ -294,20 +586,25 @@
     align-self: end;
   }
 
-  .priceForm {
-    grid-template-columns: minmax(110px, 0.75fr) minmax(140px, 1fr);
+  .priceFields {
+    grid-template-columns: minmax(115px, 0.8fr) minmax(145px, 1fr);
     align-items: end;
   }
 
-  .priceForm .activeToggle,
-  .priceForm .notes,
-  .priceForm button,
-  .priceForm .missingText {
+  .menuPlacementGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .priceFields .activeToggle {
     grid-column: 1 / -1;
   }
 
+  .noteFields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .variantRow {
-    grid-template-columns: minmax(110px, 1fr) 92px 90px minmax(130px, 1fr) auto;
+    grid-template-columns: minmax(105px, 0.9fr) 105px 90px minmax(130px, 1fr);
     align-items: end;
   }
 }
@@ -328,5 +625,135 @@
 
   .branchCard:nth-child(n + 3) {
     border-top: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 1250px) {
+  .tableHeader,
+  .productSummary {
+    grid-template-columns:
+      minmax(180px, 1.25fr)
+      minmax(100px, 0.7fr)
+      minmax(76px, 0.5fr)
+      minmax(205px, 1.45fr)
+      minmax(72px, 0.5fr)
+      minmax(110px, 0.7fr)
+      minmax(64px, 0.4fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 980px) {
+  .pricingTable {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .tableHeader {
+    display: none;
+  }
+
+  .productList {
+    gap: 14px;
+  }
+
+  .productCard {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+  }
+
+  .productSummary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 0;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .productNameCell,
+  .branchSummary {
+    grid-column: 1 / -1;
+  }
+
+  .productNameCell strong {
+    white-space: normal;
+  }
+
+  .summaryCell,
+  .openAction {
+    display: grid;
+    gap: 4px;
+  }
+
+  .summaryCell::before,
+  .openAction::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.56rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .branchSummary {
+    display: flex;
+  }
+
+  .branchSummary::before {
+    width: 100%;
+  }
+
+  .openAction {
+    align-content: end;
+    justify-content: end;
+  }
+}
+
+@media (max-width: 640px) {
+  .editorHead,
+  .saveBar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .editorHead a {
+    width: fit-content;
+  }
+
+  .branchCard {
+    padding: 16px;
+  }
+
+  .branchHead {
+    align-items: flex-start;
+  }
+
+  .branchState {
+    max-width: 140px;
+  }
+
+  .saveBar button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 440px) {
+  .productSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .productNameCell,
+  .branchSummary {
+    grid-column: auto;
+  }
+
+  .priceChip {
+    flex: 1 1 120px;
+  }
+
+  .openAction {
+    justify-content: start;
   }
 }

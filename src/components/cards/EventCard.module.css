@@ -1,24 +1,39 @@
 .listCard {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "date"
+    "body";
+  min-width: 0;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.52);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.listCard.hasImage {
+  grid-template-areas:
+    "date"
+    "image"
+    "body";
 }
 
 .listDate {
+  grid-area: date;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
-  padding: 18px 20px;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px 18px;
   background: var(--blue);
   color: var(--white);
 }
 
 .listDate span,
 .listDate small {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -31,11 +46,77 @@
 }
 
 .listDate small {
+  min-width: 0;
   justify-self: end;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .announcementDate {
   background: var(--ink);
+}
+
+.listImage {
+  grid-area: image;
+  min-width: 0;
+  min-height: 190px;
+  margin: 0;
+  overflow: hidden;
+  background: rgba(0, 71, 187, 0.08);
+  aspect-ratio: 16 / 10;
+}
+
+.listImage img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.listBody {
+  grid-area: body;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: clamp(20px, 4.5vw, 34px);
+}
+
+.listTags {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.listTags span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  transform: translateY(0) rotate(0);
+  transition:
+    transform 180ms var(--ease),
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .listTags span:hover {
+    border-color: rgba(0, 71, 187, 0.32);
+    background: rgba(0, 71, 187, 0.08);
+    box-shadow: 0 8px 18px rgba(0, 71, 187, 0.12);
+    transform: translateY(-3px) rotate(-1deg);
+  }
+
+  .listTags span:nth-child(even):hover {
+    transform: translateY(-3px) rotate(1deg);
+  }
+
+  .listTags .typeBadge:hover {
+    background: var(--blue);
+    color: var(--white);
+  }
 }
 
 .typeBadge {
@@ -43,59 +124,55 @@
   color: var(--blue);
 }
 
-.listImage {
-  min-height: 220px;
-  margin: 0;
-  overflow: hidden;
-  border-radius: 22px;
-  background: rgba(0, 71, 187, 0.08);
-}
-
-.listImage img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.listCard:has(.listImage) {
-  grid-template-columns: auto minmax(170px, 0.34fr) minmax(0, 1fr);
-}
-
-.listBody {
-  padding: 24px 20px;
-}
-
 .listBody h2 {
-  margin: 22px 0 16px;
-  font-size: clamp(1.65rem, 7vw, 3rem);
+  max-width: 100%;
+  margin: clamp(18px, 3vw, 26px) 0 14px;
+  font-size: clamp(1.85rem, 6.5vw, 3.35rem);
+  line-height: 0.98;
+  overflow-wrap: anywhere;
 }
 
 .listBody > p {
-  margin-bottom: 28px;
+  max-width: 68ch;
+  margin: 0 0 28px;
   color: var(--muted);
+  line-height: 1.58;
+  overflow-wrap: anywhere;
 }
 
 .listFooter {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  margin-top: auto;
   padding-top: 20px;
   border-top: 1px solid var(--line);
 }
 
 .listFooter > span {
+  min-width: 0;
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 700;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .calendarButton {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
   min-height: 48px;
-  padding: 0 18px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
   border-radius: 999px;
   background: var(--blue);
   color: var(--white);
   font-weight: 900;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
   cursor: pointer;
 }
 
@@ -103,14 +180,16 @@
   display: grid;
   gap: 26px;
   align-items: center;
-  padding: 34px;
+  min-width: 0;
+  padding: clamp(24px, 5vw, 34px);
   border: 1px dashed rgba(0, 71, 187, 0.45);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.46);
+  background: rgba(255, 255, 255, 0.58);
 }
 
 .zeroState h2 {
   margin-bottom: 16px;
+  overflow-wrap: anywhere;
 }
 
 .zeroState p:not(:global(.eyebrow)) {
@@ -125,44 +204,122 @@
   font-weight: 900;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 600px) {
+  .listFooter {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .calendarButton {
+    flex: 0 0 auto;
+  }
+}
+
+@media (min-width: 700px) {
   .listCard {
-    grid-template-columns: 150px 1fr;
+    grid-template-columns: 128px minmax(0, 1fr);
+    grid-template-areas: "date body";
+  }
+
+  .listCard.hasImage {
+    grid-template-areas:
+      "date image"
+      "body body";
   }
 
   .listDate {
     grid-template-columns: 1fr;
     align-content: start;
     justify-items: center;
-    padding: 30px 20px;
+    gap: 9px;
+    padding: 28px 16px;
+    text-align: center;
   }
 
   .listDate strong {
-    font-size: 4.5rem;
+    font-size: 4rem;
   }
 
   .listDate small {
     justify-self: center;
-  }
-
-  .listBody {
-    padding: 34px;
-  }
-
-  .listFooter {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-}
-
-@media (max-width: 760px) {
-  .listCard:has(.listImage) {
-    grid-template-columns: 1fr;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
   }
 
   .listImage {
-    min-height: 210px;
-    aspect-ratio: 16 / 10;
+    min-height: 245px;
+    aspect-ratio: 16 / 9;
+  }
+
+  .listBody h2 {
+    font-size: clamp(2.1rem, 5vw, 3.35rem);
+  }
+}
+
+@media (min-width: 960px) {
+  .listCard {
+    grid-template-columns: 132px minmax(0, 1fr);
+    grid-template-areas: "date body";
+  }
+
+  .listCard.hasImage {
+    grid-template-columns: 132px minmax(220px, 0.38fr) minmax(0, 1fr);
+    grid-template-areas: "date image body";
+  }
+
+  .listDate {
+    padding: 30px 18px;
+  }
+
+  .listDate strong {
+    font-size: 4.35rem;
+  }
+
+  .listImage {
+    min-height: 290px;
+    aspect-ratio: auto;
+  }
+
+  .listBody {
+    padding: clamp(26px, 3vw, 38px);
+  }
+
+  .listBody h2 {
+    font-size: clamp(2.35rem, 4vw, 3.75rem);
+  }
+}
+
+@media (max-width: 479px) {
+  .listDate {
+    grid-template-columns: auto auto minmax(0, 1fr);
+    padding: 14px 16px;
+  }
+
+  .listDate strong {
+    font-size: 2.2rem;
+  }
+
+  .listImage {
+    min-height: 170px;
+  }
+
+  .listBody {
+    padding: 18px 16px 20px;
+  }
+
+  .listBody h2 {
+    font-size: clamp(1.7rem, 10vw, 2.35rem);
+  }
+
+  .calendarButton {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .listTags span {
+    transition: none;
   }
 }

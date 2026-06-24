@@ -12,6 +12,7 @@
 .page > :global(.container) {
   position: relative;
   z-index: 1;
+  min-width: 0;
 }
 
 .page :global(.events-page-lower-doodles .merch-doodle) {
@@ -55,24 +56,29 @@
 }
 
 .filterStack {
-  position: sticky;
-  top: calc(var(--header-height) + 10px);
+  position: relative;
   z-index: 20;
   display: grid;
+  min-width: 0;
   gap: 10px;
-  margin-bottom: 28px;
+  margin-bottom: 30px;
 }
 
 .filterBar {
   display: flex;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   gap: 8px;
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
   padding: 8px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(244, 239, 230, 0.9);
+  background: rgba(244, 239, 230, 0.96);
   backdrop-filter: blur(16px);
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .filterBar::-webkit-scrollbar {
@@ -80,10 +86,11 @@
 }
 
 .branchBar {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.92);
 }
 
 .filterButton {
+  flex: 0 0 auto;
   min-width: max-content;
   min-height: 44px;
   padding: 0 18px;
@@ -91,6 +98,7 @@
   background: transparent;
   color: var(--muted);
   font-weight: 800;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -101,13 +109,43 @@
 
 .list {
   display: grid;
-  gap: 16px;
+  min-width: 0;
+  gap: 18px;
 }
 
 .empty {
-  padding: 50px 20px;
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  margin: 0;
+  padding: 42px 20px;
   border: 1px dashed var(--line);
   border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.52);
   color: var(--muted);
   text-align: center;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding-top: 28px;
+  }
+
+  .filterStack {
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+
+  .filterBar {
+    padding: 6px;
+  }
+
+  .filterButton {
+    min-height: 42px;
+    padding-inline: 15px;
+  }
+
+  .list {
+    gap: 14px;
+  }
 }

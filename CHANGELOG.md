@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+### Otomatik sıralama ve güvenli kalıcı silme
+
+- Generic admin formlarındaki görünür `Sıra` alanları kaldırıldı; yeni kayıtlar kendi tablo ve ilişki kapsamlarında otomatik olarak listenin sonuna yerleştiriliyor.
+- Ürün kategori değiştirdiğinde veya ilişkisel kayıt başka bir şube/sayfa grubuna taşındığında yeni grubun sırası otomatik yeniden hesaplanıyor.
+- Fiyat Yönetimi'nde menü bağlantısı bulunmayan şubelerde yanıltıcı aktiflik kontrolü kaldırıldı; kontrollü ekleme tamamlandığında doğrudan ilgili ürün-şube varyant formu açılıyor.
+- TEST adına bağlı kalıcı silme modeli kaldırıldı. Kalıcı silme yalnız pasif veya arşivlenmiş generic kayıtlarda, yazılı `KALICI SİL` onayıyla açılıyor.
+- Ürün silme işlemi mevcut foreign key kurallarını kullanıyor: ürünün şube fiyatları ve varyantları cascade ile temizlenirken bağlı kategori korunuyor. Üst kaydı kullanılan kategori gibi kayıtlar DB tarafından güvenli biçimde engelleniyor.
+- Dashboard güvenlik açıklaması güncel pasif/arşiv ve alt kayıt temizleme davranışını anlatacak şekilde yenilendi.
+- Otomatik sıra, grup değişikliği, aktif kayıt silme engeli, pasif ürün silme ve FK cascade/restrict sözleşmeleri için regresyon testleri eklendi.
+
+### Dinamik admin tabloları ve kontrollü şubeye ürün ekleme
+
+- Generic admin CRUD tablolarında yalnız “Düzenle” bağlantısı yerine satırın tamamı tıklanabilir genişletilebilir düzenleme alanına dönüştürüldü; kaynak türüne uygun özet kolonları, rozetler ve mobil kart görünümü korundu.
+- Kariyer başvuruları her aday satırından açılan inline değerlendirme, CV, retention ve anonimleştirme araçlarıyla dinamikleştirildi.
+- Medya Kütüphanesi her görsel satırından açılan büyük önizleme, kullanım bağlantıları, bilgi güncelleme, dosya değiştirme, arşiv ve silme araçlarıyla yeniden tasarlandı; mevcut bağlantı koruma ve otomatik detach iş mantığı korunuyor.
+- Fiyat Yönetimi'ndeki eksik şube akışı hedef kategori ve isteğe bağlı varyant kopyalama seçimini admin onayına sunan kontrollü forma dönüştürüldü; kategori-şube ve ürün sırası artık sistem tarafından otomatik belirleniyor.
+- Yeni `add_admin_menu_item_to_branch` RPC'si ürün, kategori-şube, ürün-şube ve seçili varyant kayıtlarını tek transaction içinde oluşturuyor veya güncelliyor; bütün işlem semantic audit kaydıyla tamamlanıyor.
+- Gelişmiş varyant yönetimi bağlantısı artık tıklanan ürün-şube kaydını query parametresiyle kesin olarak önceden seçiyor; daha önce seçilmiş başka ürünün formda kalması engellendi.
+- Yeni migration: `20260624030000_admin_menu_branch_add_flow.sql`; yeni pgTAP: `menu_branch_add.test.sql`.
+- Dinamik tablo, medya responsive davranışı, kontrollü fiyat akışı, prefill ve action yönlendirmeleri için unit regresyon testleri güncellendi.
+
+### Medya kütüphanesi kullanım akışı
+
+- Medya listesindeki bütün public görseller aynı medya UUID'si korunarak yeni dosyayla değiştirilebilir hâle getirildi; içerik bağlantılarını tek tek güncelleme ihtiyacı kaldırıldı.
+- Yerel, harici veya Storage kaynağı yeni Storage dosyasına dönüştürülebiliyor; content block içindeki eski yol/URL referansları transaction içinde yeni public URL'ye taşınıyor.
+- Kalıcı silmede menü, etkinlik, merch, Instagram ve JSON içerik bağlantıları otomatik temizleniyor; local fiziksel paket dosyasına dokunulmadan DB/public kullanım kaldırılıyor.
+- 1280 px ve üzerindeki ekranlarda medya editörü listenin sağına sticky panel olarak alındı; dar ekranda listenin üstüne taşınıyor.
+- Düzenleme bağlantıları `#media-editor` hedefiyle yumuşak geçiş yapıyor; yeni görsel, yayındakiler, arşiv ve tüm görseller için hızlı kısayollar eklendi.
+- Merch ön ve arka tişört görselleri aktif medya kayıtlarından çözülüyor; arşiv/silme sonrasında eski hardcoded görsele dönmek yerine kontrollü placeholder gösteriliyor.
+- Yeni migration: `20260624020000_media_replace_and_auto_detach.sql`.
+- Medya replacement, otomatik detach, responsive editör ve hardcoded public fallback engeli için unit kontratları eklendi.
+
 ### Admin işlem geri bildirimi ve sadeleştirme
 
 - Medya yükleme, güncelleme, arşivleme, geri alma ve kalıcı silme sonrasındaki Türkçe başarı/hata mesajları `URLSearchParams` ile güvenli biçimde encode ediliyor; başarılı veritabanı işleminden sonra `This page couldn’t load` ekranına düşme sorunu giderildi.

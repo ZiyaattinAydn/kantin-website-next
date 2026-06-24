@@ -202,3 +202,42 @@
     font-size: 2rem;
   }
 }
+
+.advancedNav {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.advancedNav summary {
+  padding: 9px 12px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 0.69rem;
+  font-weight: 900;
+  cursor: pointer;
+  list-style: none;
+}
+
+.advancedNav summary::-webkit-details-marker {
+  display: none;
+}
+
+.advancedNav summary::after {
+  content: "+";
+  float: right;
+}
+
+.advancedNav[open] summary::after {
+  content: "−";
+}
+
+.advancedNav > div {
+  display: grid;
+  gap: 3px;
+  padding-left: 8px;
+}
+
+.advancedNav > div a {
+  font-size: 0.72rem;
+}

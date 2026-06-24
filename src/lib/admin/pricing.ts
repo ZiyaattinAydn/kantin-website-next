@@ -1,6 +1,19 @@
 const MAX_PRICE_CENTS = 100_000_000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+export type BranchPricingField =
+  | "record_id"
+  | "create"
+  | "price"
+  | "price_label"
+  | "price_note"
+  | "availability_note"
+  | "is_active"
+  | "category_id"
+  | "copy_variants_from_branch_id";
+
+export type VariantPricingField = "record_id" | "price" | "price_note" | "is_active";
+
 export function parseTryPrice(value: string, nullable: true): number | null;
 export function parseTryPrice(value: string, nullable?: false): number;
 export function parseTryPrice(value: string, nullable = false): number | null {
@@ -48,6 +61,76 @@ export function optionalText(value: FormDataEntryValue | null, maxLength: number
   if (!text) return null;
   if (text.length > maxLength) throw new Error(`Metin en fazla ${maxLength} karakter olabilir.`);
   return text;
+}
+
+export function branchPricingField(branchId: string, field: BranchPricingField): string {
+  return `branch.${branchId}.${field}`;
+}
+
+export function variantPricingField(variantId: string, field: VariantPricingField): string {
+  return `variant.${variantId}.${field}`;
+}
+
+type BranchPriceSummaryRow = {
+  id?: string;
+  menu_item_id?: string;
+  branch_id?: string;
+  price_cents: number | null;
+};
+
+type VariantPriceSummaryRow = {
+  menu_item_branch_id?: string;
+  label?: string | null;
+  price_cents: number | null;
+  is_active: boolean;
+};
+
+export type BranchDisplayPrice = {
+  priceCents: number;
+  source: "branch" | "variant";
+  variantLabel: string | null;
+};
+
+export function resolveBranchDisplayPrice(
+  branchPrice: Pick<BranchPriceSummaryRow, "id" | "price_cents"> | null | undefined,
+  variants: VariantPriceSummaryRow[] = [],
+): BranchDisplayPrice | null {
+  let highestPrice = branchPrice?.price_cents ?? null;
+  let source: BranchDisplayPrice["source"] = "branch";
+  let variantLabel: string | null = null;
+
+  for (const variant of variants) {
+    if (!variant.is_active || variant.price_cents === null) continue;
+    if (highestPrice === null || variant.price_cents > highestPrice) {
+      highestPrice = variant.price_cents;
+      source = "variant";
+      variantLabel = variant.label?.trim() || null;
+    }
+  }
+
+  return highestPrice === null
+    ? null
+    : { priceCents: highestPrice, source, variantLabel };
+}
+
+export function hasMissingBranchPrice(
+  menuItemId: string,
+  branchIds: string[],
+  prices: Array<BranchPriceSummaryRow & { menu_item_id: string; branch_id: string }>,
+  variants: VariantPriceSummaryRow[] = [],
+): boolean {
+  return branchIds.some((branchId) => {
+    const branchPrice = prices.find(
+      (price) => price.menu_item_id === menuItemId && price.branch_id === branchId,
+    );
+    if (!branchPrice) return true;
+
+    const branchVariants = branchPrice.id
+      ? variants.filter((variant) => variant.menu_item_branch_id === branchPrice.id)
+      : [];
+
+    return resolveBranchDisplayPrice(branchPrice, branchVariants) === null;
+  });
 }
 
 const RETURN_QUERY_KEYS = new Set([

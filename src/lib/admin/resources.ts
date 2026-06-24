@@ -21,10 +21,6 @@ export type AdminFieldType =
   | "string-array"
   | "foreign";
 
-export function isAdminInternalFieldName(name: string): boolean {
-  return name === "sort_order";
-}
-
 export type AdminOptionSource =
   | "branches"
   | "categories"
@@ -63,8 +59,8 @@ type AdminResourceFor<Table extends AdminTable> = {
   orderField: AdminColumn<Table>;
   allowCreate?: boolean;
   allowArchive?: boolean;
-  allowHardDeleteTest?: boolean;
-  testFields?: readonly string[];
+  allowHardDelete?: boolean;
+  orderScopeFields?: readonly AdminColumn<Table>[];
   activeField?: Extract<AdminColumn<Table>, "is_active" | "is_available">;
   statusField?: Extract<AdminColumn<Table>, "status">;
 };
@@ -85,16 +81,15 @@ const resources: readonly AdminResource[] = [
     table: "menu_categories",
     title: "Menü kategorileri",
     singular: "kategori",
-    description: "Kategori adları, görünüm tipi ve yayın durumu.",
+    description: "Kategori adları, görünüm tipi ve yayın durumu. Yeni kategoriler otomatik sıraya alınır.",
     group: "menu",
-    listFields: ["name", "slug", "display_type", "status", "is_active", "sort_order"],
+    listFields: ["name", "slug", "display_type", "status", "is_active"],
     labelField: "name",
     searchFields: ["name", "slug", "description"],
     orderField: "sort_order",
     allowCreate: true,
     allowArchive: true,
-    allowHardDeleteTest: true,
-    testFields: ["name", "slug"],
+    allowHardDelete: true,
     activeField: "is_active",
     statusField: "status",
     fields: [
@@ -119,7 +114,6 @@ const resources: readonly AdminResource[] = [
       },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
-      { name: "sort_order", label: "Sıra", type: "number", required: true, defaultValue: 0 },
     ],
   },
   {
@@ -127,14 +121,16 @@ const resources: readonly AdminResource[] = [
     table: "menu_category_branches",
     title: "Kategori - şube ilişkileri",
     singular: "kategori şube ilişkisi",
-    description: "Kategorilerin Alsancak ve Atakent görünürlüğünü yönet.",
+    description: "Kategorilerin Alsancak ve Atakent görünürlüğünü yönet. Menü sırası otomatik belirlenir.",
     group: "menu",
-    listFields: ["category_id", "branch_id", "display_name", "is_active", "sort_order"],
+    listFields: ["category_id", "branch_id", "display_name", "is_active"],
     labelField: "display_name",
     searchFields: ["display_name", "description"],
     orderField: "sort_order",
+    orderScopeFields: ["branch_id"],
     allowCreate: true,
     allowArchive: true,
+    allowHardDelete: true,
     activeField: "is_active",
     fields: [
       { name: "category_id", label: "Kategori", type: "foreign", optionSource: "categories", required: true },
@@ -142,7 +138,6 @@ const resources: readonly AdminResource[] = [
       { name: "display_name", label: "Şubeye özel ad", type: "text", nullable: true },
       { name: "description", label: "Şubeye özel açıklama", type: "textarea", nullable: true, rows: 3 },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
-      { name: "sort_order", label: "Sıra", type: "number", required: true, defaultValue: 0 },
     ],
   },
   {
@@ -152,14 +147,14 @@ const resources: readonly AdminResource[] = [
     singular: "menü ürünü",
     description: "Ürün adı, açıklama, alerjen, görsel, kategori ve yayın durumu.",
     group: "menu",
-    listFields: ["name", "category_id", "slug", "status", "is_active", "sort_order"],
+    listFields: ["name", "category_id", "slug", "status", "is_active"],
     labelField: "name",
     searchFields: ["name", "slug", "description", "allergen_text"],
     orderField: "sort_order",
+    orderScopeFields: ["category_id"],
     allowCreate: true,
     allowArchive: true,
-    allowHardDeleteTest: true,
-    testFields: ["name", "slug"],
+    allowHardDelete: true,
     activeField: "is_active",
     statusField: "status",
     fields: [
@@ -175,7 +170,6 @@ const resources: readonly AdminResource[] = [
       { name: "image_media_id", label: "Ürün görseli", type: "foreign", optionSource: "media", nullable: true },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
-      { name: "sort_order", label: "Sıra", type: "number", required: true, defaultValue: 0 },
     ],
   },
   {
@@ -185,12 +179,14 @@ const resources: readonly AdminResource[] = [
     singular: "ürün şube fiyatı",
     description: "Ürünün şubede bulunması, temel fiyatı ve görünürlük notları.",
     group: "menu",
-    listFields: ["menu_item_id", "branch_id", "price_cents", "price_label", "is_active", "sort_order"],
+    listFields: ["menu_item_id", "branch_id", "price_cents", "price_label", "is_active"],
     labelField: "price_label",
     searchFields: ["price_label", "price_note", "availability_note"],
     orderField: "sort_order",
+    orderScopeFields: ["branch_id"],
     allowCreate: true,
     allowArchive: true,
+    allowHardDelete: true,
     activeField: "is_active",
     fields: [
       { name: "menu_item_id", label: "Ürün", type: "foreign", optionSource: "menu-items", required: true },
@@ -200,7 +196,6 @@ const resources: readonly AdminResource[] = [
       { name: "price_note", label: "Fiyat notu", type: "text", nullable: true },
       { name: "availability_note", label: "Bulunabilirlik notu", type: "text", nullable: true },
       { name: "is_active", label: "Bu şubede aktif", type: "checkbox", defaultValue: true },
-      { name: "sort_order", label: "Sıra", type: "number", required: true, defaultValue: 0 },
     ],
   },
   {
@@ -210,12 +205,14 @@ const resources: readonly AdminResource[] = [
     singular: "fiyat varyantı",
     description: "Yarım/tam, hacim, kadeh/karaf gibi ürün seçenekleri.",
     group: "menu",
-    listFields: ["menu_item_branch_id", "label", "slug", "price_cents", "is_active", "sort_order"],
+    listFields: ["menu_item_branch_id", "label", "slug", "price_cents", "is_active"],
     labelField: "label",
     searchFields: ["label", "slug", "detail", "price_note"],
     orderField: "sort_order",
+    orderScopeFields: ["menu_item_branch_id"],
     allowCreate: true,
     allowArchive: true,
+    allowHardDelete: true,
     activeField: "is_active",
     fields: [
       { name: "menu_item_branch_id", label: "Ürün ve şube", type: "foreign", optionSource: "menu-item-branches", required: true },
@@ -225,7 +222,6 @@ const resources: readonly AdminResource[] = [
       { name: "price_cents", label: "Fiyat (TL)", type: "money", required: true },
       { name: "price_note", label: "Fiyat notu", type: "text", nullable: true },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
-      { name: "sort_order", label: "Sıra", type: "number", required: true, defaultValue: 0 },
     ],
   },
   {
@@ -241,8 +237,7 @@ const resources: readonly AdminResource[] = [
     orderField: "sort_order",
     allowCreate: true,
     allowArchive: true,
-    allowHardDeleteTest: true,
-    testFields: ["title", "slug"],
+    allowHardDelete: true,
     activeField: "is_active",
     statusField: "status",
     fields: [
@@ -274,7 +269,6 @@ const resources: readonly AdminResource[] = [
       { name: "published_at", label: "Yayın zamanı", type: "datetime", nullable: true },
       { name: "publish_start_at", label: "Yayın başlangıcı", type: "datetime", nullable: true },
       { name: "publish_end_at", label: "Yayın bitişi", type: "datetime", nullable: true },
-      { name: "sort_order", label: "Sıra", type: "number", required: true, defaultValue: 0 },
     ],
   },
   {
@@ -284,18 +278,19 @@ const resources: readonly AdminResource[] = [
     singular: "etkinlik şube ilişkisi",
     description: "Etkinliğin hangi şubelerde gösterileceğini belirle.",
     group: "events",
-    listFields: ["event_id", "branch_id", "is_active", "sort_order"],
+    listFields: ["event_id", "branch_id", "is_active"],
     labelField: "event_id",
     searchFields: [],
     orderField: "sort_order",
+    orderScopeFields: ["branch_id"],
     allowCreate: true,
     allowArchive: true,
+    allowHardDelete: true,
     activeField: "is_active",
     fields: [
       { name: "event_id", label: "Etkinlik", type: "foreign", optionSource: "events", required: true },
       { name: "branch_id", label: "Şube", type: "foreign", optionSource: "branches", required: true },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
-      { name: "sort_order", label: "Sıra", type: "number", required: true, defaultValue: 0 },
     ],
   },
   {
@@ -311,8 +306,7 @@ const resources: readonly AdminResource[] = [
     orderField: "sort_order",
     allowCreate: true,
     allowArchive: true,
-    allowHardDeleteTest: true,
-    testFields: ["name", "slug", "sku"],
+    allowHardDelete: true,
     activeField: "is_active",
     statusField: "status",
     fields: [
@@ -329,7 +323,6 @@ const resources: readonly AdminResource[] = [
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
       { name: "published_at", label: "Yayın zamanı", type: "datetime", nullable: true },
-      { name: "sort_order", label: "Sıra", type: "number", required: true, defaultValue: 0 },
     ],
   },
   {
@@ -339,18 +332,19 @@ const resources: readonly AdminResource[] = [
     singular: "merch şube ilişkisi",
     description: "Merch ürününün hangi şubede bulunduğunu belirle.",
     group: "merch",
-    listFields: ["merch_product_id", "branch_id", "is_available", "sort_order"],
+    listFields: ["merch_product_id", "branch_id", "is_available"],
     labelField: "merch_product_id",
     searchFields: [],
     orderField: "sort_order",
+    orderScopeFields: ["branch_id"],
     allowCreate: true,
     allowArchive: true,
+    allowHardDelete: true,
     activeField: "is_available",
     fields: [
       { name: "merch_product_id", label: "Merch ürünü", type: "foreign", optionSource: "merch-products", required: true },
       { name: "branch_id", label: "Şube", type: "foreign", optionSource: "branches", required: true },
       { name: "is_available", label: "Bu şubede mevcut", type: "checkbox", defaultValue: true },
-      { name: "sort_order", label: "Sıra", type: "number", required: true, defaultValue: 0 },
     ],
   },
   {
@@ -358,16 +352,16 @@ const resources: readonly AdminResource[] = [
     table: "instagram_posts",
     title: "Instagram gönderileri",
     singular: "Instagram gönderisi",
-    description: "Gönderi bağlantısı, görsel, açıklama ve yayın tarihi.",
+    description: "Gönderi bağlantısı, görsel, açıklama ve tarih bilgilerini yönet. Liste sırası otomatik belirlenir.",
     group: "content",
-    listFields: ["caption", "published_at", "branch_id", "status", "is_active", "sort_order"],
+    listFields: ["caption", "published_at", "branch_id", "status", "is_active"],
     labelField: "caption",
     searchFields: ["caption", "permalink", "external_id"],
     orderField: "sort_order",
+    orderScopeFields: ["branch_id"],
     allowCreate: true,
     allowArchive: true,
-    allowHardDeleteTest: true,
-    testFields: ["caption", "external_id"],
+    allowHardDelete: true,
     activeField: "is_active",
     statusField: "status",
     fields: [
@@ -380,7 +374,6 @@ const resources: readonly AdminResource[] = [
       { name: "published_at", label: "Gönderi tarihi", type: "datetime", required: true },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
-      { name: "sort_order", label: "Sıra", type: "number", required: true, defaultValue: 0 },
     ],
   },
   {
@@ -390,12 +383,13 @@ const resources: readonly AdminResource[] = [
     singular: "şube",
     description: "Adres, harita, iletişim, çalışma saatleri ve yayın durumu.",
     group: "site",
-    listFields: ["name", "code", "district", "city", "status", "is_active", "sort_order"],
+    listFields: ["name", "code", "district", "city", "status", "is_active"],
     labelField: "name",
     searchFields: ["name", "slug", "code", "address_line", "district", "city"],
     orderField: "sort_order",
     allowCreate: false,
     allowArchive: true,
+    allowHardDelete: true,
     activeField: "is_active",
     statusField: "status",
     fields: [
@@ -411,7 +405,6 @@ const resources: readonly AdminResource[] = [
       { name: "opening_hours", label: "Çalışma saatleri (JSON)", type: "json", required: true, help: "Örnek: {\"note\":\"Her gün 09:00-00:00\"}" },
       { name: "status", label: "Yayın durumu", type: "select", required: true, options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox" },
-      { name: "sort_order", label: "Sıra", type: "number", required: true },
     ],
   },
   {
@@ -421,14 +414,13 @@ const resources: readonly AdminResource[] = [
     singular: "site ayarı",
     description: "Footer, sosyal medya, iletişim ve bölüm görünürlüklerini JSON değerlerle yönet.",
     group: "site",
-    listFields: ["key", "description", "is_public", "status", "is_active", "sort_order"],
+    listFields: ["key", "description", "is_public", "status", "is_active"],
     labelField: "key",
     searchFields: ["key", "description"],
     orderField: "sort_order",
     allowCreate: true,
     allowArchive: true,
-    allowHardDeleteTest: true,
-    testFields: ["key"],
+    allowHardDelete: true,
     activeField: "is_active",
     statusField: "status",
     fields: [
@@ -438,7 +430,6 @@ const resources: readonly AdminResource[] = [
       { name: "is_public", label: "Public siteden okunabilir", type: "checkbox" },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
-      { name: "sort_order", label: "Sıra", type: "number", required: true, defaultValue: 0 },
     ],
   },
   {
@@ -448,14 +439,13 @@ const resources: readonly AdminResource[] = [
     singular: "site sayfası",
     description: "Sayfa başlıkları, SEO metinleri ve yayın durumu.",
     group: "content",
-    listFields: ["title", "slug", "status", "is_active", "sort_order"],
+    listFields: ["title", "slug", "status", "is_active"],
     labelField: "title",
     searchFields: ["title", "slug", "seo_title", "seo_description"],
     orderField: "sort_order",
     allowCreate: true,
     allowArchive: true,
-    allowHardDeleteTest: true,
-    testFields: ["title", "slug"],
+    allowHardDelete: true,
     activeField: "is_active",
     statusField: "status",
     fields: [
@@ -467,7 +457,6 @@ const resources: readonly AdminResource[] = [
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
       { name: "published_at", label: "Yayın zamanı", type: "datetime", nullable: true },
-      { name: "sort_order", label: "Sıra", type: "number", required: true, defaultValue: 0 },
     ],
   },
   {
@@ -477,14 +466,14 @@ const resources: readonly AdminResource[] = [
     singular: "içerik bloğu",
     description: "Hero, Anılarımız, galeri ve diğer sayfa metinlerinin kontrollü JSON içeriği.",
     group: "content",
-    listFields: ["key", "page_id", "block_type", "status", "is_active", "sort_order"],
+    listFields: ["key", "page_id", "block_type", "status", "is_active"],
     labelField: "key",
     searchFields: ["key", "block_type"],
     orderField: "sort_order",
+    orderScopeFields: ["page_id"],
     allowCreate: true,
     allowArchive: true,
-    allowHardDeleteTest: true,
-    testFields: ["key"],
+    allowHardDelete: true,
     activeField: "is_active",
     statusField: "status",
     fields: [
@@ -494,7 +483,6 @@ const resources: readonly AdminResource[] = [
       { name: "content", label: "İçerik (JSON)", type: "json", required: true },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
-      { name: "sort_order", label: "Sıra", type: "number", required: true, defaultValue: 0 },
     ],
   },
 ] as const;

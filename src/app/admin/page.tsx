@@ -114,11 +114,11 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className={styles.security}>
-        <strong>Test güvenliği</strong>
+        <strong>Silme güvenliği</strong>
         <p>
-          Mevcut içerikleri kalıcı silmek yerine pasife al veya arşivle. Kalıcı silme
-          yalnız adı <b>TEST_</b> ya da slug değeri <b>test-</b> ile başlayan deneme
-          kayıtlarında etkinleştirildi.
+          Kalıcı silme yalnız pasife alınmış veya arşivlenmiş kayıtlarda açılır.
+          Bir kayıt silindiğinde yalnızca ona bağlı alt kayıtlar temizlenir; kategori
+          gibi üst kayıtlar korunur ve bütün işlemler audit sistemine yazılır.
         </p>
       </div>
     </section>

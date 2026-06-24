@@ -22,15 +22,17 @@ const groups = [
       { href: "/admin/manage/menu-category-branches", label: "Kategori şubeleri" },
       { href: "/admin/manage/menu-items", label: "Ürünler" },
       { href: "/admin/pricing", label: "Fiyat yönetimi" },
-      { href: "/admin/manage/menu-item-branches", label: "Gelişmiş şube fiyatları" },
-      { href: "/admin/manage/menu-item-variants", label: "Gelişmiş varyantlar" },
+    ],
+    advancedLinks: [
+      { href: "/admin/manage/menu-item-branches", label: "Şube fiyat tablosu" },
+      { href: "/admin/manage/menu-item-variants", label: "Varyant tablosu" },
     ],
   },
   {
     label: "İçerik",
     links: [
-      { href: "/admin/manage/events", label: "Etkinlikler" },
-      { href: "/admin/manage/event-branches", label: "Etkinlik şubeleri" },
+      { href: "/admin/manage/events", label: "Etkinlikler ve Duyurular" },
+      { href: "/admin/manage/event-branches", label: "Etkinlik ve Duyuru şubeleri" },
       { href: "/admin/manage/merch-products", label: "Merch ürünleri" },
       { href: "/admin/manage/merch-product-branches", label: "Merch şubeleri" },
       { href: "/admin/manage/instagram-posts", label: "Instagram" },
@@ -113,6 +115,33 @@ export default function AdminShell({
                     </Link>
                   );
                 })}
+                {"advancedLinks" in group ? (
+                  <details
+                    className={styles.advancedNav}
+                    open={group.advancedLinks.some((link) =>
+                      pathname === link.href || pathname.startsWith(`${link.href}/`),
+                    )}
+                  >
+                    <summary>Gelişmiş</summary>
+                    <div>
+                      {group.advancedLinks.map((link) => {
+                        const active =
+                          pathname === link.href || pathname.startsWith(`${link.href}/`);
+                        return (
+                          <Link
+                            aria-current={active ? "page" : undefined}
+                            className={active ? styles.active : undefined}
+                            href={link.href}
+                            key={link.href}
+                            onClick={() => setOpen(false)}
+                          >
+                            {link.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </details>
+                ) : null}
               </div>
             </section>
           ))}

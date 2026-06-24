@@ -17,7 +17,6 @@ function baseMenuItemBranch() {
   formData.set("branch_id", "22222222-2222-4222-8222-222222222222");
   formData.set("price_cents", "12,34");
   formData.set("is_active", "on");
-  formData.set("sort_order", "2");
   return formData;
 }
 
@@ -29,8 +28,8 @@ describe("parseAdminResourcePayload", () => {
       branch_id: "22222222-2222-4222-8222-222222222222",
       is_active: true,
       price_cents: 1234,
-      sort_order: 2,
     });
+    expect(payload).not.toHaveProperty("sort_order");
   });
 
   it("foreign alanda serbest metni reddeder", () => {
@@ -48,7 +47,6 @@ describe("parseAdminResourcePayload", () => {
     formData.set("slug", "test-kategori");
     formData.set("display_type", "bilinmeyen");
     formData.set("status", "draft");
-    formData.set("sort_order", "0");
 
     expect(() => parseAdminResourcePayload(resource("menu-categories"), formData)).toThrowError(
       expect.objectContaining<Partial<AdminValidationError>>({ field: "display_type", code: "option" }),
@@ -62,7 +60,6 @@ describe("parseAdminResourcePayload", () => {
     formData.set("block_type", "hero");
     formData.set("content", "[]");
     formData.set("status", "draft");
-    formData.set("sort_order", "0");
 
     expect(() => parseAdminResourcePayload(resource("content-blocks"), formData)).toThrowError(
       expect.objectContaining<Partial<AdminValidationError>>({ field: "content", code: "json_shape" }),
@@ -84,7 +81,6 @@ describe("parseAdminResourcePayload", () => {
     formData.set("maps_url", "https://example.com/maps");
     formData.set("opening_hours", '{"items":[{"day":"Pazartesi"}]}');
     formData.set("status", "draft");
-    formData.set("sort_order", "0");
 
     expect(() => parseAdminResourcePayload(resource("branches"), formData)).toThrowError(
       expect.objectContaining<Partial<AdminValidationError>>({ field: "opening_hours", code: "json_shape" }),
@@ -103,7 +99,6 @@ describe("parseAdminResourcePayload", () => {
       homeSectionOrder: ["menu", "merch", "memories", "events", "branches"],
     }));
     formData.set("status", "published");
-    formData.set("sort_order", "9");
 
     expect(parseAdminResourcePayload(resource("site-settings"), formData).value).toMatchObject({
       cardDensity: "airy",
@@ -131,7 +126,6 @@ describe("parseAdminResourcePayload", () => {
     formData.set("is_active", "on");
     formData.set("publish_start_at", "2026-06-23T10:00");
     formData.set("publish_end_at", "2099-06-23T10:00");
-    formData.set("sort_order", "5");
 
     const payload = parseAdminResourcePayload(resource("events"), formData);
 
@@ -140,7 +134,6 @@ describe("parseAdminResourcePayload", () => {
       title: "TEST_ Duyuru",
       start_at: null,
       description: null,
-      sort_order: 5,
     });
   });
 
@@ -150,7 +143,6 @@ describe("parseAdminResourcePayload", () => {
     formData.set("title", "TEST_ Etkinlik");
     formData.set("slug", "test-etkinlik");
     formData.set("status", "published");
-    formData.set("sort_order", "0");
 
     expect(() => parseAdminResourcePayload(resource("events"), formData)).toThrowError(
       expect.objectContaining<Partial<AdminValidationError>>({ field: "description", code: "required" }),

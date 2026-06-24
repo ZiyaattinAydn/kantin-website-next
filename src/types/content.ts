@@ -16,6 +16,8 @@ export type MerchProductContent = MerchProduct & {
   detail: string;
   image: string;
   imageAlt: string;
+  backImage?: string;
+  backImageAlt?: string;
 };
 
 export type MerchBundle = {

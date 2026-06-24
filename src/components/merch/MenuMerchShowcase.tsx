@@ -18,6 +18,7 @@ export default function MenuMerchShowcase({
   doodles?: MerchDoodle[];
 }) {
   const merchBundleOffers = bundles.filter((bundle) => !bundle.name.startsWith("Oversize Tişört"));
+  const shirt = products.find((product) => product.id === "oversize-tshirt");
   const [isOpen, setIsOpen] = useState(false);
   const [preview, setPreview] = useState<{
     product: MerchProductContent;
@@ -98,11 +99,23 @@ export default function MenuMerchShowcase({
             >
               <div className="merch-flip-inner">
                 <figure className="merch-face merch-face-front">
-                  <img alt="Ön yüzünde küçük mavi k. logosu olan oversize merch tişört." src="/assets/img/merch/tee-front.jpg" />
+                  {shirt?.image ? (
+                    <img alt={shirt.imageAlt || "Oversize tişörtün ön yüzü."} src={shirt.image} />
+                  ) : (
+                    <div className="merch-face-empty" role="img" aria-label="Ön yüz görseli henüz yayınlanmadı.">
+                      Görsel hazırlanıyor
+                    </div>
+                  )}
                   <figcaption><span className="merch-face-label">Kapalı görünüm</span><strong>Ön yüz</strong></figcaption>
                 </figure>
                 <figure className="merch-face merch-face-back">
-                  <img alt="Arka yüzünde mavi çizgi karakterlerden oluşan karikatür baskısı olan merch tişört." src="/assets/img/merch/tee-back.jpg" />
+                  {shirt?.backImage ? (
+                    <img alt={shirt.backImageAlt || "Oversize tişörtün arka yüzü."} src={shirt.backImage} />
+                  ) : (
+                    <div className="merch-face-empty" role="img" aria-label="Arka yüz görseli henüz yayınlanmadı.">
+                      Görsel hazırlanıyor
+                    </div>
+                  )}
                   <figcaption><span className="merch-face-label">Açılan görünüm</span><strong>Arka karikatür baskı</strong></figcaption>
                 </figure>
               </div>
