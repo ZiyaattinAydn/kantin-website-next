@@ -1183,6 +1183,20 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      save_admin_product_pricing: {
+        Args: {
+          p_menu_item_id: string;
+          p_branch_changes?: Json;
+          p_variant_changes?: Json;
+        };
+        Returns: {
+          added_branch_price_id: string | null;
+          added_branch_count: number;
+          updated_branch_count: number;
+          updated_variant_count: number;
+          copied_variant_count: number;
+        }[];
+      };
       add_admin_menu_item_to_branch: {
         Args: {
           p_menu_item_id: string;
