@@ -12,6 +12,7 @@ import {
 } from "@/lib/admin/resource-actions";
 import type { AdminOptionsMap } from "@/lib/admin/options";
 import type { AdminPagination as PaginationData } from "@/lib/admin/pagination";
+import { deleteImpactDefinition, type AdminDeleteImpact } from "@/lib/admin/resource-delete";
 import type { AdminField, AdminResource } from "@/lib/admin/resources";
 import {
   displayValue,
@@ -423,6 +424,9 @@ function InlineEditor({
   error,
   errorField,
   idPrefix,
+  deleteImpact,
+  deleteReviewHref,
+  requiresDeleteReview,
 }: {
   resource: AdminResource;
   record: Record<string, unknown> | null;
@@ -430,12 +434,22 @@ function InlineEditor({
   error?: string;
   errorField?: string;
   idPrefix: string;
+  deleteImpact?: AdminDeleteImpact | null;
+  deleteReviewHref?: string;
+  requiresDeleteReview?: boolean;
 }) {
   const recordId = record && typeof record.id === "string" ? record.id : "";
   const existing = Boolean(recordId);
   const inactive = existing && isRecordInactive(resource, record);
+  const hardDeleteProtectionReason = (resource as AdminResource & {
+    hardDeleteProtectionReason?: string;
+  }).hardDeleteProtectionReason;
   const canArchive = existing && !inactive && resource.allowArchive;
-  const canHardDelete = existing && inactive && resource.allowHardDelete;
+  const canHardDelete =
+    existing && inactive && resource.allowHardDelete && !hardDeleteProtectionReason;
+  const deleteBlocked = Boolean(
+    deleteImpact?.items.some((item) => item.behavior === "block" && item.count > 0),
+  );
 
   return (
     <div className={styles.inlineEditor}>
@@ -488,23 +502,63 @@ function InlineEditor({
         </div>
       ) : null}
 
-      {canHardDelete ? (
+      {existing && hardDeleteProtectionReason ? (
+        <div className={styles.protectedSection}>
+          <strong>Kalıcı silme koruması açık</strong>
+          <p>{hardDeleteProtectionReason}</p>
+        </div>
+      ) : null}
+
+      {canHardDelete && requiresDeleteReview && !deleteImpact ? (
+        <div className={styles.destructiveSection}>
+          <p className={styles.warning}>
+            Kalıcı silmeden önce bu kayda bağlı veriler kontrol edilmelidir.
+          </p>
+          {deleteReviewHref ? (
+            <Link className={styles.danger} href={deleteReviewHref}>
+              Silme etkisini incele
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+
+      {canHardDelete && (!requiresDeleteReview || deleteImpact) ? (
         <div className={styles.destructiveSection}>
           <form action={deleteAdminResource} className={styles.form}>
             <input name="_resource" type="hidden" value={resource.key} />
             <input name="_id" type="hidden" value={recordId} />
             <p className={styles.warning}>
               Bu kayıt ve yalnızca ona bağlı alt kayıtlar kalıcı olarak silinir; üst kayıtlar korunur.
-              Örneğin bir ürün silinirse şube fiyatları ve varyantları gider, kategorisi silinmez.
             </p>
-            <TypedConfirmSubmitButton
-              className={styles.danger}
-              confirmMessage="Bu kayıt ve ona ait alt bağlantılar kalıcı olarak silinecek. Bu işlem geri alınamaz."
-              confirmPhrase="KALICI SİL"
-              type="submit"
-            >
-              Kalıcı olarak sil
-            </TypedConfirmSubmitButton>
+            {deleteImpact ? (
+              <div className={styles.deleteImpact}>
+                <strong>Silme etkisi</strong>
+                <ul>
+                  {deleteImpact.items.map((item) => (
+                    <li data-behavior={item.behavior} key={item.key}>
+                      <span>{item.label}</span>
+                      <b>{item.count}</b>
+                      <small>{item.behavior === "block" ? "Silmeyi engeller" : "Birlikte silinir"}</small>
+                    </li>
+                  ))}
+                </ul>
+                {deleteImpact.note ? <p>{deleteImpact.note}</p> : null}
+              </div>
+            ) : null}
+            {deleteBlocked ? (
+              <p className={styles.blockedWarning}>
+                Bağlı ana kayıtlar bulunduğu için kalıcı silme kapalı. Önce yukarıda belirtilen kayıtları taşı veya sil.
+              </p>
+            ) : (
+              <TypedConfirmSubmitButton
+                className={styles.danger}
+                confirmMessage="Bu kayıt ve ona ait alt bağlantılar kalıcı olarak silinecek. Bu işlem geri alınamaz."
+                confirmPhrase="KALICI SİL"
+                type="submit"
+              >
+                Kalıcı olarak sil
+              </TypedConfirmSubmitButton>
+            )}
           </form>
         </div>
       ) : null}
@@ -517,6 +571,7 @@ export default function AdminResourceEditor({
   rows,
   record,
   prefill,
+  deleteImpact,
   options,
   pagination,
   search,
@@ -529,6 +584,7 @@ export default function AdminResourceEditor({
   rows: Record<string, unknown>[];
   record: Record<string, unknown> | null;
   prefill: Record<string, unknown> | null;
+  deleteImpact: AdminDeleteImpact | null;
   options: AdminOptionsMap;
   pagination: PaginationData;
   search: string;
@@ -539,6 +595,7 @@ export default function AdminResourceEditor({
 }) {
   const columns = resourceColumns[resource.key] ?? defaultColumns(resource);
   const selectedId = record && typeof record.id === "string" ? record.id : null;
+  const requiresDeleteReview = Boolean(deleteImpactDefinition(resource));
 
   return (
     <section className={styles.page}>
@@ -569,6 +626,7 @@ export default function AdminResourceEditor({
             options={options}
             record={prefill}
             resource={resource}
+            requiresDeleteReview={requiresDeleteReview}
           />
         </details>
       ) : null}
@@ -604,6 +662,11 @@ export default function AdminResourceEditor({
             const rowId = String(row.id);
             const selected = selectedId === rowId;
             const rowRecord = selected && record ? record : row;
+            const reviewParams = new URLSearchParams();
+            if (search) reviewParams.set("q", search);
+            if (pagination.page > 1) reviewParams.set("page", String(pagination.page));
+            reviewParams.set("edit", rowId);
+            const deleteReviewHref = `/admin/manage/${resource.key}?${reviewParams.toString()}#record-${rowId}`;
 
             return (
               <details className={styles.recordCard} id={`record-${rowId}`} key={rowId} open={selected}>
@@ -626,9 +689,12 @@ export default function AdminResourceEditor({
                   error={selected ? error : undefined}
                   errorField={selected ? errorField : undefined}
                   idPrefix={`${resource.key}-${rowId}`}
+                  deleteImpact={selected ? deleteImpact : undefined}
+                  deleteReviewHref={deleteReviewHref}
                   options={options}
                   record={rowRecord}
                   resource={resource}
+                  requiresDeleteReview={requiresDeleteReview}
                 />
               </details>
             );
