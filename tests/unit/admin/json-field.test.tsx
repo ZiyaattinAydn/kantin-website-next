@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import AdminJsonField from "@/components/admin/crud/AdminJsonField";
 
 describe("AdminJsonField", () => {
-  it("JSON'u canlı doğrular ve güvenli biçimde formatlar", async () => {
+  it("gelişmiş veriyi canlı doğrular ve güvenli biçimde formatlar", async () => {
     const user = userEvent.setup();
     render(
       <AdminJsonField
@@ -22,10 +22,10 @@ describe("AdminJsonField", () => {
     const input = screen.getByRole("textbox");
     fireEvent.change(input, { target: { value: "{gecersiz" } });
     expect(input).toHaveAttribute("aria-invalid", "true");
-    expect(screen.getByText("JSON sözdizimi geçersiz")).toBeInTheDocument();
+    expect(screen.getByText("Alan yapısı geçersiz")).toBeInTheDocument();
 
     fireEvent.change(input, { target: { value: '{"title":"TEST"}' } });
-    await user.click(screen.getByRole("button", { name: "JSON’u biçimlendir" }));
+    await user.click(screen.getByRole("button", { name: "Veriyi düzenle" }));
 
     expect(input).toHaveValue('{\n  "title": "TEST"\n}');
     expect(input).toHaveAttribute("aria-invalid", "false");

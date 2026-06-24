@@ -59,20 +59,20 @@ function validateJsonSafety(value: unknown, field: AdminField, depth = 0): asser
     return;
   }
 
-  if (!isRecord(value)) fail(field, `${field.label} desteklenmeyen bir JSON değeri içeriyor.`, "json_type");
+  if (!isRecord(value)) fail(field, `${field.label} desteklenmeyen bir veri içeriyor.`, "json_type");
   const entries = Object.entries(value);
   if (entries.length > 100) fail(field, `${field.label} en fazla 100 anahtar içerebilir.`, "json_keys");
 
   for (const [key, child] of entries) {
     if (["__proto__", "prototype", "constructor"].includes(key)) {
-      fail(field, `${field.label} güvenli olmayan bir anahtar içeriyor.`, "json_key");
+      fail(field, `${field.label} kullanılamayan bir alan adı içeriyor.`, "json_key");
     }
     validateJsonSafety(child, field, depth + 1);
   }
 }
 
 function requireRecord(value: unknown, field: AdminField): Record<string, unknown> {
-  if (!isRecord(value)) fail(field, `${field.label} bir JSON nesnesi olmalı.`, "json_shape");
+  if (!isRecord(value)) fail(field, `${field.label} geçerli bir alan yapısına sahip olmalı.`, "json_shape");
   return value;
 }
 
@@ -202,7 +202,7 @@ function parseJson(raw: string, resource: AdminResource, field: AdminField, form
   try {
     parsed = JSON.parse(raw || "{}");
   } catch {
-    fail(field, `${field.label} geçerli JSON olmalı.`, "json_syntax");
+    fail(field, `${field.label} alan yapısı geçerli değil.`, "json_syntax");
   }
   if (JSON.stringify(parsed).length > 50_000) {
     fail(field, `${field.label} 50 KB sınırını aşıyor.`, "json_size");
@@ -245,10 +245,42 @@ function validateText(raw: string, field: AdminField): void {
   }
 }
 
-function parseField(resource: AdminResource, field: AdminField, formData: FormData): Json {
+function slugifyAdminValue(value: string): string {
+  return value
+    .trim()
+    .toLocaleLowerCase("tr-TR")
+    .replace(/ı/g, "i")
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 120);
+}
+
+function resolvedFieldText(field: AdminField, formData: FormData): string {
   const raw = textValue(formData, field.name);
+  if (field.name !== "slug" || raw) return raw;
+
+  for (const source of ["name", "title", "label"]) {
+    const generated = slugifyAdminValue(textValue(formData, source));
+    if (generated) return generated;
+  }
+
+  return "";
+}
+
+function parseField(resource: AdminResource, field: AdminField, formData: FormData): Json {
+  const raw = resolvedFieldText(field, formData);
   if (field.required && field.type !== "checkbox" && !raw) {
     fail(field, `${field.label} zorunlu.`, "required");
+  }
+  if (field.name === "slug" && !raw) {
+    fail(field, "URL adı oluşturulamadı. Önce ad veya başlık alanını doldur.", "required");
   }
 
   switch (field.type) {

@@ -100,11 +100,39 @@ function mediaListHref({
   return `/admin/media${params.size ? `?${params.toString()}` : ""}`;
 }
 
-function isPublicImageBucket(value: string | null): value is StorageBucket {
+function isPublicImageBucket(
+  value: string | null,
+): value is (typeof PUBLIC_IMAGE_BUCKETS)[number] {
   return Boolean(
     value
     && PUBLIC_IMAGE_BUCKETS.includes(value as (typeof PUBLIC_IMAGE_BUCKETS)[number]),
   );
+}
+
+const bucketLabels: Record<(typeof PUBLIC_IMAGE_BUCKETS)[number], string> = {
+  "menu-images": "Menü ürünleri",
+  "event-images": "Etkinlik ve duyurular",
+  "merch-images": "Merch ürünleri",
+  "instagram-media": "Instagram içerikleri",
+  "gallery-images": "Galeri ve genel görseller",
+};
+
+function bucketLabel(value: string | null): string {
+  if (isPublicImageBucket(value)) return bucketLabels[value];
+  return "Yerel proje görseli";
+}
+
+function sourceLabel(value: string): string {
+  if (value === "storage") return "Yüklenen dosya";
+  if (value === "local") return "Projeyle gelen dosya";
+  if (value === "external") return "Dış bağlantı";
+  return "Görsel kaynağı";
+}
+
+function statusLabel(value: MediaRow["status"]): string {
+  if (value === "published") return "Yayında";
+  if (value === "archived") return "Arşivde";
+  return "Taslak";
 }
 
 function defaultReplacementBucket(
@@ -197,7 +225,7 @@ export default async function AdminMediaPage({ searchParams }: Props) {
     <section className={styles.page}>
       <div className={styles.head}>
         <div>
-          <p className="eyebrow">Storage ve medya</p>
+          <p className="eyebrow">Görsel arşivi</p>
           <h1>Medya kütüphanesi<span>.</span></h1>
           <p>Satırın herhangi bir yerine dokunarak görseli aç. Dosyayı değiştirirken mevcut menü, etkinlik, merch ve içerik bağlantıları korunur.</p>
         </div>
@@ -217,7 +245,7 @@ export default async function AdminMediaPage({ searchParams }: Props) {
         <summary className={mediaStyles.uploadSummary}>
           <span>
             <strong>＋ Yeni görsel yükle</strong>
-            <small>Public içeriklerde kullanılacak yeni bir medya kaydı oluştur.</small>
+            <small>Ziyaretçi sitesinde kullanılacak yeni bir görsel yükle.</small>
           </span>
           <span className={mediaStyles.chevron}>⌄</span>
         </summary>
@@ -225,12 +253,12 @@ export default async function AdminMediaPage({ searchParams }: Props) {
           <div className={mediaStyles.uploadIntro}>
             <p className="eyebrow">Yeni medya</p>
             <h2>Görseli yükle</h2>
-            <p>Dosya en fazla 8 MB olabilir. Kullanım alanı doğru Storage bucket’ını belirler.</p>
+            <p>Dosya en fazla 8 MB olabilir. Kullanım alanı, görselin nerede kullanılacağını belirler.</p>
           </div>
           <form action={uploadAdminMedia} className={`${styles.form} ${mediaStyles.uploadForm}`}>
             <label className={styles.field}>
               <span>Kullanım alanı</span>
-              <select name="bucket" required>{PUBLIC_IMAGE_BUCKETS.map((bucket) => <option key={bucket} value={bucket}>{bucket}</option>)}</select>
+              <select name="bucket" required>{PUBLIC_IMAGE_BUCKETS.map((bucket) => <option key={bucket} value={bucket}>{bucketLabels[bucket]}</option>)}</select>
             </label>
             <label className={styles.field}>
               <span>Medya adı</span>
@@ -253,7 +281,7 @@ export default async function AdminMediaPage({ searchParams }: Props) {
         <form className={mediaStyles.mediaSearch} method="get">
           <label>
             <span>Medya ara</span>
-            <input defaultValue={q} name="q" placeholder="Ad, alt metin veya dosya yolu" type="search" />
+            <input defaultValue={q} name="q" placeholder="Görsel adı veya alt metin" type="search" />
           </label>
           <label>
             <span>Yayın durumu</span>
@@ -307,14 +335,13 @@ export default async function AdminMediaPage({ searchParams }: Props) {
                     <span className={mediaStyles.mediaIdentity}>
                       <strong>{row.title || row.alt_text || "Adsız görsel"}</strong>
                       <small>{row.alt_text || "Alt metin yok"}</small>
-                      <code>{row.object_path || row.local_path || row.external_url || "—"}</code>
                     </span>
                   </span>
                   <span className={mediaStyles.summaryCell} data-label="Durum">
                     <span className={row.is_active && row.status === "published" ? mediaStyles.statusActive : mediaStyles.statusPassive}>
-                      {row.is_active && row.status === "published" ? "Public" : "Public değil"}
+                      {row.is_active && row.status === "published" ? "Yayında" : "Yayında değil"}
                     </span>
-                    <small className={mediaStyles.statusMeta}>{row.status} · {row.source}</small>
+                    <small className={mediaStyles.statusMeta}>{statusLabel(row.status)} · {sourceLabel(row.source)}</small>
                     {pendingDelete ? <small className={mediaStyles.pendingDelete}>Silme bekliyor</small> : null}
                   </span>
                   <span className={mediaStyles.summaryCell} data-label="Kullanım">
@@ -336,9 +363,9 @@ export default async function AdminMediaPage({ searchParams }: Props) {
                     <div>
                       <p className="eyebrow">Görsel yönetimi</p>
                       <h2>{row.title || "Adsız görsel"}</h2>
-                      <p>Değişiklikler kaydetme sonrasında uygulanır. Dosya değişiminde aynı medya kimliği ve içerik bağlantıları korunur.</p>
+                      <p>Değişiklikler kaydetme sonrasında uygulanır. Dosya değişiminde aynı görsel kaydı ve bağlı içerikler korunur.</p>
                     </div>
-                    {isSelected ? <Link className={styles.secondary} href={`${listHref}#media-${row.id}`}>URL seçimini temizle</Link> : null}
+                    {isSelected ? <Link className={styles.secondary} href={`${listHref}#media-${row.id}`}>Seçimi kapat</Link> : null}
                   </div>
 
                   {pendingDelete ? (
@@ -367,8 +394,11 @@ export default async function AdminMediaPage({ searchParams }: Props) {
                           {url ? <img alt={row.alt_text ?? ""} height={360} src={url} width={540} /> : <div className={mediaStyles.largeNoPreview}>Önizleme yok</div>}
                           <div className={mediaStyles.sourceInfo}>
                             <strong>Mevcut dosya</strong>
-                            <span>{row.source} · {row.bucket_name || "yerel kaynak"}</span>
-                            <code>{row.object_path || row.local_path || row.external_url || "—"}</code>
+                            <span>{sourceLabel(row.source)} · {bucketLabel(row.bucket_name)}</span>
+                            <details className={mediaStyles.technicalInfo}>
+                              <summary>Teknik dosya bilgisini göster</summary>
+                              <code>{row.object_path || row.local_path || row.external_url || "—"}</code>
+                            </details>
                           </div>
 
                           <div className={mediaStyles.usagePanel}>
@@ -433,7 +463,7 @@ export default async function AdminMediaPage({ searchParams }: Props) {
                           <label className={styles.field}>
                             <span>Kullanım alanı</span>
                             <select defaultValue={replacementBucket} name="bucket" required>
-                              {PUBLIC_IMAGE_BUCKETS.map((bucket) => <option key={bucket} value={bucket}>{bucket}</option>)}
+                              {PUBLIC_IMAGE_BUCKETS.map((bucket) => <option key={bucket} value={bucket}>{bucketLabels[bucket]}</option>)}
                             </select>
                           </label>
                           <label className={styles.field}>
@@ -456,8 +486,8 @@ export default async function AdminMediaPage({ searchParams }: Props) {
                               <ConfirmSubmitButton
                                 className={styles.secondary}
                                 confirmMessage={usages.length
-                                  ? "Bu medya içeriklerde kullanılıyor. Arşivlenirse public sayfalarda görünmez; bağlantılar korunur. Devam edilsin mi?"
-                                  : "Bu medya arşivlensin ve public görünümlerden kaldırılsın mı?"}
+                                  ? "Bu görsel içeriklerde kullanılıyor. Arşivlenirse ziyaretçi sitesinde görünmez; bağlantılar korunur. Devam edilsin mi?"
+                                  : "Bu görsel arşivlensin ve ziyaretçi sitesinden kaldırılsın mı?"}
                                 type="submit"
                               >
                                 Arşivle

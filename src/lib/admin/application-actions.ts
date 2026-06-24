@@ -97,7 +97,7 @@ export async function updateApplicationAction(formData: FormData): Promise<never
       .single();
 
     if (error || !data) {
-      throw new Error(error?.message || "Başvuru transaction işlemi tamamlanamadı.");
+      throw new Error(error?.message || "Başvuru güvenli biçimde kaydedilemedi.");
     }
     destination = `/admin/applications?edit=${id}&notice=${encodeURIComponent("Başvuru güncellendi.")}#application-${id}`;
   } catch (error) {

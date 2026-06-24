@@ -11,14 +11,14 @@ type JsonState = {
 function inspectJson(value: string, required: boolean): JsonState {
   if (!value.trim()) {
     return required
-      ? { message: "JSON değeri zorunlu.", valid: false }
+      ? { message: "Bu yapılandırma alanı zorunlu.", valid: false }
       : { message: "Boş değer", valid: true };
   }
   try {
     JSON.parse(value);
-    return { message: "JSON sözdizimi geçerli", valid: true };
+    return { message: "Alan yapısı geçerli", valid: true };
   } catch {
-    return { message: "JSON sözdizimi geçersiz", valid: false };
+    return { message: "Alan yapısı geçersiz", valid: false };
   }
 }
 
@@ -75,7 +75,7 @@ export default function AdminJsonField({
         spellCheck={false}
       />
       <div className={styles.toolbar}>
-        <button onClick={formatJson} type="button">JSON’u biçimlendir</button>
+        <button onClick={formatJson} type="button">Veriyi düzenle</button>
         <span aria-live="polite" className={state.valid ? styles.valid : styles.invalid}>
           {state.message}
         </span>

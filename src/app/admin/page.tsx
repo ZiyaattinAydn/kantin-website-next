@@ -7,6 +7,29 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
+
+const activityLabels: Record<string, string> = {
+  create: "Oluşturuldu",
+  update: "Güncellendi",
+  archive: "Arşivlendi",
+  delete: "Kalıcı silindi",
+  media_upload: "Görsel yüklendi",
+  media_update: "Görsel bilgileri güncellendi",
+  media_archive: "Görsel arşivlendi",
+  media_restore: "Görsel yeniden yayına alındı",
+  media_file_replace: "Görsel dosyası değiştirildi",
+  media_delete: "Görsel kalıcı silindi",
+  application_update: "Başvuru güncellendi",
+  application_anonymization_started: "Başvuru anonimleştirme başlatıldı",
+  application_anonymized: "Başvuru anonimleştirildi",
+  menu_item_branch_add: "Ürün şubeye eklendi",
+  menu_pricing_save: "Fiyatlar güncellendi",
+};
+
+function activityLabel(action: string): string {
+  return activityLabels[action] ?? action.replaceAll("_", " ");
+}
+
 const cards = [
   { key: "menu_items", label: "Menü ürünü", href: "/admin/manage/menu-items" },
   { key: "menu_categories", label: "Kategori", href: "/admin/manage/menu-categories" },
@@ -50,12 +73,11 @@ export default async function AdminDashboardPage() {
             Yönetici paneli<span>.</span>
           </h1>
           <p>
-            Menüden kariyer başvurularına kadar bütün canlı Supabase içeriklerini
-            tek yerden yönet. Yazma işlemleri admin rolü ve RLS ile korunur.
+            Menüden kariyer başvurularına kadar bütün işletme içeriklerini tek yerden yönet. Değişiklikler yalnız yetkili hesaplar tarafından kaydedilebilir.
           </p>
         </div>
         <div className={styles.headActions}>
-          <Link href="/" target="_blank">Public siteyi aç</Link>
+          <Link href="/" target="_blank">Ziyaretçi sitesini aç</Link>
           <Link href="/admin/media">Görsel yükle</Link>
         </div>
       </header>
@@ -80,7 +102,7 @@ export default async function AdminDashboardPage() {
         <article className={styles.panel}>
           <div className={styles.panelHead}>
             <h2>Hızlı işlemler</h2>
-            <span>Faz 9</span>
+            <span>Günlük işlemler</span>
           </div>
           <div className={styles.quickLinks}>
             <Link href="/admin/manage/menu-items?new=1">Yeni menü ürünü</Link>
@@ -95,7 +117,7 @@ export default async function AdminDashboardPage() {
 
         <article className={styles.panel}>
           <div className={styles.panelHead}>
-            <h2>Son admin işlemleri</h2>
+            <h2>Son işlemler</h2>
             <span>{logsResult.data?.length ?? 0} kayıt</span>
           </div>
           <div className={styles.logs}>
@@ -103,11 +125,11 @@ export default async function AdminDashboardPage() {
               logsResult.data?.map((log) => (
                 <div key={log.id}>
                   <strong>{log.entity_label || log.entity_type}</strong>
-                  <span>{log.action} · {formatAdminDate(log.created_at)}</span>
+                  <span>{activityLabel(log.action)} · {formatAdminDate(log.created_at)}</span>
                 </div>
               ))
             ) : (
-              <p>Henüz admin işlem kaydı yok. Faz 9 migration’ı çalıştırıldıktan sonra burada görünecek.</p>
+              <p>Henüz kaydedilmiş bir yönetici işlemi yok.</p>
             )}
           </div>
         </article>
@@ -118,7 +140,7 @@ export default async function AdminDashboardPage() {
         <p>
           Kalıcı silme yalnız pasife alınmış veya arşivlenmiş kayıtlarda açılır.
           Bir kayıt silindiğinde yalnızca ona bağlı alt kayıtlar temizlenir; kategori
-          gibi üst kayıtlar korunur ve bütün işlemler audit sistemine yazılır.
+          gibi üst kayıtlar korunur ve yapılan işlemler geçmişe kaydedilir.
         </p>
       </div>
     </section>

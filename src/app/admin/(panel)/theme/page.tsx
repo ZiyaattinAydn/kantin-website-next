@@ -43,7 +43,7 @@ export default async function ThemeSettingsPage({ searchParams }: ThemePageProps
           </p>
         </div>
         <a href="/" rel="noreferrer" target="_blank">
-          Public siteyi aç ↗
+          Ziyaretçi sitesini aç ↗
         </a>
       </header>
 

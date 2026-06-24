@@ -267,7 +267,7 @@ export async function archiveAdminMedia(formData: FormData): Promise<never> {
       .single();
     if (error || !data) throw new Error(error?.message || "Medya arşivlenemedi.");
 
-    destination = mediaPath({ edit: id, notice: "Medya arşivlendi ve public görünümlerden kaldırıldı." }, `media-${id}`);
+    destination = mediaPath({ edit: id, notice: "Medya arşivlendi ve ziyaretçi sitesinden kaldırıldı." }, `media-${id}`);
   } catch (error) {
     destination = mediaPath({ edit: id, error: message(error) }, `media-${id}`);
   }
@@ -319,7 +319,7 @@ export async function deleteAdminMedia(formData: FormData): Promise<never> {
     if (mediaError || !media) throw new Error(mediaError?.message || "Medya kaydı bulunamadı.");
 
     if (media.kind !== "image" || media.bucket_name === "career-cvs") {
-      throw new Error("Kalıcı silme yalnız public görseller için kullanılabilir.");
+      throw new Error("Kalıcı silme yalnız ziyaretçi sitesinde kullanılabilen görseller için uygulanabilir.");
     }
     if (media.status !== "archived" || media.is_active) {
       throw new Error("Kalıcı silmeden önce medya arşivlenmeli.");

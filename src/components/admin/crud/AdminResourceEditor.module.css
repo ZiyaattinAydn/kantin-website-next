@@ -404,6 +404,50 @@
   gap: 14px;
 }
 
+.advancedFields {
+  overflow: hidden;
+  border: 1px solid rgba(0, 71, 187, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.advancedFields > summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  color: var(--blue);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 900;
+  list-style: none;
+}
+
+.advancedFields > summary::-webkit-details-marker {
+  display: none;
+}
+
+.advancedFields > summary::marker {
+  content: "";
+}
+
+.advancedFields > summary small {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.advancedFields[open] > summary {
+  border-bottom: 1px solid var(--line);
+  background: rgba(0, 71, 187, 0.035);
+}
+
+.advancedFields > .formGrid {
+  padding: 14px;
+}
+
 .field {
   display: grid;
   min-width: 0;
@@ -486,6 +530,94 @@
   gap: 12px;
   padding-top: 18px;
   border-top: 1px solid var(--line);
+}
+
+.protectedSection {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid rgba(0, 71, 187, 0.18);
+  border-radius: 14px;
+  background: rgba(0, 71, 187, 0.045);
+}
+
+.protectedSection strong {
+  color: var(--blue);
+  font-size: 0.73rem;
+}
+
+.protectedSection p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.deleteImpact {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(161, 38, 38, 0.16);
+  border-radius: 14px;
+  background: rgba(161, 38, 38, 0.035);
+}
+
+.deleteImpact > strong {
+  color: #7f1d1d;
+  font-size: 0.73rem;
+}
+
+.deleteImpact ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.deleteImpact li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  align-items: center;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.deleteImpact li[data-behavior="block"] {
+  border-color: rgba(161, 38, 38, 0.22);
+}
+
+.deleteImpact li span,
+.deleteImpact li b {
+  font-size: 0.7rem;
+}
+
+.deleteImpact li small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 0.62rem;
+}
+
+.deleteImpact > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.66rem;
+  line-height: 1.55;
+}
+
+.blockedWarning {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(161, 38, 38, 0.22);
+  border-radius: 12px;
+  background: rgba(161, 38, 38, 0.07);
+  color: #a12626;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.55;
 }
 
 .empty {

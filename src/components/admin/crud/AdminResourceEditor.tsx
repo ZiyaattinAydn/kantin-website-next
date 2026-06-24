@@ -38,7 +38,7 @@ type ListColumn = {
 
 const resourceColumns: Record<string, ListColumn[]> = {
   "menu-categories": [
-    { key: "identity", label: "Kategori", fields: ["name", "slug"], kind: "identity" },
+    { key: "identity", label: "Kategori", fields: ["name"], kind: "identity" },
     { key: "display", label: "Görünüm", fields: ["display_type"], kind: "type" },
     { key: "status", label: "Durum", fields: ["status", "is_active"], kind: "status" },
     { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
@@ -50,7 +50,7 @@ const resourceColumns: Record<string, ListColumn[]> = {
     { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
   ],
   "menu-items": [
-    { key: "identity", label: "Ürün", fields: ["name", "slug"], kind: "identity" },
+    { key: "identity", label: "Ürün", fields: ["name"], kind: "identity" },
     { key: "category", label: "Kategori", fields: ["category_id"], kind: "detail" },
     { key: "status", label: "Durum", fields: ["status", "is_active"], kind: "status" },
     { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
@@ -63,7 +63,7 @@ const resourceColumns: Record<string, ListColumn[]> = {
     { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
   ],
   "menu-item-variants": [
-    { key: "identity", label: "Varyant", fields: ["label", "slug"], kind: "identity" },
+    { key: "identity", label: "Varyant", fields: ["label"], kind: "identity" },
     { key: "item", label: "Ürün ve şube", fields: ["menu_item_branch_id"], kind: "detail" },
     { key: "price", label: "Fiyat", fields: ["price_cents"], kind: "money" },
     { key: "status", label: "Durum", fields: ["is_active"], kind: "status" },
@@ -104,7 +104,7 @@ const resourceColumns: Record<string, ListColumn[]> = {
     { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
   ],
   branches: [
-    { key: "identity", label: "Şube", fields: ["name", "code"], kind: "identity" },
+    { key: "identity", label: "Şube", fields: ["name"], kind: "identity" },
     { key: "location", label: "Konum", fields: ["district", "city"], kind: "detail" },
     { key: "status", label: "Durum", fields: ["status", "is_active"], kind: "status" },
     { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
@@ -117,7 +117,7 @@ const resourceColumns: Record<string, ListColumn[]> = {
     { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
   ],
   "site-pages": [
-    { key: "identity", label: "Sayfa", fields: ["title", "slug"], kind: "identity" },
+    { key: "identity", label: "Sayfa", fields: ["title"], kind: "identity" },
     { key: "status", label: "Durum", fields: ["status", "is_active"], kind: "status" },
     { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
   ],
@@ -311,7 +311,7 @@ function badgeClass(value: unknown, fieldName: string) {
 
 function booleanLabel(fieldName: string, value: boolean) {
   if (fieldName === "is_featured") return value ? "Öne çıkan" : null;
-  if (fieldName === "is_public") return value ? "Public" : "Yalnız admin";
+  if (fieldName === "is_public") return value ? "Ziyaretçi sitesinde" : "Yalnız yönetim panelinde";
   if (fieldName === "is_available") return value ? "Mevcut" : "Mevcut değil";
   return value ? "Aktif" : "Pasif";
 }
@@ -450,13 +450,16 @@ function InlineEditor({
   const deleteBlocked = Boolean(
     deleteImpact?.items.some((item) => item.behavior === "block" && item.count > 0),
   );
+  const primaryFields = resource.fields.filter((field) => !field.advanced);
+  const advancedFields = resource.fields.filter((field) => field.advanced);
+  const advancedHasError = Boolean(errorField && advancedFields.some((field) => field.name === errorField));
 
   return (
     <div className={styles.inlineEditor}>
       <div className={styles.editorIntro}>
         <div>
           <strong>{existing ? `${resource.singular} bilgilerini düzenle` : `Yeni ${resource.singular} oluştur`}</strong>
-          <p>Değişiklikler kaydedilmeden uygulanmaz. Yetki, doğrulama ve audit kontrolleri korunur.</p>
+          <p>Değişiklikler yalnız kaydettiğinde uygulanır. Gerekli yetki ve güvenlik kontrolleri otomatik yapılır.</p>
         </div>
       </div>
 
@@ -464,7 +467,7 @@ function InlineEditor({
         <input name="_resource" type="hidden" value={resource.key} />
         <input name="_id" type="hidden" value={recordId} />
         <div className={styles.formGrid}>
-          {resource.fields.map((field) => (
+          {primaryFields.map((field) => (
             <FieldControl
               error={error}
               errorField={errorField}
@@ -476,6 +479,27 @@ function InlineEditor({
             />
           ))}
         </div>
+        {advancedFields.length ? (
+          <details className={styles.advancedFields} open={advancedHasError}>
+            <summary>
+              <span>Gelişmiş alanlar</span>
+              <small>Genellikle değiştirmen gerekmez</small>
+            </summary>
+            <div className={styles.formGrid}>
+              {advancedFields.map((field) => (
+                <FieldControl
+                  error={error}
+                  errorField={errorField}
+                  field={field}
+                  idPrefix={idPrefix}
+                  key={field.name}
+                  options={options}
+                  record={record}
+                />
+              ))}
+            </div>
+          </details>
+        ) : null}
         <div className={styles.formActions}>
           <button className={styles.primary} type="submit">
             {existing ? "Değişiklikleri kaydet" : "Kaydı oluştur"}
@@ -489,7 +513,7 @@ function InlineEditor({
             <input name="_resource" type="hidden" value={resource.key} />
             <input name="_id" type="hidden" value={recordId} />
             <p className={styles.warning}>
-              Bu işlem kaydı public görünümden kaldırır; veriyi kalıcı olarak silmez.
+              Bu işlem kaydı ziyaretçi sitesinden kaldırır; veriyi kalıcı olarak silmez.
             </p>
             <ConfirmSubmitButton
               className={styles.danger}
@@ -606,7 +630,7 @@ export default function AdminResourceEditor({
           <p>{resource.description}</p>
         </div>
         <div className={styles.actions}>
-          <Link className={styles.secondary} href="/admin">Dashboard</Link>
+          <Link className={styles.secondary} href="/admin">Ana ekran</Link>
         </div>
       </header>
 

@@ -47,7 +47,7 @@ function resourcePath(resourceKey: string, params?: Record<string, string>) {
 
 function assertDatabaseAudit(resource: AdminResource): void {
   if (!DATABASE_AUDITED_TABLES.has(resource.table)) {
-    throw new Error("Bu yönetim kaynağı için transaction audit yapılandırılmamış.");
+    throw new Error("Bu yönetim alanı için güvenli kayıt yapılandırması eksik.");
   }
 }
 

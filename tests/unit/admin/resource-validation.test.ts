@@ -41,6 +41,23 @@ describe("parseAdminResourcePayload", () => {
     );
   });
 
+  it("URL adını kullanıcı girmediğinde Türkçe addan otomatik üretir", () => {
+    const formData = new FormData();
+    formData.set("name", "İncir & Mısır");
+    formData.set("display_type", "cards");
+    formData.set("status", "draft");
+
+    const payload = parseAdminResourcePayload(resource("menu-categories"), formData);
+
+    expect(payload.slug).toBe("incir-misir");
+  });
+
+  it("teknik URL alanlarını gelişmiş bölüm olarak işaretler", () => {
+    const slugField = resource("menu-items").fields.find((field) => field.name === "slug");
+    expect(slugField).toMatchObject({ advanced: true });
+    expect(slugField?.required).not.toBe(true);
+  });
+
   it("select alanında seçenek listesi dışındaki değeri reddeder", () => {
     const formData = new FormData();
     formData.set("name", "TEST_ Kategori");

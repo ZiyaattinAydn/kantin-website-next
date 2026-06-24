@@ -47,7 +47,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
           <Link className="brand" href="/">
             kantin<span>.</span>
           </Link>
-          <span className="admin-mode-badge">Supabase Auth</span>
+          <span className="admin-mode-badge">Güvenli yönetici girişi</span>
         </div>
       </header>
 

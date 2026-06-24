@@ -225,7 +225,7 @@ export default function ThemeSettingsForm({
             <span>04</span>
             <h2>Bölüm görünürlüğü</h2>
           </div>
-          <p>İçeriği silmeden public sitede göster veya gizle.</p>
+          <p>İçeriği silmeden ziyaretçi sitesinde göster veya gizle.</p>
         </div>
         <div className={styles.visibilityGrid}>
           {visibilityOptions.map((option) => (

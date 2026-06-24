@@ -340,7 +340,7 @@ export default async function AdminApplicationsPage({ searchParams }: Props) {
                     <div>
                       <p className="eyebrow">Başvuru ayrıntıları</p>
                       <h2>{anonymized ? "Anonimleştirilmiş başvuru" : row.full_name}</h2>
-                      <p>Bu satırdaki formlar yalnız kaydetme sonrasında uygulanır; yetki, transaction ve audit kontrolleri korunur.</p>
+                      <p>Bu satırdaki değişiklikler yalnız kaydettiğinde uygulanır; güvenlik ve işlem geçmişi kontrolleri otomatik yapılır.</p>
                     </div>
                     {isSelected ? <Link className={styles.closeLink} href={`${listHref}#application-${row.id}`}>URL seçimini temizle</Link> : null}
                   </div>

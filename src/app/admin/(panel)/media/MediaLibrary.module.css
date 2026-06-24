@@ -426,6 +426,23 @@
   font-size: 0.67rem;
 }
 
+.technicalInfo {
+  margin-top: 3px;
+}
+
+.technicalInfo summary {
+  width: fit-content;
+  color: var(--blue);
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.technicalInfo code {
+  display: block;
+  margin-top: 7px;
+}
+
 .usagePanel {
   display: grid;
   gap: 10px;

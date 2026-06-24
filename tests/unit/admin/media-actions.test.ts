@@ -80,7 +80,7 @@ describe("admin medya eylemleri", () => {
 
     const expectedNotice = new URLSearchParams({
       edit: TEST_MEDIA.id,
-      notice: "Medya arşivlendi ve public görünümlerden kaldırıldı.",
+      notice: "Medya arşivlendi ve ziyaretçi sitesinden kaldırıldı.",
     });
     await expect(archiveAdminMedia(formData)).rejects.toThrow(
       `REDIRECT:/admin/media?${expectedNotice.toString()}#media-${TEST_MEDIA.id}`,

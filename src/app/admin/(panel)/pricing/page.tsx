@@ -10,6 +10,7 @@ import {
   hasMissingBranchPrice,
   isUuid,
   resolveBranchDisplayPrice,
+  resolveProductMenuState,
   variantPricingField,
 } from "@/lib/admin/pricing";
 import {
@@ -34,7 +35,11 @@ type CategoryRow = Pick<
 >;
 type BranchRow = Pick<
   Database["public"]["Tables"]["branches"]["Row"],
-  "id" | "name" | "code" | "is_active" | "sort_order"
+  "id" | "name" | "code" | "status" | "is_active" | "sort_order"
+>;
+type CategoryBranchRow = Pick<
+  Database["public"]["Tables"]["menu_category_branches"]["Row"],
+  "category_id" | "branch_id" | "is_active"
 >;
 type BranchPriceRow = Pick<
   Database["public"]["Tables"]["menu_item_branches"]["Row"],
@@ -97,12 +102,6 @@ function keyFor(menuItemId: string, branchId: string) {
   return `${menuItemId}:${branchId}`;
 }
 
-function statusLabel(status: ProductRow["status"], active: boolean) {
-  if (!active || status === "archived") return "Pasif";
-  if (status === "draft") return "Taslak";
-  return "Yayında";
-}
-
 function latestUpdatedAt(values: Array<string | null | undefined>): string {
   let latest = "";
   let latestTime = Number.NEGATIVE_INFINITY;
@@ -150,7 +149,7 @@ export default async function AdminPricingPage({ searchParams }: Props) {
       .order("name", { ascending: true }),
     supabase
       .from("branches")
-      .select("id, name, code, is_active, sort_order")
+      .select("id, name, code, status, is_active, sort_order")
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true }),
     productsQuery.limit(1000),
@@ -171,6 +170,20 @@ export default async function AdminPricingPage({ searchParams }: Props) {
   const displayBranches = validBranchFilter
     ? activeBranches.filter((branch) => branch.id === validBranchFilter)
     : activeBranches;
+
+  let categoryBranches: CategoryBranchRow[] = [];
+  const categoryIds = [...new Set(products.map((product) => product.category_id))];
+  const activeBranchIds = activeBranches.map((branch) => branch.id);
+  if (categoryIds.length && activeBranchIds.length) {
+    const { data, error } = await supabase
+      .from("menu_category_branches")
+      .select("category_id, branch_id, is_active")
+      .in("category_id", categoryIds)
+      .in("branch_id", activeBranchIds)
+      .limit(5000);
+    if (error) throw new Error(error.message);
+    categoryBranches = (data ?? []) as CategoryBranchRow[];
+  }
 
   let allBranchPrices: BranchPriceRow[] = [];
   const productIds = products.map((product) => product.id);
@@ -264,6 +277,12 @@ export default async function AdminPricingPage({ searchParams }: Props) {
 
   const categoryById = new Map(categories.map((category) => [category.id, category]));
   const branchById = new Map(activeBranches.map((branch) => [branch.id, branch]));
+  const categoryBranchByKey = new Map(
+    categoryBranches.map((relation) => [
+      keyFor(relation.category_id, relation.branch_id),
+      relation,
+    ]),
+  );
   const returnTo = pricingHref({
     q,
     category: categoryFilter,
@@ -363,6 +382,27 @@ export default async function AdminPricingPage({ searchParams }: Props) {
                 ...productPrices.map((price) => price.updated_at),
                 ...productVariants.map((variant) => variant.updated_at),
               ]);
+              const categoryIsPublic = Boolean(
+                category?.is_active && category.status === "published",
+              );
+              const hasPublicBranchPlacement = productPrices.some((price) => {
+                const branch = branchById.get(price.branch_id);
+                const categoryBranch = categoryBranchByKey.get(
+                  keyFor(product.category_id, price.branch_id),
+                );
+                return Boolean(
+                  price.is_active
+                  && branch?.is_active
+                  && branch.status === "published"
+                  && categoryBranch?.is_active,
+                );
+              });
+              const menuState = resolveProductMenuState({
+                productStatus: product.status,
+                productIsActive: product.is_active,
+                categoryIsPublic,
+                hasPublicBranchPlacement,
+              });
 
               return (
                 <details className={styles.productCard} key={product.id}>
@@ -401,8 +441,16 @@ export default async function AdminPricingPage({ searchParams }: Props) {
                       })}
                     </span>
                     <span className={styles.summaryCell} data-label="Durum">
-                      <span className={product.is_active && product.status === "published" ? styles.live : styles.passive}>
-                        {statusLabel(product.status, product.is_active)}
+                      <span
+                        className={
+                          menuState.tone === "live"
+                            ? styles.live
+                            : menuState.tone === "unlisted"
+                              ? styles.unlisted
+                              : styles.passive
+                        }
+                      >
+                        {menuState.label}
                       </span>
                     </span>
                     <span className={styles.summaryCell} data-label="Son güncelleme">
@@ -493,7 +541,7 @@ export default async function AdminPricingPage({ searchParams }: Props) {
                                       >
                                         {categories.map((candidate) => (
                                           <option key={candidate.id} value={candidate.id}>
-                                            {candidate.name}{candidate.is_active && candidate.status === "published" ? "" : " (public değil)"}
+                                            {candidate.name}{candidate.is_active && candidate.status === "published" ? "" : " (ziyaretçi sitesinde değil)"}
                                           </option>
                                         ))}
                                       </select>
@@ -637,7 +685,7 @@ export default async function AdminPricingPage({ searchParams }: Props) {
 
                     <footer className={styles.saveBar}>
                       <p>
-                        Değişen satırlar mevcut audit sistemiyle kaydedilir. Boş bırakılan yeni şubeler oluşturulmaz.
+                        Değişiklikler işlem geçmişine kaydedilir. Boş bırakılan yeni şubeler oluşturulmaz.
                       </p>
                       <button className={adminStyles.primary} type="submit">
                         Görünen tüm fiyatları kaydet

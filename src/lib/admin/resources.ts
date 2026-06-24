@@ -43,6 +43,7 @@ export type AdminField<Table extends AdminTable = AdminTable> = {
   defaultValue?: string | number | boolean;
   rows?: number;
   placeholder?: string;
+  advanced?: boolean;
 };
 
 type AdminResourceFor<Table extends AdminTable> = {
@@ -60,6 +61,7 @@ type AdminResourceFor<Table extends AdminTable> = {
   allowCreate?: boolean;
   allowArchive?: boolean;
   allowHardDelete?: boolean;
+  hardDeleteProtectionReason?: string;
   orderScopeFields?: readonly AdminColumn<Table>[];
   activeField?: Extract<AdminColumn<Table>, "is_active" | "is_available">;
   statusField?: Extract<AdminColumn<Table>, "status">;
@@ -94,7 +96,7 @@ const resources: readonly AdminResource[] = [
     statusField: "status",
     fields: [
       { name: "name", label: "Kategori adı", type: "text", required: true },
-      { name: "slug", label: "Slug", type: "text", required: true, help: "Küçük harf, sayı ve tire kullan." },
+      { name: "slug", label: "URL adı", type: "text", advanced: true, help: "Boş bırakırsan addan otomatik oluşturulur. Yalnız küçük harf, sayı ve tire kullanılır." },
       { name: "description", label: "Açıklama", type: "textarea", nullable: true, rows: 3 },
       {
         name: "display_type",
@@ -160,7 +162,7 @@ const resources: readonly AdminResource[] = [
     fields: [
       { name: "category_id", label: "Kategori", type: "foreign", optionSource: "categories", required: true },
       { name: "name", label: "Ürün adı", type: "text", required: true },
-      { name: "slug", label: "Slug", type: "text", required: true },
+      { name: "slug", label: "URL adı", type: "text", advanced: true, help: "Boş bırakırsan addan otomatik oluşturulur." },
       { name: "description", label: "Kısa açıklama", type: "textarea", nullable: true, rows: 3 },
       { name: "detail", label: "Detay", type: "textarea", nullable: true, rows: 3 },
       { name: "highlight_text", label: "Vurgu metni", type: "text", nullable: true },
@@ -217,7 +219,7 @@ const resources: readonly AdminResource[] = [
     fields: [
       { name: "menu_item_branch_id", label: "Ürün ve şube", type: "foreign", optionSource: "menu-item-branches", required: true },
       { name: "label", label: "Seçenek adı", type: "text", required: true },
-      { name: "slug", label: "Slug", type: "text", required: true },
+      { name: "slug", label: "URL adı", type: "text", advanced: true, help: "Boş bırakırsan addan otomatik oluşturulur." },
       { name: "detail", label: "Detay", type: "text", nullable: true },
       { name: "price_cents", label: "Fiyat (TL)", type: "money", required: true },
       { name: "price_note", label: "Fiyat notu", type: "text", nullable: true },
@@ -253,15 +255,15 @@ const resources: readonly AdminResource[] = [
         ],
       },
       { name: "title", label: "Başlık", type: "text", required: true },
-      { name: "slug", label: "Slug", type: "text", required: true },
+      { name: "slug", label: "URL adı", type: "text", advanced: true, help: "Boş bırakırsan addan otomatik oluşturulur." },
       { name: "summary", label: "Kısa özet", type: "textarea", nullable: true, rows: 2 },
       { name: "description", label: "Açıklama", type: "textarea", nullable: true, rows: 5 },
       { name: "start_at", label: "Başlangıç", type: "datetime", nullable: true },
       { name: "end_at", label: "Bitiş", type: "datetime", nullable: true },
       { name: "venue_name", label: "Mekân adı", type: "text", nullable: true },
       { name: "location_text", label: "Konum metni", type: "text", nullable: true },
-      { name: "external_url", label: "Harici bağlantı", type: "url", nullable: true },
-      { name: "cta_label", label: "CTA etiketi", type: "text", nullable: true, placeholder: "Detayları gör" },
+      { name: "external_url", label: "Detay bağlantısı", type: "url", nullable: true, help: "Kullanıcıyı başka bir sayfaya yönlendirmek istersen HTTPS bağlantısı gir." },
+      { name: "cta_label", label: "Bağlantı butonu yazısı", type: "text", nullable: true, placeholder: "Detayları gör" },
       { name: "image_media_id", label: "Görsel", type: "foreign", optionSource: "media", nullable: true },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
@@ -311,11 +313,11 @@ const resources: readonly AdminResource[] = [
     statusField: "status",
     fields: [
       { name: "name", label: "Ürün adı", type: "text", required: true },
-      { name: "slug", label: "Slug", type: "text", required: true },
+      { name: "slug", label: "URL adı", type: "text", advanced: true, help: "Boş bırakırsan addan otomatik oluşturulur." },
       { name: "product_type", label: "Tür", type: "select", required: true, defaultValue: "item", options: [{ value: "item", label: "Ürün" }, { value: "bundle", label: "Paket" }] },
       { name: "description", label: "Açıklama", type: "textarea", required: true, rows: 4 },
       { name: "detail", label: "Detay", type: "textarea", nullable: true, rows: 3 },
-      { name: "sku", label: "SKU", type: "text", nullable: true },
+      { name: "sku", label: "Stok kodu", type: "text", nullable: true, advanced: true, help: "İşletmede ayrı bir stok kodu kullanıyorsan gir; zorunlu değildir." },
       { name: "price_cents", label: "Fiyat (TL)", type: "money", required: true },
       { name: "inventory_status", label: "Stok durumu", type: "select", required: true, defaultValue: "available", options: [{ value: "available", label: "Mevcut" }, { value: "limited", label: "Sınırlı" }, { value: "out_of_stock", label: "Tükendi" }, { value: "discontinued", label: "Satıştan kaldırıldı" }] },
       { name: "stock_quantity", label: "Stok adedi", type: "number", nullable: true },
@@ -365,7 +367,7 @@ const resources: readonly AdminResource[] = [
     activeField: "is_active",
     statusField: "status",
     fields: [
-      { name: "external_id", label: "Harici ID", type: "text", nullable: true },
+      { name: "external_id", label: "Instagram kayıt kodu", type: "text", nullable: true, advanced: true, help: "Instagram veya başka bir aktarım sistemi özel kod veriyorsa kullan; zorunlu değildir." },
       { name: "permalink", label: "Instagram bağlantısı", type: "url", required: true },
       { name: "caption", label: "Açıklama", type: "textarea", required: true, rows: 4 },
       { name: "image_alt", label: "Görsel alt metni", type: "text", required: true },
@@ -389,7 +391,8 @@ const resources: readonly AdminResource[] = [
     orderField: "sort_order",
     allowCreate: false,
     allowArchive: true,
-    allowHardDelete: true,
+    allowHardDelete: false,
+    hardDeleteProtectionReason: "Şubeler fiyat, kategori, etkinlik, merch ve başvuru kayıtlarının ortak ana kaydıdır. Yanlışlıkla geniş veri kaybı oluşmaması için kalıcı silme kapalıdır; kullanılmayan şubeyi pasife al.",
     activeField: "is_active",
     statusField: "status",
     fields: [
@@ -402,7 +405,7 @@ const resources: readonly AdminResource[] = [
       { name: "phone", label: "Telefon", type: "text", nullable: true },
       { name: "public_email", label: "E-posta", type: "text", nullable: true },
       { name: "features", label: "Özellikler", type: "string-array" },
-      { name: "opening_hours", label: "Çalışma saatleri (JSON)", type: "json", required: true, help: "Örnek: {\"note\":\"Her gün 09:00-00:00\"}" },
+      { name: "opening_hours", label: "Çalışma saatleri", type: "json", required: true, help: "Mevcut yapıyı koru. Örnek: {\"note\":\"Her gün 09:00-00:00\"}" },
       { name: "status", label: "Yayın durumu", type: "select", required: true, options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox" },
     ],
@@ -412,7 +415,7 @@ const resources: readonly AdminResource[] = [
     table: "site_settings",
     title: "Site ayarları",
     singular: "site ayarı",
-    description: "Footer, sosyal medya, iletişim ve bölüm görünürlüklerini JSON değerlerle yönet.",
+    description: "Footer, sosyal medya, iletişim ve görünürlük gibi gelişmiş site ayarlarını yönet.",
     group: "site",
     listFields: ["key", "description", "is_public", "status", "is_active"],
     labelField: "key",
@@ -420,14 +423,15 @@ const resources: readonly AdminResource[] = [
     orderField: "sort_order",
     allowCreate: true,
     allowArchive: true,
-    allowHardDelete: true,
+    allowHardDelete: false,
+    hardDeleteProtectionReason: "Site ayarları tema, görünürlük ve ziyaretçi sitesi davranışlarını etkileyen sistem kayıtlarıdır. Geri dönüşü zor yapılandırma kaybını önlemek için kalıcı silme kapalıdır; kaydı arşivle veya değerini kontrollü biçimde güncelle.",
     activeField: "is_active",
     statusField: "status",
     fields: [
-      { name: "key", label: "Ayar anahtarı", type: "text", required: true },
-      { name: "value", label: "Değer (JSON)", type: "json", required: true },
+      { name: "key", label: "Ayar kodu", type: "text", required: true, help: "Bu kod sitenin ilgili ayarı bulmasını sağlar. Mevcut kodları değiştirme." },
+      { name: "value", label: "Ayar içeriği", type: "json", required: true, help: "Alan yapısını koruyarak yalnız gerekli metin veya bağlantıları değiştir." },
       { name: "description", label: "Açıklama", type: "textarea", nullable: true, rows: 3 },
-      { name: "is_public", label: "Public siteden okunabilir", type: "checkbox" },
+      { name: "is_public", label: "Ziyaretçi sitesinde kullanılabilir", type: "checkbox" },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
     ],
@@ -445,15 +449,16 @@ const resources: readonly AdminResource[] = [
     orderField: "sort_order",
     allowCreate: true,
     allowArchive: true,
-    allowHardDelete: true,
+    allowHardDelete: false,
+    hardDeleteProtectionReason: "Site sayfaları içerik bloklarının üst kaydıdır. Sayfa silinirse bağlı bütün bloklar da gider; bu nedenle kalıcı silme kapalıdır ve sayfa yalnızca arşivlenebilir.",
     activeField: "is_active",
     statusField: "status",
     fields: [
       { name: "title", label: "Sayfa adı", type: "text", required: true },
-      { name: "slug", label: "Slug", type: "text", required: true },
+      { name: "slug", label: "URL adı", type: "text", advanced: true, help: "Boş bırakırsan addan otomatik oluşturulur." },
       { name: "seo_title", label: "SEO başlığı", type: "text", nullable: true },
       { name: "seo_description", label: "SEO açıklaması", type: "textarea", nullable: true, rows: 3 },
-      { name: "metadata", label: "Metadata (JSON)", type: "json", required: true, defaultValue: "{}" },
+      { name: "metadata", label: "Ek sayfa ayarları", type: "json", required: true, defaultValue: "{}", advanced: true, help: "Geliştirici tarafından özel bir değer istenmedikçe değiştirme." },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
       { name: "published_at", label: "Yayın zamanı", type: "datetime", nullable: true },
@@ -464,7 +469,7 @@ const resources: readonly AdminResource[] = [
     table: "content_blocks",
     title: "İçerik blokları",
     singular: "içerik bloğu",
-    description: "Hero, Anılarımız, galeri ve diğer sayfa metinlerinin kontrollü JSON içeriği.",
+    description: "Ana sayfa bölümleri, galeri ve diğer özel içerik alanlarının gelişmiş yapılandırması.",
     group: "content",
     listFields: ["key", "page_id", "block_type", "status", "is_active"],
     labelField: "key",
@@ -478,9 +483,9 @@ const resources: readonly AdminResource[] = [
     statusField: "status",
     fields: [
       { name: "page_id", label: "Sayfa", type: "foreign", optionSource: "pages", required: true },
-      { name: "key", label: "Blok anahtarı", type: "text", required: true },
-      { name: "block_type", label: "Blok türü", type: "text", required: true },
-      { name: "content", label: "İçerik (JSON)", type: "json", required: true },
+      { name: "key", label: "İçerik alanı kodu", type: "text", required: true, help: "Sitenin bu alanı tanımasını sağlayan koddur. Mevcut kayıtlarda değiştirme." },
+      { name: "block_type", label: "İçerik şablonu", type: "text", required: true, help: "Bu alanın sitede hangi şablonla gösterileceğini belirler." },
+      { name: "content", label: "İçerik verisi", type: "json", required: true, help: "Alan yapısını bozmadan metin, görsel ve bağlantı değerlerini güncelle." },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
     ],

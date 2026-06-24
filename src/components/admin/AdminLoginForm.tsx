@@ -112,8 +112,7 @@ export default function AdminLoginForm({
       </p>
 
       <p className={styles.help}>
-        Bu sayfada yalnız Supabase Authentication üzerinden oluşturulmuş ve
-        aktif <strong>admin</strong> rolüne sahip hesaplar oturum açabilir.
+        Yalnızca işletme tarafından yetkilendirilmiş aktif yönetici hesapları oturum açabilir.
       </p>
     </form>
   );

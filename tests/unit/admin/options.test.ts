@@ -15,7 +15,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 import {
-  ADMIN_OPTION_LIMIT,
+  ADMIN_OPTION_PAGE_SIZE,
   loadAdminOptions,
 } from "@/lib/admin/options";
 
@@ -24,72 +24,75 @@ describe("admin seçenekleri", () => {
     vi.clearAllMocks();
   });
 
-  it("yalnız aktif ve yayındaki görselleri sınırlı olarak sorgular", async () => {
+  it("200 kayıt sınırı olmadan bütün aktif medya seçeneklerini sayfalayarak yükler", async () => {
+    const firstPage = Array.from(
+      { length: ADMIN_OPTION_PAGE_SIZE },
+      (_, index) => ({
+        id: `TEST_media_${index}`,
+        title: `TEST_ Medya ${index}`,
+        alt_text: null,
+        local_path: null,
+        object_path: `${index}.webp`,
+        source: "storage",
+      }),
+    );
+
     const builder = {
       eq: vi.fn(),
       order: vi.fn(),
-      limit: vi.fn().mockResolvedValue({
-        data: [
-          {
-            id: "TEST_media",
-            title: "TEST_ Aktif medya",
-            alt_text: "TEST_ alt",
-            local_path: null,
-            object_path: "TEST.webp",
-            source: "storage",
-          },
-        ],
-        error: null,
-      }),
+      range: vi
+        .fn()
+        .mockResolvedValueOnce({ data: firstPage, error: null })
+        .mockResolvedValueOnce({
+          data: [
+            {
+              id: "TEST_media_last",
+              title: "TEST_ Son medya",
+              alt_text: null,
+              local_path: null,
+              object_path: "last.webp",
+              source: "storage",
+            },
+          ],
+          error: null,
+        }),
     };
 
     builder.eq.mockReturnValue(builder);
     builder.order.mockReturnValue(builder);
 
-    const select = vi.fn(() => builder);
-
     mocks.createClient.mockResolvedValue({
       from: vi.fn(() => ({
-        select,
+        select: vi.fn(() => builder),
       })),
     });
 
     const result = await loadAdminOptions(["media"]);
 
-    expect(builder.eq).toHaveBeenNthCalledWith(
+    expect(builder.eq).toHaveBeenNthCalledWith(1, "kind", "image");
+    expect(builder.eq).toHaveBeenNthCalledWith(2, "is_active", true);
+    expect(builder.eq).toHaveBeenNthCalledWith(3, "status", "published");
+    expect(builder.range).toHaveBeenNthCalledWith(
       1,
-      "kind",
-      "image",
+      0,
+      ADMIN_OPTION_PAGE_SIZE - 1,
     );
-
-    expect(builder.eq).toHaveBeenNthCalledWith(
+    expect(builder.range).toHaveBeenNthCalledWith(
       2,
-      "is_active",
-      true,
+      ADMIN_OPTION_PAGE_SIZE,
+      ADMIN_OPTION_PAGE_SIZE * 2 - 1,
     );
-
-    expect(builder.eq).toHaveBeenNthCalledWith(
-      3,
-      "status",
-      "published",
-    );
-
-    expect(builder.limit).toHaveBeenCalledWith(
-      ADMIN_OPTION_LIMIT,
-    );
-
-    expect(result.media).toEqual([
-      {
-        value: "TEST_media",
-        label: "TEST_ Aktif medya",
-      },
-    ]);
+    expect(result.media).toHaveLength(ADMIN_OPTION_PAGE_SIZE + 1);
+    expect(result.media?.at(-1)).toEqual({
+      value: "TEST_media_last",
+      label: "TEST_ Son medya",
+    });
   });
 
   it("aynı seçenek kaynağını yalnız bir kez sorgular", async () => {
     const builder = {
       order: vi.fn(),
-      limit: vi.fn().mockResolvedValue({
+      range: vi.fn().mockResolvedValue({
         data: [
           {
             id: "TEST_branch",
@@ -106,9 +109,7 @@ describe("admin seçenekleri", () => {
     const select = vi.fn(() => builder);
     const from = vi.fn(() => ({ select }));
 
-    mocks.createClient.mockResolvedValue({
-      from,
-    });
+    mocks.createClient.mockResolvedValue({ from });
 
     const result = await loadAdminOptions([
       "branches",
@@ -116,7 +117,7 @@ describe("admin seçenekleri", () => {
     ]);
 
     expect(from).toHaveBeenCalledTimes(1);
-
+    expect(builder.range).toHaveBeenCalledTimes(1);
     expect(result.branches).toEqual([
       {
         value: "TEST_branch",
@@ -125,10 +126,10 @@ describe("admin seçenekleri", () => {
     ]);
   });
 
-  it("Supabase seçeneği yüklenemezse hatayı gizlemez", async () => {
+  it("Supabase seçenek sayfası yüklenemezse hatayı gizlemez", async () => {
     const builder = {
       order: vi.fn(),
-      limit: vi.fn().mockResolvedValue({
+      range: vi.fn().mockResolvedValue({
         data: null,
         error: {
           message: "TEST_ seçenek sorgusu başarısız",
@@ -146,8 +147,6 @@ describe("admin seçenekleri", () => {
 
     await expect(
       loadAdminOptions(["categories"]),
-    ).rejects.toThrow(
-      "TEST_ seçenek sorgusu başarısız",
-    );
+    ).rejects.toThrow("TEST_ seçenek sorgusu başarısız");
   });
 });

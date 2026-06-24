@@ -12,7 +12,37 @@ export type AdminOptionsMap = Partial<
   Record<AdminOptionSource, AdminOption[]>
 >;
 
-export const ADMIN_OPTION_LIMIT = 200;
+export const ADMIN_OPTION_PAGE_SIZE = 500;
+
+type AdminOptionPage<Row> = {
+  data: Row[] | null;
+  error: { message: string } | null;
+};
+
+async function loadEveryOptionRow<Row>(
+  loadPage: (from: number, to: number) => PromiseLike<AdminOptionPage<Row>>,
+): Promise<Row[]> {
+  const rows: Row[] = [];
+  let from = 0;
+
+  while (true) {
+    const to = from + ADMIN_OPTION_PAGE_SIZE - 1;
+    const { data, error } = await loadPage(from, to);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const page = data ?? [];
+    rows.push(...page);
+
+    if (page.length < ADMIN_OPTION_PAGE_SIZE) {
+      return rows;
+    }
+
+    from += ADMIN_OPTION_PAGE_SIZE;
+  }
+}
 
 export async function loadAdminOptions(
   sources: readonly AdminOptionSource[],
@@ -29,17 +59,15 @@ export async function loadAdminOptions(
   await Promise.all(
     uniqueSources.map(async (source) => {
       if (source === "branches") {
-        const { data, error } = await supabase
-          .from("branches")
-          .select("id, name, code")
-          .order("sort_order")
-          .limit(ADMIN_OPTION_LIMIT);
+        const data = await loadEveryOptionRow((from, to) =>
+          supabase
+            .from("branches")
+            .select("id, name, code")
+            .order("sort_order")
+            .range(from, to),
+        );
 
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        result[source] = (data ?? []).map((row) => ({
+        result[source] = data.map((row) => ({
           value: row.id,
           label: `${row.name} (${row.code})`,
         }));
@@ -48,17 +76,15 @@ export async function loadAdminOptions(
       }
 
       if (source === "categories") {
-        const { data, error } = await supabase
-          .from("menu_categories")
-          .select("id, name")
-          .order("sort_order")
-          .limit(ADMIN_OPTION_LIMIT);
+        const data = await loadEveryOptionRow((from, to) =>
+          supabase
+            .from("menu_categories")
+            .select("id, name")
+            .order("sort_order")
+            .range(from, to),
+        );
 
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        result[source] = (data ?? []).map((row) => ({
+        result[source] = data.map((row) => ({
           value: row.id,
           label: row.name,
         }));
@@ -67,22 +93,20 @@ export async function loadAdminOptions(
       }
 
       if (source === "media") {
-        const { data, error } = await supabase
-          .from("media")
-          .select(
-            "id, title, alt_text, local_path, object_path, source",
-          )
-          .eq("kind", "image")
-          .eq("is_active", true)
-          .eq("status", "published")
-          .order("sort_order")
-          .limit(ADMIN_OPTION_LIMIT);
+        const data = await loadEveryOptionRow((from, to) =>
+          supabase
+            .from("media")
+            .select(
+              "id, title, alt_text, local_path, object_path, source",
+            )
+            .eq("kind", "image")
+            .eq("is_active", true)
+            .eq("status", "published")
+            .order("sort_order")
+            .range(from, to),
+        );
 
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        result[source] = (data ?? []).map((row) => ({
+        result[source] = data.map((row) => ({
           value: row.id,
           label:
             row.title ||
@@ -96,17 +120,15 @@ export async function loadAdminOptions(
       }
 
       if (source === "pages") {
-        const { data, error } = await supabase
-          .from("site_pages")
-          .select("id, title, slug")
-          .order("sort_order")
-          .limit(ADMIN_OPTION_LIMIT);
+        const data = await loadEveryOptionRow((from, to) =>
+          supabase
+            .from("site_pages")
+            .select("id, title, slug")
+            .order("sort_order")
+            .range(from, to),
+        );
 
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        result[source] = (data ?? []).map((row) => ({
+        result[source] = data.map((row) => ({
           value: row.id,
           label: `${row.title} (${row.slug || "anasayfa"})`,
         }));
@@ -115,17 +137,15 @@ export async function loadAdminOptions(
       }
 
       if (source === "menu-items") {
-        const { data, error } = await supabase
-          .from("menu_items")
-          .select("id, name, slug")
-          .order("sort_order")
-          .limit(ADMIN_OPTION_LIMIT);
+        const data = await loadEveryOptionRow((from, to) =>
+          supabase
+            .from("menu_items")
+            .select("id, name, slug")
+            .order("sort_order")
+            .range(from, to),
+        );
 
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        result[source] = (data ?? []).map((row) => ({
+        result[source] = data.map((row) => ({
           value: row.id,
           label: `${row.name} (${row.slug})`,
         }));
@@ -134,17 +154,15 @@ export async function loadAdminOptions(
       }
 
       if (source === "events") {
-        const { data, error } = await supabase
-          .from("events")
-          .select("id, title, start_at")
-          .order("start_at", { ascending: false })
-          .limit(ADMIN_OPTION_LIMIT);
+        const data = await loadEveryOptionRow((from, to) =>
+          supabase
+            .from("events")
+            .select("id, title, start_at")
+            .order("start_at", { ascending: false })
+            .range(from, to),
+        );
 
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        result[source] = (data ?? []).map((row) => ({
+        result[source] = data.map((row) => ({
           value: row.id,
           label: row.title,
         }));
@@ -153,17 +171,15 @@ export async function loadAdminOptions(
       }
 
       if (source === "merch-products") {
-        const { data, error } = await supabase
-          .from("merch_products")
-          .select("id, name, product_type")
-          .order("sort_order")
-          .limit(ADMIN_OPTION_LIMIT);
+        const data = await loadEveryOptionRow((from, to) =>
+          supabase
+            .from("merch_products")
+            .select("id, name, product_type")
+            .order("sort_order")
+            .range(from, to),
+        );
 
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        result[source] = (data ?? []).map((row) => ({
+        result[source] = data.map((row) => ({
           value: row.id,
           label: `${row.name} (${
             row.product_type === "bundle" ? "Paket" : "Ürün"
@@ -174,46 +190,39 @@ export async function loadAdminOptions(
       }
 
       if (source === "menu-item-branches") {
-        const [
-          { data: links, error: linksError },
-          { data: items, error: itemsError },
-          { data: branches, error: branchesError },
-        ] = await Promise.all([
-          supabase
-            .from("menu_item_branches")
-            .select("id, menu_item_id, branch_id")
-            .order("sort_order")
-            .limit(ADMIN_OPTION_LIMIT),
-
-          supabase
-            .from("menu_items")
-            .select("id, name")
-            .order("sort_order")
-            .limit(ADMIN_OPTION_LIMIT),
-
-          supabase
-            .from("branches")
-            .select("id, name")
-            .order("sort_order")
-            .limit(ADMIN_OPTION_LIMIT),
+        const [links, items, branches] = await Promise.all([
+          loadEveryOptionRow((from, to) =>
+            supabase
+              .from("menu_item_branches")
+              .select("id, menu_item_id, branch_id")
+              .order("sort_order")
+              .range(from, to),
+          ),
+          loadEveryOptionRow((from, to) =>
+            supabase
+              .from("menu_items")
+              .select("id, name")
+              .order("sort_order")
+              .range(from, to),
+          ),
+          loadEveryOptionRow((from, to) =>
+            supabase
+              .from("branches")
+              .select("id, name")
+              .order("sort_order")
+              .range(from, to),
+          ),
         ]);
 
-        const queryError =
-          linksError || itemsError || branchesError;
-
-        if (queryError) {
-          throw new Error(queryError.message);
-        }
-
         const itemMap = new Map(
-          (items ?? []).map((row) => [row.id, row.name]),
+          items.map((row) => [row.id, row.name]),
         );
 
         const branchMap = new Map(
-          (branches ?? []).map((row) => [row.id, row.name]),
+          branches.map((row) => [row.id, row.name]),
         );
 
-        result[source] = (links ?? []).map((row) => ({
+        result[source] = links.map((row) => ({
           value: row.id,
           label: `${
             itemMap.get(row.menu_item_id) ?? "Ürün"

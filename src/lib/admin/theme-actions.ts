@@ -127,7 +127,7 @@ export async function saveThemeSettings(formData: FormData): Promise<never> {
     });
 
     if (error || data !== true) {
-      throw new Error(error?.message || "Tema transaction işlemi tamamlanamadı.");
+      throw new Error(error?.message || "Tasarım ayarları güvenli biçimde kaydedilemedi.");
     }
 
     destination = `/admin/theme?notice=${encodeURIComponent(

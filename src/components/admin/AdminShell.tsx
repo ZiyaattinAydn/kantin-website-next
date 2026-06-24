@@ -10,7 +10,7 @@ const groups = [
   {
     label: "Genel",
     links: [
-      { href: "/admin", label: "Dashboard" },
+      { href: "/admin", label: "Ana ekran" },
       { href: "/admin/media", label: "Medya kütüphanesi" },
       { href: "/admin/applications", label: "Kariyer başvuruları" },
     ],
@@ -31,8 +31,8 @@ const groups = [
   {
     label: "İçerik",
     links: [
-      { href: "/admin/manage/events", label: "Etkinlikler ve Duyurular" },
-      { href: "/admin/manage/event-branches", label: "Etkinlik ve Duyuru şubeleri" },
+      { href: "/admin/manage/events", label: "Etkinlikler" },
+      { href: "/admin/manage/event-branches", label: "Etkinlik şubeleri" },
       { href: "/admin/manage/merch-products", label: "Merch ürünleri" },
       { href: "/admin/manage/merch-product-branches", label: "Merch şubeleri" },
       { href: "/admin/manage/instagram-posts", label: "Instagram" },
@@ -90,7 +90,7 @@ export default function AdminShell({
 
         <div className={styles.identity}>
           <strong>{identity}</strong>
-          <span>Supabase Auth · Yetkili oturum</span>
+          <span>Yetkili yönetici oturumu</span>
         </div>
 
         <nav className={styles.nav} aria-label="Admin navigasyonu">
@@ -148,7 +148,7 @@ export default function AdminShell({
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <Link href="/" target="_blank">Public siteyi aç</Link>
+          <Link href="/" target="_blank">Ziyaretçi sitesini aç</Link>
           <AdminSignOutButton />
         </div>
       </aside>
