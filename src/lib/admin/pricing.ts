@@ -174,3 +174,34 @@ export function pricingResultPath(
   url.searchParams.set(type, message.slice(0, 220));
   return `${url.pathname}?${url.searchParams.toString()}`;
 }
+
+export type ProductMenuState = {
+  label: "Yayında" | "Menüde değil" | "Pasif";
+  tone: "live" | "unlisted" | "passive";
+};
+
+export function resolveProductMenuState(input: {
+  productStatus: string;
+  productIsActive: boolean;
+  categoryIsPublic: boolean;
+  hasPublicBranchPlacement: boolean;
+}): ProductMenuState {
+  if (!input.productIsActive || input.productStatus !== "published") {
+    return {
+      label: "Pasif",
+      tone: "passive",
+    };
+  }
+
+  if (input.categoryIsPublic && input.hasPublicBranchPlacement) {
+    return {
+      label: "Yayında",
+      tone: "live",
+    };
+  }
+
+  return {
+    label: "Menüde değil",
+    tone: "unlisted",
+  };
+}
