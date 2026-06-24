@@ -9,6 +9,7 @@ import {
   branchPricingField,
   formatTryPriceInput,
   hasMissingBranchPrice,
+  hasPublicPlacementInBranchScope,
   isUuid,
   resolveBranchDisplayPrice,
   resolveProductMenuState,
@@ -387,18 +388,22 @@ export default async function AdminPricingPage({ searchParams }: Props) {
               const categoryIsPublic = Boolean(
                 category?.is_active && category.status === "published",
               );
-              const hasPublicBranchPlacement = productPrices.some((price) => {
-                const branch = branchById.get(price.branch_id);
-                const categoryBranch = categoryBranchByKey.get(
-                  keyFor(product.category_id, price.branch_id),
-                );
-                return Boolean(
-                  price.is_active
-                  && branch?.is_active
-                  && branch.status === "published"
-                  && categoryBranch?.is_active,
-                );
-              });
+              const hasPublicBranchPlacement = hasPublicPlacementInBranchScope(
+                productPrices,
+                displayedBranchIds,
+                (price) => {
+                  const branch = branchById.get(price.branch_id);
+                  const categoryBranch = categoryBranchByKey.get(
+                    keyFor(product.category_id, price.branch_id),
+                  );
+                  return Boolean(
+                    price.is_active
+                    && branch?.is_active
+                    && branch.status === "published"
+                    && categoryBranch?.is_active,
+                  );
+                },
+              );
               const menuState = resolveProductMenuState({
                 productStatus: product.status,
                 productIsActive: product.is_active,

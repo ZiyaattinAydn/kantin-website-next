@@ -162,6 +162,10 @@ export async function deleteAdminResource(formData: FormData): Promise<never> {
   let destination: string;
 
   try {
+    if (textValue(formData, "_confirm") !== "KALICI SİL") {
+      throw new Error("Kalıcı silme onayı doğrulanamadı. İşlemi ekrandaki kalıcı silme düğmesinden yeniden başlat.");
+    }
+
     assertDatabaseAudit(resource);
     const supabase = await createClient();
     const row = await readAdminRow(supabase, resource.table, id);

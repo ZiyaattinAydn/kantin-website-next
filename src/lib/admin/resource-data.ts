@@ -33,10 +33,15 @@ function resourceListColumns(resource: AdminResource): string {
 }
 
 function resourceRecordColumns(resource: AdminResource): string {
-  return uniqueColumnList([
-    "id",
-    ...resource.fields.map((field) => field.name),
-  ]);
+  return resourceListColumns(resource);
+}
+
+export function includeSelectedAdminRow(
+  rows: Record<string, unknown>[],
+  selected: Record<string, unknown> | null,
+): Record<string, unknown>[] {
+  if (!selected || typeof selected.id !== "string") return rows;
+  return rows.some((row) => row.id === selected.id) ? rows : [selected, ...rows];
 }
 
 function applyResourceSearch<Query extends { or: (filter: string) => Query }>(

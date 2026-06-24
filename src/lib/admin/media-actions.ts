@@ -308,6 +308,10 @@ export async function deleteAdminMedia(formData: FormData): Promise<never> {
 
   try {
     if (!id) throw new Error("Medya kaydı bulunamadı.");
+    const confirmation = text(formData, "_confirm");
+    if (confirmation !== "KALICI SİL" && confirmation !== "SİLMEYİ TAMAMLA") {
+      throw new Error("Kalıcı silme onayı doğrulanamadı. İşlemi ekrandaki kalıcı silme düğmesinden yeniden başlat.");
+    }
     const supabase = await createClient();
     const { data: media, error: mediaError } = await supabase
       .from("media")

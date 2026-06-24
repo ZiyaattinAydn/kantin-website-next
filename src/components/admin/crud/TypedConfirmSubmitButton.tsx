@@ -15,6 +15,8 @@ export default function TypedConfirmSubmitButton({
   return (
     <button
       {...props}
+      name="_confirm"
+      value={confirmPhrase}
       onClick={(event) => {
         const answer = window.prompt(
           `${confirmMessage}\n\nDevam etmek için tam olarak “${confirmPhrase}” yaz.`,

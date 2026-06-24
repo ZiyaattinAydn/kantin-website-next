@@ -133,6 +133,40 @@ export function hasMissingBranchPrice(
   });
 }
 
+export type ProductMenuState = {
+  label: "Pasif" | "Taslak" | "Menüde değil" | "Yayında";
+  tone: "live" | "passive" | "unlisted";
+};
+
+export function hasPublicPlacementInBranchScope<T extends { branch_id: string }>(
+  placements: readonly T[],
+  branchIds: readonly string[],
+  isPublicPlacement: (placement: T) => boolean,
+): boolean {
+  const branchScope = new Set(branchIds);
+  return placements.some(
+    (placement) => branchScope.has(placement.branch_id) && isPublicPlacement(placement),
+  );
+}
+
+export function resolveProductMenuState(input: {
+  productStatus: "draft" | "published" | "archived";
+  productIsActive: boolean;
+  categoryIsPublic: boolean;
+  hasPublicBranchPlacement: boolean;
+}): ProductMenuState {
+  if (!input.productIsActive || input.productStatus === "archived") {
+    return { label: "Pasif", tone: "passive" };
+  }
+  if (input.productStatus === "draft") {
+    return { label: "Taslak", tone: "passive" };
+  }
+  if (!input.categoryIsPublic || !input.hasPublicBranchPlacement) {
+    return { label: "Menüde değil", tone: "unlisted" };
+  }
+  return { label: "Yayında", tone: "live" };
+}
+
 const RETURN_QUERY_KEYS = new Set([
   "q",
   "category",
@@ -173,35 +207,4 @@ export function pricingResultPath(
   url.searchParams.delete(type === "notice" ? "error" : "notice");
   url.searchParams.set(type, message.slice(0, 220));
   return `${url.pathname}?${url.searchParams.toString()}`;
-}
-
-export type ProductMenuState = {
-  label: "Yayında" | "Menüde değil" | "Pasif";
-  tone: "live" | "unlisted" | "passive";
-};
-
-export function resolveProductMenuState(input: {
-  productStatus: string;
-  productIsActive: boolean;
-  categoryIsPublic: boolean;
-  hasPublicBranchPlacement: boolean;
-}): ProductMenuState {
-  if (!input.productIsActive || input.productStatus !== "published") {
-    return {
-      label: "Pasif",
-      tone: "passive",
-    };
-  }
-
-  if (input.categoryIsPublic && input.hasPublicBranchPlacement) {
-    return {
-      label: "Yayında",
-      tone: "live",
-    };
-  }
-
-  return {
-    label: "Menüde değil",
-    tone: "unlisted",
-  };
 }

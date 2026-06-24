@@ -324,12 +324,23 @@ describe("admin medya eylemleri", () => {
     ]);
   });
 
+  it("sunucu tarafında kalıcı silme onayı olmayan medya isteğini reddeder", async () => {
+    const formData = new FormData();
+    formData.set("id", TEST_MEDIA.id);
+
+    await expect(deleteAdminMedia(formData)).rejects.toThrow(
+      "REDIRECT:/admin/media?error=",
+    );
+    expect(mocks.createClient).not.toHaveBeenCalled();
+  });
+
   it("aktif medya kaydını kalıcı silme akışına almaz", async () => {
     const media = { ...TEST_MEDIA, status: "published", is_active: true };
     const rpc = vi.fn();
     mocks.createClient.mockResolvedValue({ ...mediaReadClient(media), rpc });
     const formData = new FormData();
     formData.set("id", media.id);
+    formData.set("_confirm", "KALICI SİL");
 
     await expect(deleteAdminMedia(formData)).rejects.toThrow(
       "REDIRECT:/admin/media?error=",
@@ -366,6 +377,7 @@ describe("admin medya eylemleri", () => {
     });
     const formData = new FormData();
     formData.set("id", TEST_MEDIA.id);
+    formData.set("_confirm", "KALICI SİL");
 
     await expect(deleteAdminMedia(formData)).rejects.toThrow(
       "REDIRECT:/admin/media?notice=",
@@ -406,6 +418,7 @@ describe("admin medya eylemleri", () => {
     });
     const formData = new FormData();
     formData.set("id", TEST_MEDIA.id);
+    formData.set("_confirm", "KALICI SİL");
 
     await expect(deleteAdminMedia(formData)).rejects.toThrow(
       "REDIRECT:/admin/media?error=",
@@ -451,6 +464,7 @@ describe("admin medya eylemleri", () => {
     });
     const formData = new FormData();
     formData.set("id", TEST_MEDIA.id);
+    formData.set("_confirm", "KALICI SİL");
 
     await expect(deleteAdminMedia(formData)).rejects.toThrow(
       "REDIRECT:/admin/media?notice=",
@@ -497,6 +511,7 @@ describe("admin medya eylemleri", () => {
     });
     const formData = new FormData();
     formData.set("id", localMedia.id);
+    formData.set("_confirm", "KALICI SİL");
 
     await expect(deleteAdminMedia(formData)).rejects.toThrow(
       "REDIRECT:/admin/media?notice=",

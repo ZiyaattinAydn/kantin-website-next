@@ -4,7 +4,11 @@ import { firstString } from "@/lib/admin/format";
 import { normaliseAdminSearch, parseAdminPage } from "@/lib/admin/pagination";
 import { loadAdminOptions } from "@/lib/admin/options";
 import { loadAdminDeleteImpact } from "@/lib/admin/resource-delete";
-import { loadAdminResourceRecord, loadAdminResourceRows } from "@/lib/admin/resource-data";
+import {
+  includeSelectedAdminRow,
+  loadAdminResourceRecord,
+  loadAdminResourceRows,
+} from "@/lib/admin/resource-data";
 import { getAdminResource } from "@/lib/admin/resources";
 
 export const dynamic = "force-dynamic";
@@ -56,6 +60,8 @@ export default async function AdminResourcePage({ params, searchParams }: PagePr
     editId ? loadAdminDeleteImpact(resource, editId) : Promise.resolve(null),
   ]);
 
+  const rows = includeSelectedAdminRow(list.rows, record);
+
   return (
     <AdminResourceEditor
       deleteImpact={deleteImpact}
@@ -67,7 +73,7 @@ export default async function AdminResourcePage({ params, searchParams }: PagePr
       prefill={prefill}
       record={record}
       resource={resource}
-      rows={list.rows}
+      rows={rows}
       search={search}
       showNew={firstString(query.new) === "1" || Boolean(prefill)}
     />

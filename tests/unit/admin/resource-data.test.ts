@@ -9,6 +9,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 import {
+  includeSelectedAdminRow,
   loadAdminResourceRecord,
   loadAdminResourceRows,
 } from "@/lib/admin/resource-data";
@@ -69,7 +70,7 @@ describe("admin resource data", () => {
     expect(result.pagination).toMatchObject({ page: 3, pageCount: 3, total: 51 });
   });
 
-  it("düzenleme sorgusunda yıldız yerine yalnız form alanlarını seçer", async () => {
+  it("düzenleme sorgusunda açılır satır için liste ve form alanlarını birlikte seçer", async () => {
     const maybeSingle = vi.fn().mockResolvedValue({
       data: {
         id: "TEST_event",
@@ -97,27 +98,7 @@ describe("admin resource data", () => {
     );
 
     expect(select).toHaveBeenCalledWith(
-      [
-        "id",
-        "content_type",
-        "title",
-        "slug",
-        "summary",
-        "description",
-        "start_at",
-        "end_at",
-        "venue_name",
-        "location_text",
-        "external_url",
-        "cta_label",
-        "image_media_id",
-        "status",
-        "is_active",
-        "is_featured",
-        "published_at",
-        "publish_start_at",
-        "publish_end_at",
-      ].join(","),
+      "id,sort_order,title,content_type,start_at,status,is_active,is_featured,slug,summary,description,end_at,venue_name,location_text,external_url,cta_label,image_media_id,published_at,publish_start_at,publish_end_at,updated_at",
     );
 
     expect(eq).toHaveBeenCalledWith("id", "TEST_event");
@@ -127,4 +108,16 @@ describe("admin resource data", () => {
       title: "TEST_ Etkinlik",
     });
   });
+  it("seçili kayıt mevcut sayfada değilse düzenleme için listenin başına ekler", () => {
+    const rows = [
+      { id: "row-1", title: "Birinci" },
+      { id: "row-2", title: "İkinci" },
+    ];
+    const selected = { id: "row-9", title: "Seçili" };
+
+    expect(includeSelectedAdminRow(rows, selected)).toEqual([selected, ...rows]);
+    expect(includeSelectedAdminRow(rows, rows[0])).toEqual(rows);
+    expect(includeSelectedAdminRow(rows, null)).toEqual(rows);
+  });
+
 });

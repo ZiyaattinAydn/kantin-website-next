@@ -3,9 +3,11 @@ import {
   assertUuid,
   formatTryPriceInput,
   hasMissingBranchPrice,
+  hasPublicPlacementInBranchScope,
   parseTryPrice,
   pricingResultPath,
   resolveBranchDisplayPrice,
+  resolveProductMenuState,
   safePricingReturnPath,
 } from "@/lib/admin/pricing";
 
@@ -48,6 +50,59 @@ describe("admin fiyat yardımcıları", () => {
         [],
       ),
     ).toEqual({ priceCents: 24000, source: "branch", variantLabel: null });
+  });
+
+  it("şube filtresinde yalnız görüntülenen şubelerin menü bağlantısını dikkate alır", () => {
+    const placements = [
+      { branch_id: "alsancak", isPublic: true },
+      { branch_id: "atakent", isPublic: false },
+    ];
+
+    expect(
+      hasPublicPlacementInBranchScope(
+        placements,
+        ["atakent"],
+        (placement) => placement.isPublic,
+      ),
+    ).toBe(false);
+
+    expect(
+      hasPublicPlacementInBranchScope(
+        placements,
+        ["alsancak"],
+        (placement) => placement.isPublic,
+      ),
+    ).toBe(true);
+  });
+
+  it("ürün yalnız gerçekten public menüdeyse Yayında gösterir", () => {
+    expect(resolveProductMenuState({
+      productStatus: "published",
+      productIsActive: true,
+      categoryIsPublic: true,
+      hasPublicBranchPlacement: true,
+    })).toEqual({ label: "Yayında", tone: "live" });
+
+    expect(resolveProductMenuState({
+      productStatus: "published",
+      productIsActive: true,
+      categoryIsPublic: true,
+      hasPublicBranchPlacement: false,
+    })).toEqual({ label: "Menüde değil", tone: "unlisted" });
+
+    expect(resolveProductMenuState({
+      productStatus: "published",
+      productIsActive: true,
+      categoryIsPublic: false,
+      hasPublicBranchPlacement: true,
+    })).toEqual({ label: "Menüde değil", tone: "unlisted" });
+
+    expect(resolveProductMenuState({
+      productStatus: "draft",
+      productIsActive: true,
+      categoryIsPublic: true,
+      hasPublicBranchPlacement: true,
+    })).toEqual({ label: "Taslak", tone: "passive" });
   });
 
   it("yalnız UUID ve güvenli pricing dönüş yolunu kabul eder", () => {

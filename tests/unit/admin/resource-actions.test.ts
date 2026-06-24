@@ -179,6 +179,17 @@ describe("admin resource actions", () => {
     expect(mocks.createClient).not.toHaveBeenCalled();
   });
 
+  it("sunucu tarafında kalıcı silme onayı olmayan isteği reddeder", async () => {
+    const formData = new FormData();
+    formData.set("_resource", "menu-items");
+    formData.set("_id", "11111111-1111-4111-8111-111111111111");
+
+    await expect(deleteAdminResource(formData)).rejects.toThrow(
+      "REDIRECT:/admin/manage/menu-items?error=",
+    );
+    expect(mocks.createClient).not.toHaveBeenCalled();
+  });
+
   it("aktif kaydın kalıcı silinmesini reddeder", async () => {
     const deleteEq = vi.fn().mockResolvedValue({ error: null });
     const deleteMethod = vi.fn(() => ({ eq: deleteEq }));
@@ -195,6 +206,7 @@ describe("admin resource actions", () => {
     const formData = new FormData();
     formData.set("_resource", "menu-items");
     formData.set("_id", "11111111-1111-4111-8111-111111111111");
+    formData.set("_confirm", "KALICI SİL");
 
     await expect(deleteAdminResource(formData)).rejects.toThrow(
       "REDIRECT:/admin/manage/menu-items?error=",
@@ -217,6 +229,7 @@ describe("admin resource actions", () => {
     const formData = new FormData();
     formData.set("_resource", "menu-items");
     formData.set("_id", "11111111-1111-4111-8111-111111111111");
+    formData.set("_confirm", "KALICI SİL");
 
     await expect(deleteAdminResource(formData)).rejects.toThrow(
       "REDIRECT:/admin/manage/menu-items?notice=",
@@ -232,6 +245,7 @@ describe("admin resource actions", () => {
     const formData = new FormData();
     formData.set("_resource", "branches");
     formData.set("_id", "11111111-1111-4111-8111-111111111111");
+    formData.set("_confirm", "KALICI SİL");
 
     await expect(deleteAdminResource(formData)).rejects.toThrow(
       "REDIRECT:/admin?error=Kalıcı silme bu modülde kapalı.",
@@ -275,6 +289,7 @@ describe("admin resource actions", () => {
     const formData = new FormData();
     formData.set("_resource", "menu-categories");
     formData.set("_id", categoryId);
+    formData.set("_confirm", "KALICI SİL");
 
     await expect(deleteAdminResource(formData)).rejects.toThrow(
       "REDIRECT:/admin/manage/menu-categories?error=",
