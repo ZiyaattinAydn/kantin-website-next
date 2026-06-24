@@ -3,6 +3,7 @@ import AdminResourceEditor from "@/components/admin/crud/AdminResourceEditor";
 import { firstString } from "@/lib/admin/format";
 import { normaliseAdminSearch, parseAdminPage } from "@/lib/admin/pagination";
 import { loadAdminOptions } from "@/lib/admin/options";
+import { loadAdminDeleteImpact } from "@/lib/admin/resource-delete";
 import { loadAdminResourceRecord, loadAdminResourceRows } from "@/lib/admin/resource-data";
 import { getAdminResource } from "@/lib/admin/resources";
 
@@ -48,14 +49,16 @@ export default async function AdminResourcePage({ params, searchParams }: PagePr
   const page = parseAdminPage(firstString(query.page));
   const sources = resource.fields.flatMap((field) => field.optionSource ? [field.optionSource] : []);
   const prefill = prefilledRecord(query, resource.fields.map((field) => field.name));
-  const [list, record, options] = await Promise.all([
+  const [list, record, options, deleteImpact] = await Promise.all([
     loadAdminResourceRows(resource, { page, search }),
     editId ? loadAdminResourceRecord(resource, editId) : Promise.resolve(null),
     loadAdminOptions(sources),
+    editId ? loadAdminDeleteImpact(resource, editId) : Promise.resolve(null),
   ]);
 
   return (
     <AdminResourceEditor
+      deleteImpact={deleteImpact}
       error={firstString(query.error)}
       errorField={firstString(query.field)}
       notice={firstString(query.notice)}
