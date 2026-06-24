@@ -29,25 +29,8 @@ import {
   saveAdminResource,
 } from "@/lib/admin/resource-actions";
 
-function createInsertClient(maxSort: number | null = null) {
+function createInsertClient() {
   let inserted: Record<string, unknown> | undefined;
-  const orderEq = vi.fn();
-  const maybeSingle = vi.fn().mockResolvedValue({
-    data: maxSort === null ? null : { sort_order: maxSort },
-    error: null,
-  });
-  const orderQuery = {
-    order: vi.fn(),
-    limit: vi.fn(),
-    eq: orderEq,
-    is: vi.fn(),
-    maybeSingle,
-  };
-  orderQuery.order.mockReturnValue(orderQuery);
-  orderQuery.limit.mockReturnValue(orderQuery);
-  orderQuery.eq.mockReturnValue(orderQuery);
-  orderQuery.is.mockReturnValue(orderQuery);
-
   const insert = vi.fn((payload: Record<string, unknown>) => {
     inserted = payload;
     return {
@@ -60,16 +43,9 @@ function createInsertClient(maxSort: number | null = null) {
     };
   });
 
-  const select = vi.fn((columns: string) => {
-    if (columns === "sort_order") return orderQuery;
-    throw new Error(`Beklenmeyen select: ${columns}`);
-  });
-
   return {
-    client: { from: vi.fn(() => ({ select, insert })) },
+    client: { from: vi.fn(() => ({ insert })) },
     getInserted: () => inserted,
-    orderEq,
-    select,
   };
 }
 
@@ -82,8 +58,8 @@ describe("admin resource actions", () => {
     });
   });
 
-  it("yeni kaydın sırasını kullanıcıdan istemeden kapsam içinde otomatik belirler", async () => {
-    const { client, getInserted, orderEq } = createInsertClient(20);
+  it("yeni kaydı transaction içi otomatik sıra için sentinel değerle gönderir", async () => {
+    const { client, getInserted } = createInsertClient();
     mocks.createClient.mockResolvedValue(client);
 
     const formData = new FormData();
@@ -99,20 +75,16 @@ describe("admin resource actions", () => {
       "REDIRECT:/admin/manage/menu-item-branches?notice=",
     );
 
-    expect(orderEq).toHaveBeenCalledWith(
-      "branch_id",
-      "22222222-2222-4222-8222-222222222222",
-    );
     expect(getInserted()).toMatchObject({
       price_cents: 1234,
       is_active: true,
-      sort_order: 30,
+      sort_order: -1,
     });
     expect(mocks.requireAdmin).toHaveBeenCalledOnce();
   });
 
-  it("boş listede ilk kayda otomatik sıfır sırasını verir", async () => {
-    const { client, getInserted } = createInsertClient(null);
+  it("boş listede de sıra hesabını DB triggerına bırakır", async () => {
+    const { client, getInserted } = createInsertClient();
     mocks.createClient.mockResolvedValue(client);
 
     const formData = new FormData();
@@ -131,7 +103,7 @@ describe("admin resource actions", () => {
     expect(getInserted()).toMatchObject({
       key: "TEST_setting",
       value: { enabled: true },
-      sort_order: 0,
+      sort_order: -1,
     });
   });
 
@@ -144,16 +116,6 @@ describe("admin resource actions", () => {
     const updateEq = vi.fn(() => ({ select: updateSelect }));
     const update = vi.fn(() => ({ eq: updateEq }));
 
-    const orderQuery = {
-      order: vi.fn(),
-      limit: vi.fn(),
-      eq: vi.fn(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { sort_order: 10 }, error: null }),
-    };
-    orderQuery.order.mockReturnValue(orderQuery);
-    orderQuery.limit.mockReturnValue(orderQuery);
-    orderQuery.eq.mockReturnValue(orderQuery);
-
     const readSingle = vi.fn().mockResolvedValue({
       data: {
         id: "11111111-1111-4111-8111-111111111111",
@@ -164,7 +126,6 @@ describe("admin resource actions", () => {
     const readEq = vi.fn(() => ({ single: readSingle }));
     const select = vi.fn((columns: string) => {
       if (columns === "*") return { eq: readEq };
-      if (columns === "sort_order") return orderQuery;
       throw new Error(`Beklenmeyen select: ${columns}`);
     });
 
@@ -185,13 +146,9 @@ describe("admin resource actions", () => {
       "REDIRECT:/admin/manage/menu-items?notice=",
     );
 
-    expect(orderQuery.eq).toHaveBeenCalledWith(
-      "category_id",
-      "33333333-3333-4333-8333-333333333333",
-    );
     expect(update).toHaveBeenCalledWith(expect.objectContaining({
       category_id: "33333333-3333-4333-8333-333333333333",
-      sort_order: 20,
+      sort_order: -1,
     }));
   });
 
@@ -271,4 +228,59 @@ describe("admin resource actions", () => {
     );
     expect(from).not.toHaveBeenCalledWith("menu_categories");
   });
+  it("kritik kök kaynaklarda sahte form isteğiyle bile kalıcı silmeyi kapalı tutar", async () => {
+    const formData = new FormData();
+    formData.set("_resource", "branches");
+    formData.set("_id", "11111111-1111-4111-8111-111111111111");
+
+    await expect(deleteAdminResource(formData)).rejects.toThrow(
+      "REDIRECT:/admin?error=Kalıcı silme bu modülde kapalı.",
+    );
+    expect(mocks.requireAdmin).not.toHaveBeenCalled();
+    expect(mocks.createClient).not.toHaveBeenCalled();
+  });
+
+  it("kategoriye bağlı ürün varken kalıcı silmeyi uygulama katmanında engeller", async () => {
+    const categoryId = "11111111-1111-4111-8111-111111111111";
+    const deleteMethod = vi.fn();
+
+    const from = vi.fn((table: string) => {
+      if (table === "menu_categories") {
+        return {
+          select: () => ({
+            eq: () => ({
+              single: async () => ({
+                data: { id: categoryId, is_active: false, status: "archived" },
+                error: null,
+              }),
+            }),
+          }),
+          delete: deleteMethod,
+        };
+      }
+
+      if (table === "menu_items") {
+        return {
+          select: () => ({
+            eq: async () => ({ count: 2, error: null }),
+          }),
+        };
+      }
+
+      throw new Error(`Beklenmeyen tablo: ${table}`);
+    });
+
+    mocks.createClient.mockResolvedValue({ from });
+
+    const formData = new FormData();
+    formData.set("_resource", "menu-categories");
+    formData.set("_id", categoryId);
+
+    await expect(deleteAdminResource(formData)).rejects.toThrow(
+      "REDIRECT:/admin/manage/menu-categories?error=",
+    );
+    expect(from).toHaveBeenCalledWith("menu_items");
+    expect(deleteMethod).not.toHaveBeenCalled();
+  });
+
 });

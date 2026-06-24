@@ -19,58 +19,54 @@ describe("admin resource data", () => {
     vi.clearAllMocks();
   });
 
-  it("liste sorgusunda yalnız gerekli kolonları, aramayı ve sayfa aralığını kullanır", async () => {
-    const builder = {
+  it("önce sayıyı bulur, taşan sayfayı düzeltir ve doğru aralığı sorgular", async () => {
+    const countBuilder = {
+      or: vi.fn(),
+      then: (resolve: (value: unknown) => unknown) => resolve({ count: 51, error: null }),
+    };
+    countBuilder.or.mockReturnValue(countBuilder);
+
+    const rowsBuilder = {
       or: vi.fn(),
       order: vi.fn(),
       range: vi.fn().mockResolvedValue({
-        data: [
-          {
-            id: "TEST_event",
-            title: "TEST_ Etkinlik",
-          },
-        ],
+        data: [{ id: "TEST_event", title: "TEST_ Etkinlik" }],
         error: null,
-        count: 51,
       }),
     };
+    rowsBuilder.or.mockReturnValue(rowsBuilder);
+    rowsBuilder.order.mockReturnValue(rowsBuilder);
 
-    builder.or.mockReturnValue(builder);
-    builder.order.mockReturnValue(builder);
-
-    const select = vi.fn(() => builder);
+    const select = vi.fn((columns: string, options?: Record<string, unknown>) => {
+      if (columns === "id" && options?.head === true) return countBuilder;
+      return rowsBuilder;
+    });
 
     mocks.createClient.mockResolvedValue({
       from: vi.fn(() => ({ select })),
     });
 
     const resource = getAdminResource("events");
-
-    if (!resource) {
-      throw new Error("TEST_ resource bulunamadı");
-    }
+    if (!resource) throw new Error("TEST_ resource bulunamadı");
 
     const result = await loadAdminResourceRows(resource, {
-      page: 2,
+      page: 9,
       search: "TEST etkinlik",
     });
 
-    expect(select).toHaveBeenCalledWith(
+    expect(select).toHaveBeenNthCalledWith(1, "id", { count: "exact", head: true });
+    expect(select).toHaveBeenNthCalledWith(
+      2,
       "id,sort_order,title,content_type,start_at,status,is_active,is_featured,slug,summary,description,end_at,venue_name,location_text,external_url,cta_label,image_media_id,published_at,publish_start_at,publish_end_at,updated_at",
-      { count: "exact" },
     );
-
-    expect(builder.or).toHaveBeenCalledWith(
+    expect(countBuilder.or).toHaveBeenCalledWith(
       expect.stringContaining("title.ilike.%TEST etkinlik%"),
     );
-
-    expect(builder.range).toHaveBeenCalledWith(25, 49);
-
-    expect(result.pagination).toMatchObject({
-      page: 2,
-      pageCount: 3,
-      total: 51,
-    });
+    expect(rowsBuilder.or).toHaveBeenCalledWith(
+      expect.stringContaining("title.ilike.%TEST etkinlik%"),
+    );
+    expect(rowsBuilder.range).toHaveBeenCalledWith(50, 74);
+    expect(result.pagination).toMatchObject({ page: 3, pageCount: 3, total: 51 });
   });
 
   it("düzenleme sorgusunda yıldız yerine yalnız form alanlarını seçer", async () => {

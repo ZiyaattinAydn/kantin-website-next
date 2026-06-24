@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/database.types";
+import type { Json } from "@/lib/supabase/database.types";
 import {
   assertUuid,
   branchPricingField,
@@ -14,52 +14,45 @@ import {
   variantPricingField,
 } from "@/lib/admin/pricing";
 
-type BranchInsert = Database["public"]["Tables"]["menu_item_branches"]["Insert"];
-type VariantInsert = Database["public"]["Tables"]["menu_item_variants"]["Insert"];
-type BranchCurrent = Pick<
-  Database["public"]["Tables"]["menu_item_branches"]["Row"],
-  | "id"
-  | "menu_item_id"
-  | "branch_id"
-  | "price_cents"
-  | "currency"
-  | "price_label"
-  | "price_note"
-  | "availability_note"
-  | "is_active"
-  | "sort_order"
->;
-type VariantCurrent = Pick<
-  Database["public"]["Tables"]["menu_item_variants"]["Row"],
-  | "id"
-  | "menu_item_branch_id"
-  | "slug"
-  | "label"
-  | "detail"
-  | "price_cents"
-  | "currency"
-  | "price_note"
-  | "metadata"
-  | "is_active"
-  | "sort_order"
->;
-
 function text(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
 }
 
+const FRIENDLY_DATABASE_MESSAGES: Record<string, string> = {
+  branch_create_confirmation_required: "Yeni şube bağlantısı için ‘Bu ürünü şubeye ekle’ onayı gerekli.",
+  branch_required: "Şube bilgisi eksik.",
+  category_conflict: "Bir ürün aynı anda farklı menü kategorilerine eklenemez.",
+  category_required: "Yeni şube bağlantısı için menü kategorisi seçilmelidir.",
+  content_manager_required: "Bu fiyatları değiştirmek için yetkin bulunmuyor.",
+  duplicate_branch_change: "Aynı şube formda birden fazla kez gönderildi. Sayfayı yenileyip tekrar dene.",
+  duplicate_variant_change: "Aynı varyant formda birden fazla kez gönderildi. Sayfayı yenileyip tekrar dene.",
+  invalid_price: "Fiyat alanlarından biri geçersiz.",
+  invalid_pricing_payload: "Fiyat formu beklenen biçimde gönderilmedi. Sayfayı yenileyip tekrar dene.",
+  menu_category_not_found: "Seçilen menü kategorisi artık bulunamıyor.",
+  menu_item_not_found: "Ürün artık bulunamıyor.",
+  source_branch_price_not_found: "Varyantların kopyalanacağı kaynak şube fiyatı bulunamadı.",
+  stale_branch_price: "Şube fiyat kaydı başka bir işlemle değişmiş. Sayfayı yenileyip tekrar dene.",
+  variant_not_owned: "Varyant bu ürüne ait değil veya artık bulunamıyor.",
+  variant_required: "Varyant bilgisi eksik.",
+};
+
 function friendlyError(error: unknown): string {
   if (error && typeof error === "object") {
     const candidate = error as { code?: unknown; message?: unknown };
     const code = String(candidate.code ?? "");
+    const message = typeof candidate.message === "string" ? candidate.message.trim() : "";
+    if (message && FRIENDLY_DATABASE_MESSAGES[message]) {
+      return FRIENDLY_DATABASE_MESSAGES[message];
+    }
     if (code === "23505") return "Bu ürün ve şube bağlantısı zaten mevcut.";
     if (code === "23503") return "Ürün, şube veya fiyat kaydı artık bulunamıyor.";
-    if (code === "23514" || code === "22P02") return "Fiyat alanlarından biri veritabanı kurallarıyla uyuşmuyor.";
-    if (code === "42501") return "Bu fiyatları değiştirmek için yetkin bulunmuyor.";
-    if (typeof candidate.message === "string" && candidate.message.trim()) {
-      return candidate.message.slice(0, 220);
+    if (code === "23514" || code === "22P02" || code === "22023") {
+      return "Fiyat alanlarından biri veritabanı kurallarıyla uyuşmuyor.";
     }
+    if (code === "40001") return "Kayıt başka bir işlemle değişmiş. Sayfayı yenileyip tekrar dene.";
+    if (code === "42501") return "Bu fiyatları değiştirmek için yetkin bulunmuyor.";
+    if (message) return message.slice(0, 220);
   }
 
   return error instanceof Error && error.message.trim()
@@ -89,46 +82,6 @@ function collectEntityIds(formData: FormData, entity: "branch" | "variant"): str
   return [...ids];
 }
 
-async function nextCategoryBranchSortOrder(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  categoryId: string,
-  branchId: string,
-): Promise<number> {
-  const { data: existing, error: existingError } = await supabase
-    .from("menu_category_branches")
-    .select("sort_order")
-    .eq("category_id", categoryId)
-    .eq("branch_id", branchId)
-    .maybeSingle();
-  if (existingError) throw existingError;
-  if (existing && typeof existing.sort_order === "number") return existing.sort_order;
-
-  const { data, error } = await supabase
-    .from("menu_category_branches")
-    .select("sort_order")
-    .eq("branch_id", branchId)
-    .order("sort_order", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return typeof data?.sort_order === "number" ? data.sort_order + 10 : 0;
-}
-
-async function nextMenuItemBranchSortOrder(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  branchId: string,
-): Promise<number> {
-  const { data, error } = await supabase
-    .from("menu_item_branches")
-    .select("sort_order")
-    .eq("branch_id", branchId)
-    .order("sort_order", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return typeof data?.sort_order === "number" ? data.sort_order + 10 : 0;
-}
-
 function variantCreatePath(branchPriceId: string, notice: string): string {
   const params = new URLSearchParams({
     new: "1",
@@ -137,6 +90,26 @@ function variantCreatePath(branchPriceId: string, notice: string): string {
   });
   return `/admin/manage/menu-item-variants?${params.toString()}#new-record`;
 }
+
+type BranchPricingChange = {
+  branch_id: string;
+  record_id: string | null;
+  create_requested: boolean;
+  price_cents: number | null;
+  price_label: string | null;
+  price_note: string | null;
+  availability_note: string | null;
+  is_active: boolean;
+  category_id: string | null;
+  copy_variants_from_branch_id: string | null;
+};
+
+type VariantPricingChange = {
+  record_id: string;
+  price_cents: number;
+  price_note: string | null;
+  is_active: boolean;
+};
 
 export async function saveAdminProductPricing(formData: FormData): Promise<never> {
   await requireAdmin();
@@ -148,7 +121,7 @@ export async function saveAdminProductPricing(formData: FormData): Promise<never
     const branchIds = collectEntityIds(formData, "branch");
     const variantIds = collectEntityIds(formData, "variant");
 
-    const branchInputs = branchIds.map((branchId) => {
+    const branchChanges: BranchPricingChange[] = branchIds.flatMap((branchId) => {
       const recordIdRaw = text(formData, branchPricingField(branchId, "record_id"));
       const recordId = recordIdRaw ? assertUuid(recordIdRaw, "Şube fiyat kaydı") : null;
       const priceRaw = text(formData, branchPricingField(branchId, "price"));
@@ -165,10 +138,9 @@ export async function saveAdminProductPricing(formData: FormData): Promise<never
         300,
       );
       const createRequested = formData.get(branchPricingField(branchId, "create")) === "on";
-      const hasEnteredContent = Boolean(
-        priceRaw || priceLabel || priceNote || availabilityNote,
-      );
+      const hasEnteredContent = Boolean(priceRaw || priceLabel || priceNote || availabilityNote);
       const shouldPersist = Boolean(recordId || createRequested || hasEnteredContent);
+      if (!shouldPersist) return [];
 
       const categoryIdRaw = text(formData, branchPricingField(branchId, "category_id"));
       const copyVariantsFromRaw = text(
@@ -176,197 +148,67 @@ export async function saveAdminProductPricing(formData: FormData): Promise<never
         branchPricingField(branchId, "copy_variants_from_branch_id"),
       );
 
-      return {
-        branchId,
-        recordId,
-        shouldPersist,
-        createRequested,
-        priceCents: shouldPersist ? parseTryPrice(priceRaw, true) : null,
-        priceLabel,
-        priceNote,
-        availabilityNote,
-        isActive: recordId
+      return [{
+        branch_id: branchId,
+        record_id: recordId,
+        create_requested: createRequested,
+        price_cents: parseTryPrice(priceRaw, true),
+        price_label: priceLabel,
+        price_note: priceNote,
+        availability_note: availabilityNote,
+        is_active: recordId
           ? formData.get(branchPricingField(branchId, "is_active")) === "on"
           : true,
-        categoryId: categoryIdRaw ? assertUuid(categoryIdRaw, "Kategori") : null,
-        copyVariantsFromBranchId: copyVariantsFromRaw
+        category_id: categoryIdRaw ? assertUuid(categoryIdRaw, "Kategori") : null,
+        copy_variants_from_branch_id: copyVariantsFromRaw
           ? assertUuid(copyVariantsFromRaw, "Varyant kaynak şubesi")
           : null,
+      }];
+    });
+
+    const variantChanges: VariantPricingChange[] = variantIds.map((variantId) => {
+      const recordId = assertUuid(
+        text(formData, variantPricingField(variantId, "record_id")),
+        "Varyant kaydı",
+      );
+      if (recordId !== variantId) {
+        throw new Error("Varyant kaydı değişmiş. Sayfayı yenileyip tekrar dene.");
+      }
+
+      return {
+        record_id: recordId,
+        price_cents: parseTryPrice(text(formData, variantPricingField(variantId, "price"))),
+        price_note: optionalText(
+          formData.get(variantPricingField(variantId, "price_note")),
+          300,
+        ),
+        is_active: formData.get(variantPricingField(variantId, "is_active")) === "on",
       };
     });
 
-    const variantInputs = variantIds.map((variantId) => ({
-      variantId,
-      recordId: assertUuid(
-        text(formData, variantPricingField(variantId, "record_id")),
-        "Varyant kaydı",
-      ),
-      priceCents: parseTryPrice(text(formData, variantPricingField(variantId, "price"))),
-      priceNote: optionalText(
-        formData.get(variantPricingField(variantId, "price_note")),
-        300,
-      ),
-      isActive: formData.get(variantPricingField(variantId, "is_active")) === "on",
-    }));
-
     const supabase = await createClient();
-    let currentBranches: BranchCurrent[] = [];
-    if (branchIds.length) {
-      const { data, error } = await supabase
-        .from("menu_item_branches")
-        .select(
-          "id, menu_item_id, branch_id, price_cents, currency, price_label, price_note, availability_note, is_active, sort_order",
-        )
-        .eq("menu_item_id", menuItemId)
-        .in("branch_id", branchIds);
-      if (error) throw error;
-      currentBranches = (data ?? []) as BranchCurrent[];
-    }
-
-    let currentVariants: VariantCurrent[] = [];
-    if (variantIds.length) {
-      const { data, error } = await supabase
-        .from("menu_item_variants")
-        .select(
-          "id, menu_item_branch_id, slug, label, detail, price_cents, currency, price_note, metadata, is_active, sort_order",
-        )
-        .in("id", variantIds);
-      if (error) throw error;
-      currentVariants = (data ?? []) as VariantCurrent[];
-    }
-
-    const currentBranchByBranchId = new Map(
-      currentBranches.map((branch) => [branch.branch_id, branch]),
-    );
-    const allowedBranchPriceIds = new Set(currentBranches.map((branch) => branch.id));
-    const branchMutations: BranchInsert[] = [];
-    const branchAdditions = branchInputs.filter((input) => {
-      const current = currentBranchByBranchId.get(input.branchId);
-      return input.shouldPersist && !current;
+    const { data, error } = await supabase.rpc("save_admin_product_pricing", {
+      p_menu_item_id: menuItemId,
+      p_branch_changes: branchChanges as Json,
+      p_variant_changes: variantChanges as Json,
     });
+    if (error) throw error;
 
-    for (const input of branchInputs) {
-      if (!input.shouldPersist) continue;
-      const current = currentBranchByBranchId.get(input.branchId);
-      if (input.recordId && (!current || current.id !== input.recordId)) {
-        throw new Error("Şube fiyat kaydı değişmiş. Sayfayı yenileyip tekrar dene.");
-      }
-      if (!current) continue;
-
-      const changed = current.price_cents !== input.priceCents
-        || current.price_label !== input.priceLabel
-        || current.price_note !== input.priceNote
-        || current.availability_note !== input.availabilityNote
-        || current.is_active !== input.isActive;
-      if (!changed) continue;
-
-      branchMutations.push({
-        id: current.id,
-        menu_item_id: menuItemId,
-        branch_id: input.branchId,
-        price_cents: input.priceCents,
-        currency: current.currency,
-        price_label: input.priceLabel,
-        price_note: input.priceNote,
-        availability_note: input.availabilityNote,
-        is_active: input.isActive,
-        sort_order: current.sort_order,
-      });
-    }
-
-    const currentVariantById = new Map(
-      currentVariants.map((variant) => [variant.id, variant]),
-    );
-    const variantMutations: VariantInsert[] = [];
-
-    for (const input of variantInputs) {
-      if (input.recordId !== input.variantId) {
-        throw new Error("Varyant kaydı değişmiş. Sayfayı yenileyip tekrar dene.");
-      }
-      const current = currentVariantById.get(input.variantId);
-      if (!current || !allowedBranchPriceIds.has(current.menu_item_branch_id)) {
-        throw new Error("Varyant bu ürüne veya seçili şubeye ait değil.");
-      }
-
-      const changed = current.price_cents !== input.priceCents
-        || current.price_note !== input.priceNote
-        || current.is_active !== input.isActive;
-      if (!changed) continue;
-
-      variantMutations.push({
-        id: current.id,
-        menu_item_branch_id: current.menu_item_branch_id,
-        slug: current.slug,
-        label: current.label,
-        detail: current.detail,
-        price_cents: input.priceCents,
-        currency: current.currency,
-        price_note: input.priceNote,
-        metadata: current.metadata,
-        is_active: input.isActive,
-        sort_order: current.sort_order,
-      });
-    }
-
-    let addedBranchCount = 0;
-    let copiedVariantCount = 0;
-    let addedBranchPriceId: string | null = null;
-
-    for (const input of branchAdditions) {
-      if (!input.createRequested) {
-        throw new Error("Yeni şube bağlantısı için ‘Bu ürünü şubeye ekle’ onayı gerekli.");
-      }
-      if (!input.categoryId) {
-        throw new Error("Yeni şube bağlantısı için menü kategorisi seçilmelidir.");
-      }
-
-      const [categorySortOrder, itemSortOrder] = await Promise.all([
-        nextCategoryBranchSortOrder(supabase, input.categoryId, input.branchId),
-        nextMenuItemBranchSortOrder(supabase, input.branchId),
-      ]);
-
-      const { data, error } = await supabase.rpc("add_admin_menu_item_to_branch", {
-        p_menu_item_id: menuItemId,
-        p_branch_id: input.branchId,
-        p_category_id: input.categoryId,
-        p_price_cents: input.priceCents,
-        p_price_label: input.priceLabel,
-        p_price_note: input.priceNote,
-        p_availability_note: input.availabilityNote,
-        p_is_active: true,
-        p_item_sort_order: itemSortOrder,
-        p_category_sort_order: categorySortOrder,
-        p_ensure_category_branch: true,
-        p_publish_item: false,
-        p_publish_category: false,
-        p_copy_variants_from_branch_id: input.copyVariantsFromBranchId,
-      });
-      if (error) throw error;
-      addedBranchCount += 1;
-      copiedVariantCount += data?.[0]?.variants_copied ?? 0;
-      addedBranchPriceId = data?.[0]?.branch_price_id ?? addedBranchPriceId;
-    }
-
-    if (branchMutations.length) {
-      const { error } = await supabase
-        .from("menu_item_branches")
-        .upsert(branchMutations, { onConflict: "menu_item_id,branch_id" });
-      if (error) throw error;
-    }
-
-    if (variantMutations.length) {
-      const { error } = await supabase
-        .from("menu_item_variants")
-        .upsert(variantMutations, { onConflict: "id" });
-      if (error) throw error;
-    }
-
-    const changedCount = addedBranchCount + branchMutations.length + variantMutations.length;
-    const message = changedCount
-      ? `${addedBranchCount} yeni şube bağlantısı, ${branchMutations.length} şube fiyatı ve ${variantMutations.length} varyant güncellendi${copiedVariantCount ? `; ${copiedVariantCount} varyant kopyalandı` : ""}.`
+    const result = data?.[0];
+    const addedBranchCount = result?.added_branch_count ?? 0;
+    const updatedBranchCount = result?.updated_branch_count ?? 0;
+    const updatedVariantCount = result?.updated_variant_count ?? 0;
+    const copiedVariantCount = result?.copied_variant_count ?? 0;
+    const changedCount = addedBranchCount + updatedBranchCount + updatedVariantCount;
+    const message = changedCount || copiedVariantCount
+      ? `${addedBranchCount} yeni şube bağlantısı, ${updatedBranchCount} şube fiyatı ve ${updatedVariantCount} varyant güncellendi${copiedVariantCount ? `; ${copiedVariantCount} varyant kopyalandı` : ""}.`
       : "Kaydedilecek bir değişiklik bulunamadı.";
-    destination = addedBranchCount === 1 && addedBranchPriceId
-      ? variantCreatePath(addedBranchPriceId, `${message} Varyantları şimdi düzenleyebilirsin.`)
+
+    destination = addedBranchCount === 1 && result?.added_branch_price_id
+      ? variantCreatePath(
+          result.added_branch_price_id,
+          `${message} Varyantları şimdi düzenleyebilirsin.`,
+        )
       : pricingResultPath(returnTo, "notice", message);
   } catch (error) {
     destination = pricingResultPath(returnTo, "error", friendlyError(error));
@@ -387,7 +229,6 @@ export async function createAdminBranchPrice(formData: FormData): Promise<never>
     const priceCents = parseTryPrice(text(formData, "price"), true);
     const priceLabel = optionalText(formData.get("price_label"), 120);
     const supabase = await createClient();
-    const sortOrder = await nextMenuItemBranchSortOrder(supabase, branchId);
     const { error } = await supabase
       .from("menu_item_branches")
       .insert({
@@ -397,7 +238,8 @@ export async function createAdminBranchPrice(formData: FormData): Promise<never>
         currency: "TRY",
         price_label: priceLabel,
         is_active: true,
-        sort_order: sortOrder,
+        // DB trigger'ı hedef şubenin son sırasını transaction içinde güvenle atar.
+        sort_order: -1,
       });
 
     if (error) throw error;

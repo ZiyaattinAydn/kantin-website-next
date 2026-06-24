@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/server";
 import {
   deleteAdminRow,
   insertAdminRow,
-  nextAdminSortOrder,
   readAdminRow,
   updateAdminRow,
 } from "./resource-repository";
@@ -16,6 +15,7 @@ import {
   parseAdminResourcePayload,
   type AdminMutationPayload,
 } from "./resource-validation";
+import { assertAdminDeleteNotBlocked } from "./resource-delete";
 import { getAdminResource, type AdminResource } from "./resources";
 
 const DATABASE_AUDITED_TABLES = new Set<AdminResource["table"]>([
@@ -72,7 +72,8 @@ export async function saveAdminResource(formData: FormData): Promise<never> {
           (field) => current[field] !== payload[field],
         );
         if (scopeChanged) {
-          payload[resource.orderField] = await nextAdminSortOrder(supabase, resource, payload);
+          // -1 değeri DB trigger'ına yeni kapsamın son sırasını transaction içinde hesaplatır.
+          payload[resource.orderField] = -1;
         }
       }
 
@@ -80,7 +81,9 @@ export async function saveAdminResource(formData: FormData): Promise<never> {
       destination = resourcePath(resource.key, { notice: "Kayıt güncellendi." });
     } else {
       if (!resource.allowCreate) throw new Error("Bu modülde yeni kayıt oluşturma kapalı.");
-      payload[resource.orderField] = await nextAdminSortOrder(supabase, resource, payload);
+      // Sıra kullanıcıdan alınmaz. DB trigger'ı aynı kapsam için advisory lock altında
+      // son sırayı hesaplar; böylece eşzamanlı eklemeler aynı değeri alamaz.
+      payload[resource.orderField] = -1;
       await insertAdminRow(supabase, resource.table, payload);
       destination = resourcePath(resource.key, { notice: "Yeni kayıt oluşturuldu." });
     }
@@ -166,6 +169,7 @@ export async function deleteAdminResource(formData: FormData): Promise<never> {
       throw new Error("Kalıcı silmeden önce kaydı pasife almalı veya arşivlemelisin.");
     }
 
+    await assertAdminDeleteNotBlocked(supabase, resource, id);
     await deleteAdminRow(supabase, resource.table, id);
     destination = resourcePath(resource.key, { notice: "Kayıt ve ona ait alt bağlantılar kalıcı olarak silindi." });
   } catch (error) {

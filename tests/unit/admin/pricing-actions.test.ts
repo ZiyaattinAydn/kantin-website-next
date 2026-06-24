@@ -45,23 +45,9 @@ describe("birleşik fiyat yönetimi eylemleri", () => {
     mocks.requireAdmin.mockResolvedValue({ userId: "TEST_admin", role: "admin" });
   });
 
-  it("eksik ürün-şube fiyat bağlantısını otomatik sırayla oluşturur", async () => {
+  it("eksik ürün-şube fiyat bağlantısını DB tarafından otomatik sıralanacak biçimde oluşturur", async () => {
     const insert = vi.fn().mockResolvedValue({ error: null });
-    const maybeSingle = vi.fn().mockResolvedValue({
-      data: { sort_order: 20 },
-      error: null,
-    });
-    const query = {
-      eq: vi.fn(),
-      order: vi.fn(),
-      limit: vi.fn(),
-      maybeSingle,
-    };
-    query.eq.mockReturnValue(query);
-    query.order.mockReturnValue(query);
-    query.limit.mockReturnValue(query);
-    const select = vi.fn(() => query);
-    const from = vi.fn(() => ({ select, insert }));
+    const from = vi.fn(() => ({ insert }));
     mocks.createClient.mockResolvedValue({ from });
     const formData = new FormData();
     formData.set("menu_item_id", ITEM_ID);
@@ -73,7 +59,6 @@ describe("birleşik fiyat yönetimi eylemleri", () => {
     await expect(createAdminBranchPrice(formData)).rejects.toThrow(
       "REDIRECT:/admin/pricing?q=TEST&notice=",
     );
-    expect(query.eq).toHaveBeenCalledWith("branch_id", BRANCH_ID);
     expect(insert).toHaveBeenCalledWith({
       menu_item_id: ITEM_ID,
       branch_id: BRANCH_ID,
@@ -81,7 +66,7 @@ describe("birleşik fiyat yönetimi eylemleri", () => {
       currency: "TRY",
       price_label: "Porsiyon",
       is_active: true,
-      sort_order: 30,
+      sort_order: -1,
     });
   });
 
@@ -151,69 +136,19 @@ describe("birleşik fiyat yönetimi eylemleri", () => {
   });
 
 
-  it("iki şube fiyatını ve varyantı ürün üzerinden tek kaydetmede günceller", async () => {
-    const branchUpsert = vi.fn().mockResolvedValue({ error: null });
-    const variantUpsert = vi.fn().mockResolvedValue({ error: null });
-    const branchIn = vi.fn().mockResolvedValue({
-      data: [
-        {
-          id: PRICE_ID,
-          menu_item_id: ITEM_ID,
-          branch_id: BRANCH_ID,
-          price_cents: 8500,
-          currency: "TRY",
-          price_label: "Porsiyon",
-          price_note: null,
-          availability_note: null,
-          is_active: true,
-          sort_order: 0,
-        },
-        {
-          id: PRICE_ID_2,
-          menu_item_id: ITEM_ID,
-          branch_id: BRANCH_ID_2,
-          price_cents: 9000,
-          currency: "TRY",
-          price_label: null,
-          price_note: null,
-          availability_note: null,
-          is_active: true,
-          sort_order: 0,
-        },
-      ],
+  it("iki şube fiyatını ve varyantı tek atomik RPC çağrısıyla günceller", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: [{
+        added_branch_price_id: null,
+        added_branch_count: 0,
+        updated_branch_count: 2,
+        updated_variant_count: 1,
+        copied_variant_count: 0,
+      }],
       error: null,
     });
-    const branchEq = vi.fn(() => ({ in: branchIn }));
-    const branchSelect = vi.fn(() => ({ eq: branchEq }));
-    const variantIn = vi.fn().mockResolvedValue({
-      data: [
-        {
-          id: VARIANT_ID,
-          menu_item_branch_id: PRICE_ID,
-          slug: "buyuk",
-          label: "Büyük",
-          detail: null,
-          price_cents: 10000,
-          currency: "TRY",
-          price_note: null,
-          metadata: {},
-          is_active: true,
-          sort_order: 0,
-        },
-      ],
-      error: null,
-    });
-    const variantSelect = vi.fn(() => ({ in: variantIn }));
-    const from = vi.fn((table: string) => {
-      if (table === "menu_item_branches") {
-        return { select: branchSelect, upsert: branchUpsert };
-      }
-      if (table === "menu_item_variants") {
-        return { select: variantSelect, upsert: variantUpsert };
-      }
-      throw new Error(`Beklenmeyen tablo: ${table}`);
-    });
-    mocks.createClient.mockResolvedValue({ from });
+    const from = vi.fn();
+    mocks.createClient.mockResolvedValue({ rpc, from });
 
     const formData = new FormData();
     formData.set("menu_item_id", ITEM_ID);
@@ -234,66 +169,57 @@ describe("birleşik fiyat yönetimi eylemleri", () => {
       "REDIRECT:/admin/pricing?q=TEST&notice=",
     );
 
-    expect(branchUpsert).toHaveBeenCalledTimes(1);
-    const [branchRows, branchOptions] = branchUpsert.mock.calls[0];
-    expect(branchOptions).toEqual({ onConflict: "menu_item_id,branch_id" });
-    expect(branchRows).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: PRICE_ID, branch_id: BRANCH_ID, price_cents: 8750 }),
-      expect.objectContaining({ id: PRICE_ID_2, branch_id: BRANCH_ID_2, price_cents: 9500 }),
-    ]));
-
-    expect(variantUpsert).toHaveBeenCalledWith([
-      expect.objectContaining({
-        id: VARIANT_ID,
-        menu_item_branch_id: PRICE_ID,
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledWith("save_admin_product_pricing", {
+      p_menu_item_id: ITEM_ID,
+      p_branch_changes: [
+        {
+          branch_id: BRANCH_ID,
+          record_id: PRICE_ID,
+          create_requested: false,
+          price_cents: 8750,
+          price_label: "Porsiyon",
+          price_note: null,
+          availability_note: null,
+          is_active: true,
+          category_id: null,
+          copy_variants_from_branch_id: null,
+        },
+        {
+          branch_id: BRANCH_ID_2,
+          record_id: PRICE_ID_2,
+          create_requested: false,
+          price_cents: 9500,
+          price_label: null,
+          price_note: null,
+          availability_note: null,
+          is_active: true,
+          category_id: null,
+          copy_variants_from_branch_id: null,
+        },
+      ],
+      p_variant_changes: [{
+        record_id: VARIANT_ID,
         price_cents: 10525,
         price_note: "TEST_ büyük boy",
-      }),
-    ], { onConflict: "id" });
-    expect(from).not.toHaveBeenCalledWith("admin_activity_logs");
+        is_active: true,
+      }],
+    });
+    expect(from).not.toHaveBeenCalled();
   });
 
-  it("eksik şubeyi otomatik konumla ekler ve varyant yönetimine yönlendirir", async () => {
+  it("eksik şubeyi atomik RPC ile ekler ve varyant yönetimine yönlendirir", async () => {
     const rpc = vi.fn().mockResolvedValue({
       data: [{
-        branch_price_id: PRICE_ID,
-        category_branch_id: "88888888-8888-4888-8888-888888888888",
-        variants_copied: 2,
+        added_branch_price_id: PRICE_ID,
+        added_branch_count: 1,
+        updated_branch_count: 0,
+        updated_variant_count: 0,
+        copied_variant_count: 2,
       }],
       error: null,
     });
-
-    const from = vi.fn((table: string) => ({
-      select: (columns: string) => {
-        const filters: Record<string, unknown> = {};
-        const query = {
-          eq: vi.fn((field: string, value: unknown) => {
-            filters[field] = value;
-            return query;
-          }),
-          in: vi.fn(async () => ({
-            data: table === "menu_item_branches" && columns.startsWith("id,") ? [] : null,
-            error: null,
-          })),
-          order: vi.fn(() => query),
-          limit: vi.fn(() => query),
-          maybeSingle: vi.fn(async () => {
-            if (table === "menu_category_branches" && filters.category_id) {
-              return { data: null, error: null };
-            }
-            if (table === "menu_category_branches") {
-              return { data: { sort_order: 40 }, error: null };
-            }
-            if (table === "menu_item_branches" && columns === "sort_order") {
-              return { data: { sort_order: 70 }, error: null };
-            }
-            throw new Error(`Beklenmeyen sorgu: ${table}.${columns}`);
-          }),
-        };
-        return query;
-      },
-    }));
-    mocks.createClient.mockResolvedValue({ from, rpc });
+    mocks.createClient.mockResolvedValue({ rpc });
 
     const formData = new FormData();
     formData.set("menu_item_id", ITEM_ID);
@@ -312,22 +238,41 @@ describe("birleşik fiyat yönetimi eylemleri", () => {
       "REDIRECT:/admin/manage/menu-item-variants?new=1&prefill_menu_item_branch_id=",
     );
 
-    expect(rpc).toHaveBeenCalledWith("add_admin_menu_item_to_branch", {
+    expect(rpc).toHaveBeenCalledWith("save_admin_product_pricing", {
       p_menu_item_id: ITEM_ID,
-      p_branch_id: BRANCH_ID,
-      p_category_id: CATEGORY_ID,
-      p_price_cents: 24500,
-      p_price_label: "50 cl",
-      p_price_note: null,
-      p_availability_note: null,
-      p_is_active: true,
-      p_item_sort_order: 80,
-      p_category_sort_order: 50,
-      p_ensure_category_branch: true,
-      p_publish_item: false,
-      p_publish_category: false,
-      p_copy_variants_from_branch_id: BRANCH_ID_2,
+      p_branch_changes: [{
+        branch_id: BRANCH_ID,
+        record_id: null,
+        create_requested: true,
+        price_cents: 24500,
+        price_label: "50 cl",
+        price_note: null,
+        availability_note: null,
+        is_active: true,
+        category_id: CATEGORY_ID,
+        copy_variants_from_branch_id: BRANCH_ID_2,
+      }],
+      p_variant_changes: [],
     });
+  });
+
+  it("atomik RPC hata verirse ikinci bir yazma sorgusu çalıştırmaz", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { code: "40001", message: "stale_branch_price" },
+    });
+    const from = vi.fn();
+    mocks.createClient.mockResolvedValue({ rpc, from });
+    const formData = new FormData();
+    formData.set("menu_item_id", ITEM_ID);
+    formData.set(branchPricingField(BRANCH_ID, "record_id"), PRICE_ID);
+    formData.set(branchPricingField(BRANCH_ID, "price"), "90");
+
+    await expect(saveAdminProductPricing(formData)).rejects.toThrow(
+      "REDIRECT:/admin/pricing?error=",
+    );
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(from).not.toHaveBeenCalled();
   });
 
   it("birleşik kayıtta geçersiz fiyatı hiçbir sorgu yapmadan reddeder", async () => {

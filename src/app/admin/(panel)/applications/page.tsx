@@ -9,8 +9,7 @@ import {
 import { firstString, formatAdminDate } from "@/lib/admin/format";
 import {
   ADMIN_PAGE_SIZE,
-  adminPageRange,
-  createAdminPagination,
+  resolveAdminPage,
   normaliseAdminSearch,
   parseAdminPage,
 } from "@/lib/admin/pagination";
@@ -152,13 +151,34 @@ export default async function AdminApplicationsPage({ searchParams }: Props) {
     ? rawPrivacy as "all" | "due" | keyof typeof privacyLabels
     : "all";
   const page = parseAdminPage(firstString(params.page));
-  const { from, to } = adminPageRange(page);
   const requestTime = captureRequestTime();
   const supabase = await createClient();
 
+  let countQuery = supabase
+    .from("job_applications")
+    .select("id", { count: "exact", head: true });
+
+  if (statusFilter !== "all") countQuery = countQuery.eq("status", statusFilter);
+  if (privacyFilter === "due") {
+    countQuery = countQuery
+      .eq("privacy_status", "active")
+      .lte("retention_until", new Date(requestTime).toISOString());
+  } else if (privacyFilter !== "all") {
+    countQuery = countQuery.eq("privacy_status", privacyFilter);
+  }
+  if (q) {
+    countQuery = countQuery.or(
+      `full_name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`,
+    );
+  }
+
+  const { count, error: countError } = await countQuery;
+  if (countError) throw new Error(countError.message);
+  const resolved = resolveAdminPage(count ?? 0, page, ADMIN_PAGE_SIZE);
+
   let applicationsQuery = supabase
     .from("job_applications")
-    .select(APPLICATION_DETAIL_COLUMNS, { count: "exact" });
+    .select(APPLICATION_DETAIL_COLUMNS);
 
   if (statusFilter !== "all") applicationsQuery = applicationsQuery.eq("status", statusFilter);
   if (privacyFilter === "due") {
@@ -175,7 +195,9 @@ export default async function AdminApplicationsPage({ searchParams }: Props) {
   }
 
   const [listResult, selectedResult, { data: branches, error: branchError }] = await Promise.all([
-    applicationsQuery.order("created_at", { ascending: false }).range(from, to),
+    applicationsQuery
+      .order("created_at", { ascending: false })
+      .range(resolved.from, resolved.to),
     editId
       ? supabase
           .from("job_applications")
@@ -196,12 +218,17 @@ export default async function AdminApplicationsPage({ searchParams }: Props) {
   const rows = selected && !listedRows.some((row) => row.id === selected.id)
     ? [selected, ...listedRows]
     : listedRows;
-  const pagination = createAdminPagination(listResult.count ?? 0, page, ADMIN_PAGE_SIZE);
+  const pagination = {
+    page: resolved.page,
+    pageSize: resolved.pageSize,
+    pageCount: resolved.pageCount,
+    total: resolved.total,
+  };
   const listHref = applicationsHref({
     q,
     status: statusFilter,
     privacy: privacyFilter,
-    page,
+    page: resolved.page,
   });
 
   return (

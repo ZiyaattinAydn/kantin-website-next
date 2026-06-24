@@ -4,6 +4,7 @@ import {
   createAdminPagination,
   normaliseAdminSearch,
   parseAdminPage,
+  resolveAdminPage,
 } from "@/lib/admin/pagination";
 
 describe("admin pagination", () => {
@@ -28,4 +29,15 @@ describe("admin pagination", () => {
       total: 51,
     });
   });
+  it("kayıt sayısı azaldığında taşan sayfayı son geçerli sayfaya çeker", () => {
+    expect(resolveAdminPage(50, 3)).toEqual({
+      page: 2,
+      pageSize: 25,
+      pageCount: 2,
+      total: 50,
+      from: 25,
+      to: 49,
+    });
+  });
+
 });

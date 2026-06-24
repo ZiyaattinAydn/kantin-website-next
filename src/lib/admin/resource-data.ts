@@ -4,8 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import {
   ADMIN_PAGE_SIZE,
-  adminPageRange,
-  createAdminPagination,
+  resolveAdminPage,
 } from "./pagination";
 import type { AdminResource } from "./resources";
 
@@ -40,40 +39,55 @@ function resourceRecordColumns(resource: AdminResource): string {
   ]);
 }
 
+function applyResourceSearch<Query extends { or: (filter: string) => Query }>(
+  query: Query,
+  resource: AdminResource,
+  search: string,
+): Query {
+  if (!search || !resource.searchFields.length) return query;
+
+  const filter = resource.searchFields
+    .map((field) => `${field}.ilike.%${search}%`)
+    .join(",");
+
+  return query.or(filter);
+}
+
 export async function loadAdminResourceRows(
   resource: AdminResource,
   { page, search }: { page: number; search: string },
 ) {
   const supabase: SupabaseClient = await createClient();
-  const { from, to } = adminPageRange(page);
 
-  let query = supabase
+  let countQuery = supabase
     .from(resource.table)
-    .select(resourceListColumns(resource), { count: "exact" });
+    .select("id", { count: "exact", head: true });
+  countQuery = applyResourceSearch(countQuery, resource, search);
 
-  if (search && resource.searchFields.length) {
-    const filter = resource.searchFields
-      .map((field) => `${field}.ilike.%${search}%`)
-      .join(",");
+  const { count, error: countError } = await countQuery;
+  if (countError) throw new Error(countError.message);
 
-    query = query.or(filter);
-  }
+  const resolved = resolveAdminPage(count ?? 0, page, ADMIN_PAGE_SIZE);
 
-  const { data, error, count } = await query
+  let rowsQuery = supabase
+    .from(resource.table)
+    .select(resourceListColumns(resource));
+  rowsQuery = applyResourceSearch(rowsQuery, resource, search);
+
+  const { data, error } = await rowsQuery
     .order(resource.orderField, { ascending: true })
-    .range(from, to);
+    .range(resolved.from, resolved.to);
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
 
   return {
     rows: adminRows(data),
-    pagination: createAdminPagination(
-      count ?? 0,
-      page,
-      ADMIN_PAGE_SIZE,
-    ),
+    pagination: {
+      page: resolved.page,
+      pageSize: resolved.pageSize,
+      pageCount: resolved.pageCount,
+      total: resolved.total,
+    },
   };
 }
 

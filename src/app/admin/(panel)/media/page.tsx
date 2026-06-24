@@ -7,8 +7,7 @@ import mediaStyles from "./MediaLibrary.module.css";
 import { firstString, formatAdminDate } from "@/lib/admin/format";
 import {
   ADMIN_PAGE_SIZE,
-  adminPageRange,
-  createAdminPagination,
+  resolveAdminPage,
   normaliseAdminSearch,
   parseAdminPage,
 } from "@/lib/admin/pagination";
@@ -127,11 +126,30 @@ export default async function AdminMediaPage({ searchParams }: Props) {
   const editId = firstString(params.edit);
   const showNew = firstString(params.new) === "1" || Boolean(firstString(params.error) && !editId);
   const page = parseAdminPage(firstString(params.page));
-  const { from, to } = adminPageRange(page);
   const supabase = await createClient();
+  let countQuery = supabase
+    .from("media")
+    .select("id", { count: "exact", head: true })
+    .eq("kind", "image");
+
+  if (statusFilter === "active") {
+    countQuery = countQuery.eq("is_active", true).eq("status", "published");
+  } else if (statusFilter === "archived") {
+    countQuery = countQuery.or("is_active.eq.false,status.eq.archived");
+  }
+  if (q) {
+    countQuery = countQuery.or(
+      `title.ilike.%${q}%,alt_text.ilike.%${q}%,local_path.ilike.%${q}%,object_path.ilike.%${q}%`,
+    );
+  }
+
+  const { count, error: countError } = await countQuery;
+  if (countError) throw new Error(countError.message);
+  const resolved = resolveAdminPage(count ?? 0, page, ADMIN_PAGE_SIZE);
+
   let mediaQuery = supabase
     .from("media")
-    .select(MEDIA_LIST_COLUMNS, { count: "exact" })
+    .select(MEDIA_LIST_COLUMNS)
     .eq("kind", "image");
 
   if (statusFilter === "active") {
@@ -145,9 +163,9 @@ export default async function AdminMediaPage({ searchParams }: Props) {
     );
   }
 
-  const { data, error, count } = await mediaQuery
+  const { data, error } = await mediaQuery
     .order("created_at", { ascending: false })
-    .range(from, to);
+    .range(resolved.from, resolved.to);
   if (error) throw new Error(error.message);
 
   const listedRows = (data ?? []) as MediaRow[];
@@ -167,8 +185,13 @@ export default async function AdminMediaPage({ searchParams }: Props) {
     ? [selectedRow, ...listedRows]
     : listedRows;
   const usageMap = await loadMediaUsageMap(supabase, rows);
-  const pagination = createAdminPagination(count ?? 0, page, ADMIN_PAGE_SIZE);
-  const listHref = mediaListHref({ q, status: statusFilter, page });
+  const pagination = {
+    page: resolved.page,
+    pageSize: resolved.pageSize,
+    pageCount: resolved.pageCount,
+    total: resolved.total,
+  };
+  const listHref = mediaListHref({ q, status: statusFilter, page: resolved.page });
 
   return (
     <section className={styles.page}>

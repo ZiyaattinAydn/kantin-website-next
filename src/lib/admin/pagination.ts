@@ -8,6 +8,11 @@ export type AdminPagination = {
   total: number;
 };
 
+export type ResolvedAdminPage = AdminPagination & {
+  from: number;
+  to: number;
+};
+
 export function parseAdminPage(value: string | undefined): number {
   const parsed = Number.parseInt(value ?? "1", 10);
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : 1;
@@ -38,5 +43,17 @@ export function createAdminPagination(
     pageSize,
     pageCount,
     total,
+  };
+}
+
+export function resolveAdminPage(
+  total: number,
+  requestedPage: number,
+  pageSize = ADMIN_PAGE_SIZE,
+): ResolvedAdminPage {
+  const pagination = createAdminPagination(total, requestedPage, pageSize);
+  return {
+    ...pagination,
+    ...adminPageRange(pagination.page, pageSize),
   };
 }
