@@ -69,11 +69,12 @@ export default function AdminShell({
         <button
           aria-expanded={open}
           aria-controls="admin-sidebar"
+          aria-label={open ? "Yönetim menüsü açık" : "Yönetim menüsünü aç"}
           className={styles.menuButton}
           onClick={() => setOpen((value) => !value)}
           type="button"
         >
-          {open ? "Kapat" : "Yönetim"}
+          Yönetim
         </button>
       </header>
 
@@ -85,7 +86,17 @@ export default function AdminShell({
           <Link className="brand" href="/">
             kantin<span>.</span>
           </Link>
-          <span className={styles.badge}>Admin</span>
+          <div className={styles.brandActions}>
+            <span className={styles.badge}>Admin</span>
+            <button
+              aria-label="Admin menüsünü kapat"
+              className={styles.sidebarClose}
+              onClick={() => setOpen(false)}
+              type="button"
+            >
+              Kapat
+            </button>
+          </div>
         </div>
 
         <div className={styles.identity}>
