@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdminInteractionGuard from "@/components/admin/AdminInteractionGuard";
 import AdminPagination from "@/components/admin/crud/AdminPagination";
 import adminStyles from "@/components/admin/crud/AdminResource.module.css";
 import styles from "./PricingManagement.module.css";
@@ -293,7 +294,8 @@ export default async function AdminPricingPage({ searchParams }: Props) {
   });
 
   return (
-    <section className={adminStyles.page}>
+    <section className={adminStyles.page} id="admin-pricing-page">
+      <AdminInteractionGuard rootId="admin-pricing-page" />
       <header className={adminStyles.head}>
         <div>
           <p className="eyebrow">Menü fiyatları</p>
@@ -405,7 +407,7 @@ export default async function AdminPricingPage({ searchParams }: Props) {
               });
 
               return (
-                <details className={styles.productCard} key={product.id}>
+                <details className={styles.productCard} data-admin-accordion-item="true" key={product.id}>
                   <summary className={styles.productSummary}>
                     <span className={styles.productNameCell} data-label="Ürün adı">
                       <strong>{product.name}</strong>
@@ -462,7 +464,7 @@ export default async function AdminPricingPage({ searchParams }: Props) {
                     </span>
                   </summary>
 
-                  <form action={saveAdminProductPricing} className={styles.productEditor}>
+                  <form action={saveAdminProductPricing} className={styles.productEditor} data-admin-dirty-guard="true">
                     <input name="menu_item_id" type="hidden" value={product.id} />
                     <input name="return_to" type="hidden" value={returnTo} />
 

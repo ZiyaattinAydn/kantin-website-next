@@ -73,6 +73,21 @@ export default function AdminForeignField({
     );
   }, [required, selectedValue]);
 
+  useEffect(() => {
+    const form = searchRef.current?.form;
+    if (!form) return;
+
+    const resetToInitialValue = () => {
+      setSelectedValue(defaultValue);
+      setQuery(selectedAtStart?.label ?? (defaultValue ? `Mevcut seçim · ${defaultValue}` : ""));
+      setSelectionError(false);
+      setOpen(false);
+    };
+
+    form.addEventListener("reset", resetToInitialValue);
+    return () => form.removeEventListener("reset", resetToInitialValue);
+  }, [defaultValue, selectedAtStart?.label]);
+
   function selectOption(option: AdminOption) {
     setSelectedValue(option.value);
     setQuery(option.label);

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdminInteractionGuard from "@/components/admin/AdminInteractionGuard";
 import type { CSSProperties, ReactNode } from "react";
 import AdminJsonField from "./AdminJsonField";
 import AdminPagination from "./AdminPagination";
@@ -463,7 +464,7 @@ function InlineEditor({
         </div>
       </div>
 
-      <form action={saveAdminResource} className={styles.form}>
+      <form action={saveAdminResource} className={styles.form} data-admin-dirty-guard="true">
         <input name="_resource" type="hidden" value={resource.key} />
         <input name="_id" type="hidden" value={recordId} />
         <div className={styles.formGrid}>
@@ -622,7 +623,8 @@ export default function AdminResourceEditor({
   const requiresDeleteReview = Boolean(deleteImpactDefinition(resource));
 
   return (
-    <section className={styles.page}>
+    <section className={styles.page} id={`admin-resource-${resource.key}`}>
+      <AdminInteractionGuard rootId={`admin-resource-${resource.key}`} />
       <header className={styles.header}>
         <div className={styles.headerCopy}>
           <p className="eyebrow">{groupEyebrows[resource.group]}</p>
@@ -638,7 +640,7 @@ export default function AdminResourceEditor({
       {error ? <p className={styles.error}>{error}</p> : null}
 
       {resource.allowCreate ? (
-        <details className={styles.createRecord} id="new-record" open={showNew}>
+        <details className={styles.createRecord} data-admin-accordion-item="true" id="new-record" open={showNew}>
           <summary>
             <span>＋ Yeni {resource.singular}</span>
             <span className={styles.chevron}>⌄</span>
@@ -693,7 +695,7 @@ export default function AdminResourceEditor({
             const deleteReviewHref = `/admin/manage/${resource.key}?${reviewParams.toString()}#record-${rowId}`;
 
             return (
-              <details className={styles.recordCard} id={`record-${rowId}`} key={rowId} open={selected}>
+              <details className={styles.recordCard} data-admin-accordion-item="true" id={`record-${rowId}`} key={rowId} open={selected}>
                 <summary
                   className={styles.recordSummary}
                   style={{ "--admin-column-count": columns.length + 1 } as CSSProperties}

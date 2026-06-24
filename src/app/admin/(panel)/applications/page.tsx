@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdminInteractionGuard from "@/components/admin/AdminInteractionGuard";
 import AdminPagination from "@/components/admin/crud/AdminPagination";
 import ConfirmSubmitButton from "@/components/admin/crud/ConfirmSubmitButton";
 import styles from "./Applications.module.css";
@@ -232,7 +233,8 @@ export default async function AdminApplicationsPage({ searchParams }: Props) {
   });
 
   return (
-    <section className={styles.page}>
+    <section className={styles.page} id="admin-applications-page">
+      <AdminInteractionGuard rootId="admin-applications-page" />
       <header className={styles.header}>
         <div>
           <p className="eyebrow">Kişisel veri · Admin erişimi</p>
@@ -294,6 +296,7 @@ export default async function AdminApplicationsPage({ searchParams }: Props) {
             return (
               <details
                 className={styles.applicationCard}
+                data-admin-accordion-item="true"
                 id={`application-${row.id}`}
                 key={row.id}
                 open={isSelected}
@@ -398,7 +401,7 @@ export default async function AdminApplicationsPage({ searchParams }: Props) {
                       </div>
 
                       {row.privacy_status === "active" ? (
-                        <form action={updateApplicationAction} className={styles.form}>
+                        <form action={updateApplicationAction} className={styles.form} data-admin-dirty-guard="true">
                           <input name="id" type="hidden" value={row.id} />
                           <label className={styles.field}>
                             <span>Başvuru durumu</span>

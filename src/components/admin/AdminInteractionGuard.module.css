@@ -1,0 +1,32 @@
+.unsavedNotice {
+  position: fixed;
+  z-index: 1000;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  display: grid;
+  gap: 0.2rem;
+  width: min(28rem, calc(100vw - 2rem));
+  padding: 0.9rem 1rem;
+  border: 1px solid #e9ba5b;
+  border-radius: 0.9rem;
+  background: #fff8df;
+  box-shadow: 0 1rem 2.5rem rgb(31 38 53 / 18%);
+  color: #5d4108;
+}
+
+.unsavedNotice strong {
+  font-size: 0.9rem;
+}
+
+.unsavedNotice span {
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .unsavedNotice {
+    right: 0.75rem;
+    bottom: 0.75rem;
+    width: calc(100vw - 1.5rem);
+  }
+}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdminInteractionGuard from "@/components/admin/AdminInteractionGuard";
 import AdminPagination from "@/components/admin/crud/AdminPagination";
 import ConfirmSubmitButton from "@/components/admin/crud/ConfirmSubmitButton";
 import TypedConfirmSubmitButton from "@/components/admin/crud/TypedConfirmSubmitButton";
@@ -222,7 +223,8 @@ export default async function AdminMediaPage({ searchParams }: Props) {
   const listHref = mediaListHref({ q, status: statusFilter, page: resolved.page });
 
   return (
-    <section className={styles.page}>
+    <section className={styles.page} id="admin-media-page">
+      <AdminInteractionGuard rootId="admin-media-page" />
       <div className={styles.head}>
         <div>
           <p className="eyebrow">Görsel arşivi</p>
@@ -241,7 +243,7 @@ export default async function AdminMediaPage({ searchParams }: Props) {
       {firstString(params.notice) ? <p className={styles.notice}>{firstString(params.notice)}</p> : null}
       {firstString(params.error) ? <p className={styles.error}>{firstString(params.error)}</p> : null}
 
-      <details className={mediaStyles.uploadCard} id="media-editor" open={showNew}>
+      <details className={mediaStyles.uploadCard} data-admin-accordion-item="true" id="media-editor" open={showNew}>
         <summary className={mediaStyles.uploadSummary}>
           <span>
             <strong>＋ Yeni görsel yükle</strong>
@@ -255,7 +257,7 @@ export default async function AdminMediaPage({ searchParams }: Props) {
             <h2>Görseli yükle</h2>
             <p>Dosya en fazla 8 MB olabilir. Kullanım alanı, görselin nerede kullanılacağını belirler.</p>
           </div>
-          <form action={uploadAdminMedia} className={`${styles.form} ${mediaStyles.uploadForm}`}>
+          <form action={uploadAdminMedia} className={`${styles.form} ${mediaStyles.uploadForm}`} data-admin-dirty-guard="true">
             <label className={styles.field}>
               <span>Kullanım alanı</span>
               <select name="bucket" required>{PUBLIC_IMAGE_BUCKETS.map((bucket) => <option key={bucket} value={bucket}>{bucketLabels[bucket]}</option>)}</select>
@@ -321,6 +323,7 @@ export default async function AdminMediaPage({ searchParams }: Props) {
             return (
               <details
                 className={mediaStyles.mediaCard}
+                data-admin-accordion-item="true"
                 id={`media-${row.id}`}
                 key={row.id}
                 open={isSelected}
@@ -424,7 +427,7 @@ export default async function AdminMediaPage({ searchParams }: Props) {
                             <h3>Görsel bilgileri</h3>
                             <p>Ad, erişilebilir alt metin ve yayın durumunu düzenle.</p>
                           </div>
-                          <form action={updateAdminMedia} className={styles.form}>
+                          <form action={updateAdminMedia} className={styles.form} data-admin-dirty-guard="true">
                             <input name="id" type="hidden" value={row.id} />
                             <label className={styles.field}>
                               <span>Medya adı</span>
@@ -458,7 +461,7 @@ export default async function AdminMediaPage({ searchParams }: Props) {
                           <h3>Yerine başka görsel koy</h3>
                           <p>Yeni dosya aynı medya kaydına bağlanır. Menü, etkinlik, merch, Instagram ve içerik bloklarındaki bağlantılar otomatik korunur.</p>
                         </div>
-                        <form action={replaceAdminMedia} className={mediaStyles.replaceForm}>
+                        <form action={replaceAdminMedia} className={mediaStyles.replaceForm} data-admin-dirty-guard="true">
                           <input name="id" type="hidden" value={row.id} />
                           <label className={styles.field}>
                             <span>Kullanım alanı</span>
