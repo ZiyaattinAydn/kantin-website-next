@@ -38,3 +38,13 @@ yarn-error.log*
 # Private account recovery credentials
 /vercel kodları/
 **/recovery-codes.txt
+
+# Generated QA and test outputs
+qa-live-results/
+qa-live-write-results/
+KANTIN-CANLI-ADMIN-KABUL-TESTI-SONUC-*
+
+# Other generated test outputs
+playwright-report/
+test-results/
+coverage/
