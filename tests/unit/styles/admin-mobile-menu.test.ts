@@ -18,7 +18,7 @@ describe("mobil admin menüsü", () => {
     const shell = source("src/components/admin/AdminShell.tsx");
 
     expect(shell).toContain('aria-label={open ? "Yönetim menüsü açık" : "Yönetim menüsünü aç"}');
-    expect(shell).toContain("\n          Yönetim\n");
+    expect(shell).toMatch(/\r?\n\s+Yönetim\r?\n/);
   });
 
   it("masaüstünde yan panel kapatma düğmesini gizler", () => {

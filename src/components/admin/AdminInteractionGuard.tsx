@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  requiredAdminVisibilityConfirmation,
+  type AdminVisibilityConfirmation,
+} from "@/lib/admin/visibility";
 import styles from "./AdminInteractionGuard.module.css";
 
 const GUARDED_FORM_SELECTOR = 'form[data-admin-dirty-guard="true"]';
@@ -38,6 +42,75 @@ export function snapshotAdminForm(form: HTMLFormElement): string {
     .map((control) => controlValue(control))
     .filter((value): value is string => value !== null)
     .join("\u001f");
+}
+
+
+function booleanDataset(value: string | undefined, fallback: boolean): boolean {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return fallback;
+}
+
+function namedControl(form: HTMLFormElement, name: string): Element | null {
+  if (!name) return null;
+  const control = form.elements.namedItem(name);
+  return control instanceof Element ? control : null;
+}
+
+function nextActiveValue(form: HTMLFormElement, field: string, fallback: boolean): boolean {
+  const control = namedControl(form, field);
+  return control instanceof HTMLInputElement && control.type === "checkbox"
+    ? control.checked
+    : fallback;
+}
+
+function nextStatusValue(form: HTMLFormElement, field: string, fallback: string): string {
+  const control = namedControl(form, field);
+  return control instanceof HTMLSelectElement || control instanceof HTMLInputElement
+    ? control.value
+    : fallback;
+}
+
+export function visibilityConfirmationForForm(
+  form: HTMLFormElement,
+): AdminVisibilityConfirmation | null {
+  if (form.dataset.adminVisibilityGuard !== "true") return null;
+
+  const activeField = form.dataset.activeField ?? "";
+  const statusField = form.dataset.statusField ?? "";
+  const hasActiveField = Boolean(activeField);
+  const hasStatusField = Boolean(statusField);
+  const currentActive = booleanDataset(form.dataset.currentActive, true);
+  const currentStatus = form.dataset.currentStatus ?? "";
+
+  return requiredAdminVisibilityConfirmation({
+    isCreate: form.dataset.isNew === "true",
+    current: {
+      hasActiveField,
+      hasStatusField,
+      active: currentActive,
+      status: currentStatus,
+    },
+    next: {
+      hasActiveField,
+      hasStatusField,
+      active: nextActiveValue(form, activeField, currentActive),
+      status: nextStatusValue(form, statusField, currentStatus),
+    },
+  });
+}
+
+function visibilityPrompt(form: HTMLFormElement, phrase: AdminVisibilityConfirmation): string {
+  const recordLabel = form.dataset.recordLabel || "Bu kayıt";
+  const impact = form.dataset.visibilityImpact || "Bu değişiklik ziyaretçi görünürlüğünü etkiler.";
+  const action = phrase === "YAYINLA" ? "ziyaretçilere açılacak" : "ziyaretçilerden gizlenecek";
+
+  return `${recordLabel} ${action}.\n\n${impact}\n\nDevam etmek için tam olarak “${phrase}” yaz.`;
+}
+
+function visibilityConfirmationInput(form: HTMLFormElement): HTMLInputElement | null {
+  const control = form.elements.namedItem("_visibility_confirm");
+  return control instanceof HTMLInputElement ? control : null;
 }
 
 function guardedForms(root: HTMLElement): HTMLFormElement[] {
@@ -98,7 +171,15 @@ export default function AdminInteractionGuard({
       return true;
     };
 
-    const handleInput = () => refreshDirtyState();
+    const handleInput = (event: Event) => {
+      const target = event.target;
+      if (target instanceof Element) {
+        const form = target.closest<HTMLFormElement>(GUARDED_FORM_SELECTOR);
+        const confirmation = form ? visibilityConfirmationInput(form) : null;
+        if (confirmation) confirmation.value = "";
+      }
+      refreshDirtyState();
+    };
 
     const handleReset = (event: Event) => {
       const form = event.target;
@@ -114,6 +195,22 @@ export default function AdminInteractionGuard({
       if (!(form instanceof HTMLFormElement)) return;
 
       if (form.matches(GUARDED_FORM_SELECTOR)) {
+        const requiredPhrase = visibilityConfirmationForForm(form);
+        const confirmationInput = visibilityConfirmationInput(form);
+
+        if (requiredPhrase) {
+          const answer = window.prompt(visibilityPrompt(form, requiredPhrase));
+          if (answer !== requiredPhrase) {
+            if (confirmationInput) confirmationInput.value = "";
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
+          if (confirmationInput) confirmationInput.value = requiredPhrase;
+        } else if (confirmationInput) {
+          confirmationInput.value = "";
+        }
+
         submitting = true;
         baselines.set(form, snapshotAdminForm(form));
         refreshDirtyState();

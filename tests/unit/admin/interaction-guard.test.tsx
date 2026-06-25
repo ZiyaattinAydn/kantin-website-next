@@ -34,6 +34,39 @@ function Example() {
   );
 }
 
+
+function VisibilityExample({ onSubmit }: { onSubmit: () => void }) {
+  return (
+    <div id="admin-visibility-root">
+      <AdminInteractionGuard rootId="admin-visibility-root" />
+      <form
+        data-active-field="is_active"
+        data-admin-dirty-guard="true"
+        data-admin-visibility-guard="true"
+        data-current-active="true"
+        data-current-status="published"
+        data-is-new="false"
+        data-record-label="TEST Ürün"
+        data-status-field="status"
+        data-visibility-impact="Ürün ziyaretçi menüsünden kaldırılır."
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit();
+        }}
+      >
+        <input defaultValue="" name="_visibility_confirm" type="hidden" />
+        <select aria-label="Yayın durumu" defaultValue="published" name="status">
+          <option value="draft">Taslak</option>
+          <option value="published">Yayında</option>
+          <option value="archived">Arşiv</option>
+        </select>
+        <input defaultChecked name="is_active" type="checkbox" />
+        <button type="submit">Kaydet</button>
+      </form>
+    </div>
+  );
+}
+
 describe("AdminInteractionGuard", () => {
   it("form alanı değiştiğinde kaydedilmemiş değişiklik uyarısını gösterir", async () => {
     const user = userEvent.setup();
@@ -92,4 +125,32 @@ describe("AdminInteractionGuard", () => {
 
     expect(snapshotAdminForm(form)).not.toBe(first);
   });
+
+  it("yayındaki kaydı gizlerken PASİFE AL yazılmadığında gönderimi durdurur", async () => {
+    const user = userEvent.setup();
+    const submit = vi.fn();
+    vi.spyOn(window, "prompt").mockReturnValue("yanlış");
+    render(<VisibilityExample onSubmit={submit} />);
+
+    await user.selectOptions(screen.getByLabelText("Yayın durumu"), "draft");
+    await user.click(screen.getByRole("button", { name: "Kaydet" }));
+
+    expect(window.prompt).toHaveBeenCalledWith(expect.stringContaining("PASİFE AL"));
+    expect(submit).not.toHaveBeenCalled();
+    expect(document.querySelector<HTMLInputElement>('input[name="_visibility_confirm"]')).toHaveValue("");
+  });
+
+  it("doğru görünürlük onayında gizli sunucu alanını doldurup formu gönderir", async () => {
+    const user = userEvent.setup();
+    const submit = vi.fn();
+    vi.spyOn(window, "prompt").mockReturnValue("PASİFE AL");
+    render(<VisibilityExample onSubmit={submit} />);
+
+    await user.selectOptions(screen.getByLabelText("Yayın durumu"), "draft");
+    await user.click(screen.getByRole("button", { name: "Kaydet" }));
+
+    expect(submit).toHaveBeenCalledOnce();
+    expect(document.querySelector<HTMLInputElement>('input[name="_visibility_confirm"]')).toHaveValue("PASİFE AL");
+  });
+
 });

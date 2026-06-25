@@ -32,9 +32,29 @@ describe("admin teknik alan görünürlüğü", () => {
       const resource = getAdminResource(key);
       expect(resource, `${key} kaynağı bulunamadı`).not.toBeNull();
       expect(
-        resource?.fields.some((field) => isAdminInternalFieldName(field.name)),
-        `${key} teknik sıralama alanını korumalı`,
+        isAdminInternalFieldName(resource?.orderField ?? ""),
+        `${key} teknik sıralama alanını iç veri olarak tanımlamalı`,
       ).toBe(true);
+    }
+  });
+
+  it("teknik JSON alanlarını gelişmiş ve korumalı düzenleme altında tutar", () => {
+    const protectedFields = {
+      branches: ["opening_hours"],
+      "site-settings": ["value"],
+      "site-pages": ["metadata"],
+      "content-blocks": ["content"],
+    } as const;
+
+    for (const [resourceKey, fieldNames] of Object.entries(protectedFields)) {
+      const resource = getAdminResource(resourceKey);
+      for (const fieldName of fieldNames) {
+        const field = resource?.fields.find((candidate) => candidate.name === fieldName);
+        expect(field?.type, `${resourceKey}.${fieldName} JSON alanı olmalı`).toBe("json");
+        expect(field?.advanced, `${resourceKey}.${fieldName} gelişmiş alanda olmalı`).toBe(true);
+        expect(field?.guardedJson, `${resourceKey}.${fieldName} korumalı olmalı`).toBe(true);
+        expect(field?.guardedJsonWarning).toBeTruthy();
+      }
     }
   });
 });

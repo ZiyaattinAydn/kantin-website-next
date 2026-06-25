@@ -44,6 +44,9 @@ export type AdminField<Table extends AdminTable = AdminTable> = {
   rows?: number;
   placeholder?: string;
   advanced?: boolean;
+  immutableOnUpdate?: boolean;
+  guardedJson?: boolean;
+  guardedJsonWarning?: string;
 };
 
 type AdminResourceFor<Table extends AdminTable> = {
@@ -59,6 +62,7 @@ type AdminResourceFor<Table extends AdminTable> = {
   searchFields: readonly AdminColumn<Table>[];
   orderField: AdminColumn<Table>;
   allowCreate?: boolean;
+  createProtectionReason?: string;
   allowArchive?: boolean;
   allowHardDelete?: boolean;
   hardDeleteProtectionReason?: string;
@@ -405,7 +409,7 @@ const resources: readonly AdminResource[] = [
       { name: "phone", label: "Telefon", type: "text", nullable: true },
       { name: "public_email", label: "E-posta", type: "text", nullable: true },
       { name: "features", label: "Özellikler", type: "string-array" },
-      { name: "opening_hours", label: "Çalışma saatleri", type: "json", required: true, help: "Mevcut yapıyı koru. Örnek: {\"note\":\"Her gün 09:00-00:00\"}" },
+      { name: "opening_hours", label: "Çalışma saatleri", type: "json", required: true, advanced: true, guardedJson: true, guardedJsonWarning: "Bu alan şubenin çalışma saatlerini veri yapısı olarak saklar. Yalnız saat ve açıklama metinlerini değiştir; alan adlarını silme veya yeniden adlandırma.", help: "Örnek: {\"note\":\"Her gün 09:00-00:00\"}" },
       { name: "status", label: "Yayın durumu", type: "select", required: true, options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox" },
     ],
@@ -421,15 +425,16 @@ const resources: readonly AdminResource[] = [
     labelField: "key",
     searchFields: ["key", "description"],
     orderField: "sort_order",
-    allowCreate: true,
+    allowCreate: false,
+    createProtectionReason: "Site ayarları uygulamanın kullandığı sabit sistem kayıtlarıdır. Yeni ayar kaydı yalnız kod değişikliğiyle eklenir; mevcut kayıtların içeriklerini güvenle düzenleyebilirsin.",
     allowArchive: true,
     allowHardDelete: false,
     hardDeleteProtectionReason: "Site ayarları tema, görünürlük ve ziyaretçi sitesi davranışlarını etkileyen sistem kayıtlarıdır. Geri dönüşü zor yapılandırma kaybını önlemek için kalıcı silme kapalıdır; kaydı arşivle veya değerini kontrollü biçimde güncelle.",
     activeField: "is_active",
     statusField: "status",
     fields: [
-      { name: "key", label: "Ayar kodu", type: "text", required: true, help: "Bu kod sitenin ilgili ayarı bulmasını sağlar. Mevcut kodları değiştirme." },
-      { name: "value", label: "Ayar içeriği", type: "json", required: true, help: "Alan yapısını koruyarak yalnız gerekli metin veya bağlantıları değiştir." },
+      { name: "key", label: "Ayar kodu", type: "text", required: true, immutableOnUpdate: true, help: "Bu kod sitenin ilgili ayarı bulmasını sağlar ve mevcut kayıtlarda değiştirilemez." },
+      { name: "value", label: "Ayar içeriği", type: "json", required: true, advanced: true, guardedJson: true, guardedJsonWarning: "Bu ayar ziyaretçi sitesinin görünümünü veya davranışını etkileyebilir. Yalnız metin, bağlantı ve izin verilen seçenek değerlerini değiştir; alan adlarını silme.", help: "Alan yapısını koruyarak yalnız gerekli metin veya bağlantıları değiştir." },
       { name: "description", label: "Açıklama", type: "textarea", nullable: true, rows: 3 },
       { name: "is_public", label: "Ziyaretçi sitesinde kullanılabilir", type: "checkbox" },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
@@ -447,7 +452,8 @@ const resources: readonly AdminResource[] = [
     labelField: "title",
     searchFields: ["title", "slug", "seo_title", "seo_description"],
     orderField: "sort_order",
-    allowCreate: true,
+    allowCreate: false,
+    createProtectionReason: "Site sayfaları uygulamanın sabit rota kayıtlarıdır. Yeni sayfa kaydı yalnız kod değişikliğiyle eklenir; başlık ve SEO içeriklerini düzenleyebilirsin.",
     allowArchive: true,
     allowHardDelete: false,
     hardDeleteProtectionReason: "Site sayfaları içerik bloklarının üst kaydıdır. Sayfa silinirse bağlı bütün bloklar da gider; bu nedenle kalıcı silme kapalıdır ve sayfa yalnızca arşivlenebilir.",
@@ -455,10 +461,10 @@ const resources: readonly AdminResource[] = [
     statusField: "status",
     fields: [
       { name: "title", label: "Sayfa adı", type: "text", required: true },
-      { name: "slug", label: "URL adı", type: "text", advanced: true, help: "Boş bırakırsan addan otomatik oluşturulur." },
+      { name: "slug", label: "URL adı", type: "text", advanced: true, immutableOnUpdate: true, help: "Bu adres uygulama rotasıyla eşleşir ve mevcut sayfalarda değiştirilemez." },
       { name: "seo_title", label: "SEO başlığı", type: "text", nullable: true },
       { name: "seo_description", label: "SEO açıklaması", type: "textarea", nullable: true, rows: 3 },
-      { name: "metadata", label: "Ek sayfa ayarları", type: "json", required: true, defaultValue: "{}", advanced: true, help: "Geliştirici tarafından özel bir değer istenmedikçe değiştirme." },
+      { name: "metadata", label: "Ek sayfa ayarları", type: "json", required: true, defaultValue: "{}", advanced: true, guardedJson: true, guardedJsonWarning: "Bu alan sayfanın teknik ek ayarlarını içerir. Geliştirici tarafından belirli bir değişiklik istenmedikçe düzenleme.", help: "Geliştirici tarafından özel bir değer istenmedikçe değiştirme." },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
       { name: "published_at", label: "Yayın zamanı", type: "datetime", nullable: true },
@@ -476,21 +482,29 @@ const resources: readonly AdminResource[] = [
     searchFields: ["key", "block_type"],
     orderField: "sort_order",
     orderScopeFields: ["page_id"],
-    allowCreate: true,
+    allowCreate: false,
+    createProtectionReason: "İçerik blokları sayfa tasarımının sabit sistem alanlarıdır. Yeni blok yalnız kod değişikliğiyle eklenir; mevcut bloğun içerik verisini düzenleyebilirsin.",
     allowArchive: true,
     allowHardDelete: true,
     activeField: "is_active",
     statusField: "status",
     fields: [
-      { name: "page_id", label: "Sayfa", type: "foreign", optionSource: "pages", required: true },
-      { name: "key", label: "İçerik alanı kodu", type: "text", required: true, help: "Sitenin bu alanı tanımasını sağlayan koddur. Mevcut kayıtlarda değiştirme." },
-      { name: "block_type", label: "İçerik şablonu", type: "text", required: true, help: "Bu alanın sitede hangi şablonla gösterileceğini belirler." },
-      { name: "content", label: "İçerik verisi", type: "json", required: true, help: "Alan yapısını bozmadan metin, görsel ve bağlantı değerlerini güncelle." },
+      { name: "page_id", label: "Sayfa", type: "foreign", optionSource: "pages", required: true, immutableOnUpdate: true },
+      { name: "key", label: "İçerik alanı kodu", type: "text", required: true, immutableOnUpdate: true, help: "Sitenin bu alanı tanımasını sağlayan koddur ve mevcut kayıtlarda değiştirilemez." },
+      { name: "block_type", label: "İçerik şablonu", type: "text", required: true, immutableOnUpdate: true, help: "Bu alanın sitede hangi şablonla gösterileceğini belirler ve mevcut kayıtlarda değiştirilemez." },
+      { name: "content", label: "İçerik verisi", type: "json", required: true, advanced: true, guardedJson: true, guardedJsonWarning: "Bu alan içerik bloğunun metin, görsel ve bağlantı yapısını birlikte saklar. Değerleri güncelleyebilirsin; alan adlarını veya liste yapısını bilinçsizce değiştirme.", help: "Alan yapısını bozmadan metin, görsel ve bağlantı değerlerini güncelle." },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
       { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
     ],
   },
 ] as const;
+
+
+const ADMIN_INTERNAL_FIELD_NAMES = new Set(["sort_order"]);
+
+export function isAdminInternalFieldName(name: string): boolean {
+  return ADMIN_INTERNAL_FIELD_NAMES.has(name);
+}
 
 export function getAdminResource(key: string): AdminResource | null {
   return resources.find((resource) => resource.key === key) ?? null;

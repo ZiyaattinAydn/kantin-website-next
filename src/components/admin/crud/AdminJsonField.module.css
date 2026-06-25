@@ -3,12 +3,41 @@
   gap: 8px;
 }
 
+.guarded textarea[readonly] {
+  border-color: rgba(0, 71, 187, 0.18);
+  background: rgba(0, 71, 187, 0.045);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.guardNotice {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(179, 122, 0, 0.25);
+  border-radius: 10px;
+  background: rgba(255, 219, 95, 0.13);
+  color: #765500;
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.guardNotice strong {
+  font-size: 0.7rem;
+}
+
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
 }
 
 .toolbar button {
@@ -22,6 +51,11 @@
   font-size: 0.68rem;
   font-weight: 900;
   cursor: pointer;
+}
+
+.toolbar button:hover {
+  border-color: rgba(0, 71, 187, 0.35);
+  background: rgba(0, 71, 187, 0.04);
 }
 
 .valid,

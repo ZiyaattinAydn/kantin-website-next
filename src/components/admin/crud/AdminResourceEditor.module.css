@@ -478,6 +478,21 @@
   resize: vertical;
 }
 
+.lockedField input[readonly],
+.lockedField textarea[readonly],
+.lockedField select:disabled {
+  border-color: rgba(0, 71, 187, 0.18);
+  background: rgba(0, 71, 187, 0.055);
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.field .lockedNote {
+  color: var(--blue);
+  font-weight: 900;
+}
+
 .field input[aria-invalid="true"],
 .field textarea[aria-invalid="true"],
 .field select[aria-invalid="true"] {
@@ -512,6 +527,66 @@
   width: 18px;
   height: 18px;
   accent-color: var(--blue);
+}
+
+.visibilityNotice {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(179, 122, 0, 0.22);
+  border-radius: 14px;
+  background: rgba(255, 219, 95, 0.1);
+}
+
+.visibilityNotice[data-visible="true"] {
+  border-color: rgba(0, 128, 70, 0.2);
+  background: rgba(0, 128, 70, 0.055);
+}
+
+.visibilityNotice > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.visibilityNotice strong {
+  color: var(--ink);
+  font-size: 0.74rem;
+}
+
+.visibilityNotice span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(179, 122, 0, 0.12);
+  color: #765500;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.visibilityNotice[data-visible="true"] span {
+  background: rgba(0, 128, 70, 0.1);
+  color: #08713f;
+}
+
+.visibilityNotice p,
+.visibilityNotice small {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.67rem;
+  line-height: 1.55;
+}
+
+.visibilityNotice small {
+  padding-top: 7px;
+  border-top: 1px solid rgba(88, 96, 113, 0.12);
+}
+
+.visibilityNotice b {
+  color: var(--ink);
 }
 
 .warning {
@@ -724,6 +799,11 @@
 
   .inlineEditor {
     padding: 16px;
+  }
+
+  .visibilityNotice > div {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .formActions > *,

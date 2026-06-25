@@ -3,7 +3,6 @@ import AdminInteractionGuard from "@/components/admin/AdminInteractionGuard";
 import type { CSSProperties, ReactNode } from "react";
 import AdminJsonField from "./AdminJsonField";
 import AdminPagination from "./AdminPagination";
-import ConfirmSubmitButton from "./ConfirmSubmitButton";
 import TypedConfirmSubmitButton from "./TypedConfirmSubmitButton";
 import styles from "./AdminResourceEditor.module.css";
 import {
@@ -15,6 +14,11 @@ import type { AdminOptionsMap } from "@/lib/admin/options";
 import type { AdminPagination as PaginationData } from "@/lib/admin/pagination";
 import { deleteImpactDefinition, type AdminDeleteImpact } from "@/lib/admin/resource-delete";
 import type { AdminField, AdminResource } from "@/lib/admin/resources";
+import {
+  ADMIN_VISIBILITY_CONFIRMATIONS,
+  adminVisibilityImpact,
+  isAdminResourcePubliclyVisible,
+} from "@/lib/admin/visibility";
 import {
   displayValue,
   formatAdminDate,
@@ -191,6 +195,8 @@ function FieldControl({
   const invalid = errorField === field.name;
   const controlId = `${idPrefix}-${field.name}`;
   const errorId = invalid ? `${controlId}-error` : undefined;
+  const existing = Boolean(record && typeof record.id === "string");
+  const locked = existing && Boolean(field.immutableOnUpdate);
 
   if (field.type === "checkbox") {
     return (
@@ -199,6 +205,7 @@ function FieldControl({
           aria-describedby={errorId}
           aria-invalid={invalid}
           defaultChecked={Boolean(value)}
+          disabled={locked}
           id={controlId}
           name={field.name}
           type="checkbox"
@@ -218,12 +225,17 @@ function FieldControl({
   };
 
   return (
-    <label className={`${styles.field} ${isWide ? styles.fieldWide : ""}`} htmlFor={controlId}>
+    <label
+      className={`${styles.field} ${isWide ? styles.fieldWide : ""} ${locked ? styles.lockedField : ""}`}
+      htmlFor={controlId}
+    >
       <span>{field.label}</span>
       {field.type === "json" ? (
         <AdminJsonField
           defaultValue={String(value)}
           describedBy={errorId}
+          guarded={field.guardedJson}
+          guardMessage={field.guardedJsonWarning}
           id={controlId}
           invalid={invalid}
           name={field.name}
@@ -235,21 +247,30 @@ function FieldControl({
         <textarea
           {...common}
           defaultValue={String(value)}
+          readOnly={locked}
           maxLength={10_000}
           placeholder={field.placeholder}
           rows={field.rows ?? 4}
           spellCheck
         />
       ) : field.type === "select" || field.type === "foreign" ? (
-        <select {...common} defaultValue={String(value)}>
-          {field.nullable ? <option value="">Seçilmedi</option> : null}
-          {!field.required && !field.nullable ? <option value="">Seç</option> : null}
-          {fieldOptions(field, options).map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <>
+          {locked ? <input name={field.name} type="hidden" value={String(value)} /> : null}
+          <select
+            {...common}
+            aria-readonly={locked || undefined}
+            defaultValue={String(value)}
+            disabled={locked}
+          >
+            {field.nullable ? <option value="">Seçilmedi</option> : null}
+            {!field.required && !field.nullable ? <option value="">Seç</option> : null}
+            {fieldOptions(field, options).map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </>
       ) : (
         <input
           {...common}
@@ -257,6 +278,7 @@ function FieldControl({
           inputMode={field.type === "money" || field.type === "number" ? "decimal" : undefined}
           maxLength={field.type === "string-array" ? 6_000 : field.type === "text" ? 500 : undefined}
           min={field.type === "money" || field.type === "number" ? 0 : undefined}
+          readOnly={locked}
           pattern={field.name === "slug" ? "[a-z0-9]+(?:-[a-z0-9]+)*" : undefined}
           placeholder={field.placeholder}
           step={field.type === "money" ? "0.01" : field.type === "number" ? "1" : undefined}
@@ -273,6 +295,7 @@ function FieldControl({
           }
         />
       )}
+      {locked ? <small className={styles.lockedNote}>Sistem alanı · Bu kayıtta değiştirilemez.</small> : null}
       {field.help ? <small>{field.help}</small> : null}
       {invalid && error ? <small className={styles.fieldError} id={errorId}>{error}</small> : null}
     </label>
@@ -446,6 +469,25 @@ function InlineEditor({
     hardDeleteProtectionReason?: string;
   }).hardDeleteProtectionReason;
   const canArchive = existing && !inactive && resource.allowArchive;
+  const hasVisibilityControls = Boolean(resource.activeField || resource.statusField);
+  const currentActive = resource.activeField
+    ? record?.[resource.activeField] === true
+    : true;
+  const currentStatus = resource.statusField
+    ? String(record?.[resource.statusField] ?? "draft")
+    : "";
+  const currentlyVisible = existing
+    ? isAdminResourcePubliclyVisible({
+        hasActiveField: Boolean(resource.activeField),
+        hasStatusField: Boolean(resource.statusField),
+        active: currentActive,
+        status: currentStatus,
+      })
+    : false;
+  const recordLabel = existing
+    ? displayValue(record?.[resource.labelField])
+    : `Yeni ${resource.singular}`;
+  const visibilityImpact = adminVisibilityImpact(resource.key, resource.singular);
   const canHardDelete =
     existing && inactive && resource.allowHardDelete && !hardDeleteProtectionReason;
   const deleteBlocked = Boolean(
@@ -464,9 +506,24 @@ function InlineEditor({
         </div>
       </div>
 
-      <form action={saveAdminResource} className={styles.form} data-admin-dirty-guard="true">
+      <form
+        action={saveAdminResource}
+        className={styles.form}
+        data-active-field={resource.activeField ?? ""}
+        data-admin-dirty-guard="true"
+        data-admin-visibility-guard={hasVisibilityControls ? "true" : undefined}
+        data-current-active={String(currentActive)}
+        data-current-status={currentStatus}
+        data-is-new={String(!existing)}
+        data-record-label={recordLabel}
+        data-status-field={resource.statusField ?? ""}
+        data-visibility-impact={visibilityImpact}
+      >
         <input name="_resource" type="hidden" value={resource.key} />
         <input name="_id" type="hidden" value={recordId} />
+        {hasVisibilityControls ? (
+          <input defaultValue="" name="_visibility_confirm" type="hidden" />
+        ) : null}
         <div className={styles.formGrid}>
           {primaryFields.map((field) => (
             <FieldControl
@@ -480,6 +537,19 @@ function InlineEditor({
             />
           ))}
         </div>
+        {hasVisibilityControls ? (
+          <aside className={styles.visibilityNotice} data-visible={currentlyVisible}>
+            <div>
+              <strong>Ziyaretçi görünürlüğü</strong>
+              <span>{existing ? (currentlyVisible ? "Şu anda yayında" : "Şu anda gizli") : "Yeni kayıt"}</span>
+            </div>
+            <p>{visibilityImpact}</p>
+            <small>
+              Yayına açan veya ziyaretçiden gizleyen bir değişiklikte kaydetmeden önce
+              {" "}<b>YAYINLA</b> ya da <b>PASİFE AL</b> onayı istenir.
+            </small>
+          </aside>
+        ) : null}
         {advancedFields.length ? (
           <details className={styles.advancedFields} open={advancedHasError}>
             <summary>
@@ -516,13 +586,14 @@ function InlineEditor({
             <p className={styles.warning}>
               Bu işlem kaydı ziyaretçi sitesinden kaldırır; veriyi kalıcı olarak silmez.
             </p>
-            <ConfirmSubmitButton
+            <TypedConfirmSubmitButton
               className={styles.danger}
-              confirmMessage="Bu kaydı pasife almak / arşivlemek istediğine emin misin?"
+              confirmMessage={`${recordLabel} ziyaretçilerden gizlenecek.\n\n${visibilityImpact}`}
+              confirmPhrase={ADMIN_VISIBILITY_CONFIRMATIONS.hide}
               type="submit"
             >
               Pasife al / arşivle
-            </ConfirmSubmitButton>
+            </TypedConfirmSubmitButton>
           </form>
         </div>
       ) : null}
@@ -638,6 +709,13 @@ export default function AdminResourceEditor({
 
       {notice ? <p className={styles.notice}>{notice}</p> : null}
       {error ? <p className={styles.error}>{error}</p> : null}
+
+      {!resource.allowCreate && resource.createProtectionReason ? (
+        <div className={styles.protectedSection}>
+          <strong>Yeni kayıt oluşturma koruması açık</strong>
+          <p>{resource.createProtectionReason}</p>
+        </div>
+      ) : null}
 
       {resource.allowCreate ? (
         <details className={styles.createRecord} data-admin-accordion-item="true" id="new-record" open={showNew}>

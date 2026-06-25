@@ -17,6 +17,10 @@ import {
 } from "./resource-validation";
 import { assertAdminDeleteNotBlocked } from "./resource-delete";
 import { getAdminResource, type AdminResource } from "./resources";
+import {
+  ADMIN_VISIBILITY_CONFIRMATIONS,
+  requiredAdminVisibilityConfirmation,
+} from "./visibility";
 
 const DATABASE_AUDITED_TABLES = new Set<AdminResource["table"]>([
   "menu_categories",
@@ -45,11 +49,76 @@ function resourcePath(resourceKey: string, params?: Record<string, string>) {
   return `/admin/manage/${resourceKey}${search.size ? `?${search.toString()}` : ""}`;
 }
 
+
+function immutableUpdateFields(resource: AdminResource) {
+  return resource.fields.filter((field) => field.immutableOnUpdate);
+}
+
+function serializeAdminFieldValue(value: unknown): string | null {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "boolean") return value ? "on" : null;
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  return JSON.stringify(value);
+}
+
+function withImmutableUpdateValues(
+  resource: AdminResource,
+  formData: FormData,
+  current: Record<string, unknown>,
+): FormData {
+  const protectedFormData = new FormData();
+  formData.forEach((value, key) => protectedFormData.append(key, value));
+
+  for (const field of immutableUpdateFields(resource)) {
+    protectedFormData.delete(field.name);
+    const serialized = serializeAdminFieldValue(current[field.name]);
+    if (serialized !== null) protectedFormData.set(field.name, serialized);
+  }
+
+  return protectedFormData;
+}
+
 function assertDatabaseAudit(resource: AdminResource): void {
   if (!DATABASE_AUDITED_TABLES.has(resource.table)) {
     throw new Error("Bu yönetim alanı için güvenli kayıt yapılandırması eksik.");
   }
 }
+
+function adminVisibilityState(
+  resource: AdminResource,
+  values: Record<string, unknown>,
+) {
+  return {
+    hasActiveField: Boolean(resource.activeField),
+    hasStatusField: Boolean(resource.statusField),
+    active: resource.activeField ? values[resource.activeField] === true : true,
+    status: resource.statusField ? String(values[resource.statusField] ?? "") : "",
+  };
+}
+
+function assertVisibilityConfirmation(
+  resource: AdminResource,
+  formData: FormData,
+  nextValues: Record<string, unknown>,
+  currentValues: Record<string, unknown> | null,
+): void {
+  const requiredPhrase = requiredAdminVisibilityConfirmation({
+    isCreate: currentValues === null,
+    current: currentValues ? adminVisibilityState(resource, currentValues) : null,
+    next: adminVisibilityState(resource, nextValues),
+  });
+
+  if (!requiredPhrase) return;
+  if (textValue(formData, "_visibility_confirm") === requiredPhrase) return;
+
+  const action = requiredPhrase === ADMIN_VISIBILITY_CONFIRMATIONS.publish
+    ? "yayına alma"
+    : "ziyaretçiden gizleme";
+  throw new Error(
+    `${action} onayı doğrulanamadı. İşlemi panelden yeniden başlatıp “${requiredPhrase}” yazarak onayla.`,
+  );
+}
+
 
 export async function saveAdminResource(formData: FormData): Promise<never> {
   const resourceKey = textValue(formData, "_resource");
@@ -62,12 +131,25 @@ export async function saveAdminResource(formData: FormData): Promise<never> {
 
   try {
     assertDatabaseAudit(resource);
-    const payload = parseAdminResourcePayload(resource, formData);
-    const supabase = await createClient();
 
     if (id) {
-      if (resource.orderScopeFields?.length) {
-        const current = await readAdminRow(supabase, resource.table, id);
+      const needsCurrent = Boolean(
+        resource.orderScopeFields?.length ||
+        immutableUpdateFields(resource).length ||
+        resource.activeField ||
+        resource.statusField,
+      );
+      const supabase = await createClient();
+      const current = needsCurrent
+        ? await readAdminRow(supabase, resource.table, id)
+        : null;
+      const protectedFormData = current
+        ? withImmutableUpdateValues(resource, formData, current)
+        : formData;
+      const payload = parseAdminResourcePayload(resource, protectedFormData);
+      assertVisibilityConfirmation(resource, formData, payload, current);
+
+      if (current && resource.orderScopeFields?.length) {
         const scopeChanged = resource.orderScopeFields.some(
           (field) => current[field] !== payload[field],
         );
@@ -81,6 +163,9 @@ export async function saveAdminResource(formData: FormData): Promise<never> {
       destination = resourcePath(resource.key, { notice: "Kayıt güncellendi." });
     } else {
       if (!resource.allowCreate) throw new Error("Bu modülde yeni kayıt oluşturma kapalı.");
+      const payload = parseAdminResourcePayload(resource, formData);
+      assertVisibilityConfirmation(resource, formData, payload, null);
+      const supabase = await createClient();
       // Sıra kullanıcıdan alınmaz. DB trigger'ı aynı kapsam için advisory lock altında
       // son sırayı hesaplar; böylece eşzamanlı eklemeler aynı değeri alamaz.
       payload[resource.orderField] = -1;
@@ -116,6 +201,12 @@ export async function archiveAdminResource(formData: FormData): Promise<never> {
   let destination: string;
 
   try {
+    if (textValue(formData, "_confirm") !== ADMIN_VISIBILITY_CONFIRMATIONS.hide) {
+      throw new Error(
+        `Pasife alma onayı doğrulanamadı. İşlemi panelden yeniden başlatıp “${ADMIN_VISIBILITY_CONFIRMATIONS.hide}” yazarak onayla.`,
+      );
+    }
+
     assertDatabaseAudit(resource);
     const patch: AdminMutationPayload = {};
     if (resource.activeField) patch[resource.activeField] = false;
