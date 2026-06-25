@@ -10,6 +10,7 @@ import {
   loadAdminResourceRows,
 } from "@/lib/admin/resource-data";
 import { getAdminResource } from "@/lib/admin/resources";
+import { loadAdminRecordRevisions } from "@/lib/admin/revisions";
 
 export const dynamic = "force-dynamic";
 
@@ -53,11 +54,12 @@ export default async function AdminResourcePage({ params, searchParams }: PagePr
   const page = parseAdminPage(firstString(query.page));
   const sources = resource.fields.flatMap((field) => field.optionSource ? [field.optionSource] : []);
   const prefill = prefilledRecord(query, resource.fields.map((field) => field.name));
-  const [list, record, options, deleteImpact] = await Promise.all([
+  const [list, record, options, deleteImpact, revisions] = await Promise.all([
     loadAdminResourceRows(resource, { page, search }),
     editId ? loadAdminResourceRecord(resource, editId) : Promise.resolve(null),
     loadAdminOptions(sources),
     editId ? loadAdminDeleteImpact(resource, editId) : Promise.resolve(null),
+    editId ? loadAdminRecordRevisions(resource, editId) : Promise.resolve([]),
   ]);
 
   const rows = includeSelectedAdminRow(list.rows, record);
@@ -73,6 +75,7 @@ export default async function AdminResourcePage({ params, searchParams }: PagePr
       prefill={prefill}
       record={record}
       resource={resource}
+      revisions={revisions}
       rows={rows}
       search={search}
       showNew={firstString(query.new) === "1" || Boolean(prefill)}

@@ -5,6 +5,7 @@
 - `PROJECT_STATUS.md`: Tamamlananlar, açık maddeler ve sürüm durumu
 - `operations/admin-kullanim-rehberi.md`: Yönetici paneli kullanımı
 - `operations/bakim-ve-yedekleme.md`: Periyodik bakım, veri ve dosya yedekleri
+- `operations/supabase-backup-restore.md`: Tam database + Storage yedeği, doğrulama ve güvenli test projesine geri yükleme
 - `debugging/bug-debugging-rehberi.md`: Hata ayıklama akışı ve sık karşılaşılan sorunlar
 - `testing/final-qa-kontrol-listesi.md`: Kapanış ve regresyon testleri
 - `testing/faz-12-test-raporu.md`: Çalıştırılan kontroller ve açık test kapsamı
@@ -20,3 +21,10 @@
 `backend/` altındaki Faz 2-10 belgeleri teknik geliştirme geçmişini ve migration kararlarını açıklar.
 
 - `RELEASE_MANIFEST.md`: Release paketi kapsamı ve bilinçli dışlamalar
+
+
+## Migration geçmişi olmayan projeler
+
+Proje şeması yalnız SQL Editor ile kurulmuşsa `supabase_migrations` şeması bulunmayabilir.
+Yedekleme aracı bu durumu hata olarak değerlendirmez; migration geçmişini uyarıyla atlar ve
+roller, uygulama şeması, veriler, auth/storage farkları ile Storage dosyalarını yedeklemeye devam eder.

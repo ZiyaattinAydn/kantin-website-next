@@ -7,6 +7,8 @@
 - `/api/health/supabase` ve `/api/health/public-data` sonuçlarını kontrol et.
 - Yeni kariyer başvurularını incele.
 - Kırık görsel veya yanlış fiyat olup olmadığını gözden geçir.
+- `npm run backup:supabase` ile doğrulanmış tam Supabase yedeği al.
+- `VERIFY_REPORT.md` sonucunun **BAŞARILI** olduğunu kontrol et.
 
 ## Aylık
 
@@ -16,13 +18,15 @@
 - Storage kullanımını ve gereksiz test görsellerini kontrol et.
 - Admin kullanıcı listesini ve aktif rolleri gözden geçir.
 - CV saklama süresi dolan başvurular için silme/anonimleştirme kararı uygula.
+- Aylık yedeği şifreli ve erişimi sınırlı arşive taşı.
 
 ## Veritabanı yedeği
 
 - Migration ve `seed.sql` kaynak kod yedeğidir; gerçek başvuru ve sonradan girilen içeriklerin yedeği değildir.
-- Production öncesinde Supabase Dashboard/CLI ile mantıksal database dump al.
+- Production migration veya toplu içerik değişikliği öncesinde tam yedek al.
 - Yedek dosyasını Git repository'sine veya public buluta koyma.
-- Geri yükleme işlemini önce ayrı test projesinde doğrula.
+- Geri yükleme işlemini önce yeni/geçici test projesinde doğrula.
+- Ayrıntılı prosedür: `docs/operations/supabase-backup-restore.md`
 
 ## Storage yedeği
 
@@ -31,6 +35,7 @@ Database dump gerçek Storage dosyalarını içermez. Public medya ve private CV
 - CV yedeği şifreli ve erişimi sınırlı tutulmalıdır.
 - Gereksiz veya saklama süresi dolmuş CV dosyaları silinmelidir.
 - `storage.objects` tablosunda doğrudan SQL DELETE kullanmayın; Storage API veya Dashboard kullanın.
+- Yedek doğrulamasında altı beklenen bucket'ın tamamı bulunmalıdır.
 
 ## Anahtar ve hesap bakımı
 

@@ -17,7 +17,10 @@
     "verify:production": "node scripts/verify-production.mjs",
     "check": "npm run lint && tsc --noEmit && npm run build",
     "preflight": "node scripts/project-preflight.mjs",
-    "verify:deployment": "node scripts/verify-deployment.mjs"
+    "verify:deployment": "node scripts/verify-deployment.mjs",
+    "backup:supabase": "bash scripts/backup-supabase.sh",
+    "backup:verify": "node scripts/verify-supabase-backup.mjs",
+    "restore:supabase:test": "bash scripts/restore-supabase-to-test-project.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

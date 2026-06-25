@@ -2,6 +2,7 @@ import Link from "next/link";
 import AdminInteractionGuard from "@/components/admin/AdminInteractionGuard";
 import type { CSSProperties, ReactNode } from "react";
 import AdminJsonField from "./AdminJsonField";
+import AdminRevisionHistory from "./AdminRevisionHistory";
 import AdminPagination from "./AdminPagination";
 import TypedConfirmSubmitButton from "./TypedConfirmSubmitButton";
 import styles from "./AdminResourceEditor.module.css";
@@ -12,6 +13,7 @@ import {
 } from "@/lib/admin/resource-actions";
 import type { AdminOptionsMap } from "@/lib/admin/options";
 import type { AdminPagination as PaginationData } from "@/lib/admin/pagination";
+import type { AdminRecordRevision } from "@/lib/admin/revisions";
 import { deleteImpactDefinition, type AdminDeleteImpact } from "@/lib/admin/resource-delete";
 import type { AdminField, AdminResource } from "@/lib/admin/resources";
 import {
@@ -451,6 +453,7 @@ function InlineEditor({
   deleteImpact,
   deleteReviewHref,
   requiresDeleteReview,
+  revisions,
 }: {
   resource: AdminResource;
   record: Record<string, unknown> | null;
@@ -461,6 +464,7 @@ function InlineEditor({
   deleteImpact?: AdminDeleteImpact | null;
   deleteReviewHref?: string;
   requiresDeleteReview?: boolean;
+  revisions?: AdminRecordRevision[];
 }) {
   const recordId = record && typeof record.id === "string" ? record.id : "";
   const existing = Boolean(recordId);
@@ -578,6 +582,15 @@ function InlineEditor({
         </div>
       </form>
 
+      {existing && revisions ? (
+        <AdminRevisionHistory
+          recordId={recordId}
+          recordLabel={recordLabel}
+          resource={resource}
+          revisions={revisions}
+        />
+      ) : null}
+
       {canArchive ? (
         <div className={styles.destructiveSection}>
           <form action={archiveAdminResource} className={styles.form}>
@@ -666,6 +679,7 @@ export default function AdminResourceEditor({
   resource,
   rows,
   record,
+  revisions,
   prefill,
   deleteImpact,
   options,
@@ -679,6 +693,7 @@ export default function AdminResourceEditor({
   resource: AdminResource;
   rows: Record<string, unknown>[];
   record: Record<string, unknown> | null;
+  revisions: AdminRecordRevision[];
   prefill: Record<string, unknown> | null;
   deleteImpact: AdminDeleteImpact | null;
   options: AdminOptionsMap;
@@ -799,6 +814,7 @@ export default function AdminResourceEditor({
                   record={rowRecord}
                   resource={resource}
                   requiresDeleteReview={requiresDeleteReview}
+                  revisions={selected ? revisions : undefined}
                 />
               </details>
             );

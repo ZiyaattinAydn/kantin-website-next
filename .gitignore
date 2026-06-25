@@ -48,3 +48,6 @@ KANTIN-CANLI-ADMIN-KABUL-TESTI-SONUC-*
 playwright-report/
 test-results/
 coverage/
+# Local Supabase database and Storage backups (may contain personal data)
+/supabase-backups/
+/supabase-restore-work/

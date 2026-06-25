@@ -12,7 +12,7 @@ Bu durumda uygulama kodu yeni medya akışını çağırır fakat Supabase taraf
 Supabase SQL Editor'da şu dosyanın tamamını tek sorgu olarak çalıştır:
 
 ```text
-supabase/migrations/20260624030000_repair_media_replace_and_auto_detach.sql
+supabase/migrations/20260624040000_repair_media_replace_and_auto_detach.sql
 ```
 
 Migration kendi sonunda PostgREST schema cache yenileme bildirimi gönderir. Ayrı bir `notify pgrst, 'reload schema';` sorgusu zorunlu değildir.

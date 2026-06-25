@@ -1178,11 +1178,73 @@ export type Database = {
           },
         ];
       };
+      admin_record_revisions: {
+        Row: {
+          id: string;
+          actor_id: string | null;
+          entity_type: string;
+          entity_id: string;
+          entity_label: string | null;
+          operation: "insert" | "update" | "delete";
+          before_data: Json | null;
+          after_data: Json | null;
+          changed_fields: Json;
+          schema_version: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          actor_id?: string | null;
+          entity_type: string;
+          entity_id: string;
+          entity_label?: string | null;
+          operation: "insert" | "update" | "delete";
+          before_data?: Json | null;
+          after_data?: Json | null;
+          changed_fields?: Json;
+          schema_version?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          actor_id?: string | null;
+          entity_type?: string;
+          entity_id?: string;
+          entity_label?: string | null;
+          operation?: "insert" | "update" | "delete";
+          before_data?: Json | null;
+          after_data?: Json | null;
+          changed_fields?: Json;
+          schema_version?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "admin_record_revisions_actor_id_fkey";
+            columns: ["actor_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
+      restore_admin_record_revision: {
+        Args: {
+          p_revision_id: string;
+          p_expected_entity_type: string;
+          p_expected_entity_id: string;
+        };
+        Returns: {
+          restored_entity_type: string;
+          restored_entity_id: string;
+          restored_from_revision: string;
+        }[];
+      };
       save_admin_product_pricing: {
         Args: {
           p_menu_item_id: string;

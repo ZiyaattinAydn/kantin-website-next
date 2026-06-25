@@ -1,0 +1,10 @@
+Step 6C doğrulamaları
+- Bash syntax: backup, restore ve mock test başarılı
+- Node syntax: bütün yardımcılar başarılı
+- Storage inventory: 6 bucket / exact path / byte boyutu doğrulaması başarılı
+- Bozuk veya eksik yerel dosya testi: doğru biçimde reddedildi
+- Düz metin döndüren Supabase `storage ls` mock testi: başarılı
+- Uçtan uca mock backup: STATUS=COMPLETE ve VERIFY_REPORT=BAŞARILI
+- Uçtan uca mock restore: kaynak/hedef Storage envanteri eşleşti
+- Storage liste JSON çıktısına bağımlılık: tamamen kaldırıldı
+- Production verisi üzerinde test: yapılmadı; canlı sonuç kullanıcı çalıştırmasında doğrulanacak

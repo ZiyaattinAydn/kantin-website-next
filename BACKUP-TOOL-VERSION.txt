@@ -1,0 +1,3 @@
+6C.0.0
+Storage source of truth: PostgreSQL storage.buckets + storage.objects
+Supabase CLI storage ls output is access-check only; it is never parsed.

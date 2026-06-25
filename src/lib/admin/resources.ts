@@ -69,6 +69,7 @@ type AdminResourceFor<Table extends AdminTable> = {
   orderScopeFields?: readonly AdminColumn<Table>[];
   activeField?: Extract<AdminColumn<Table>, "is_active" | "is_available">;
   statusField?: Extract<AdminColumn<Table>, "status">;
+  revisionHistory?: boolean;
 };
 
 export type AdminResource = {
@@ -399,6 +400,7 @@ const resources: readonly AdminResource[] = [
     hardDeleteProtectionReason: "Şubeler fiyat, kategori, etkinlik, merch ve başvuru kayıtlarının ortak ana kaydıdır. Yanlışlıkla geniş veri kaybı oluşmaması için kalıcı silme kapalıdır; kullanılmayan şubeyi pasife al.",
     activeField: "is_active",
     statusField: "status",
+    revisionHistory: true,
     fields: [
       { name: "name", label: "Şube adı", type: "text", required: true },
       { name: "short_description", label: "Kısa açıklama", type: "textarea", nullable: true, rows: 3 },
@@ -432,6 +434,7 @@ const resources: readonly AdminResource[] = [
     hardDeleteProtectionReason: "Site ayarları tema, görünürlük ve ziyaretçi sitesi davranışlarını etkileyen sistem kayıtlarıdır. Geri dönüşü zor yapılandırma kaybını önlemek için kalıcı silme kapalıdır; kaydı arşivle veya değerini kontrollü biçimde güncelle.",
     activeField: "is_active",
     statusField: "status",
+    revisionHistory: true,
     fields: [
       { name: "key", label: "Ayar kodu", type: "text", required: true, immutableOnUpdate: true, help: "Bu kod sitenin ilgili ayarı bulmasını sağlar ve mevcut kayıtlarda değiştirilemez." },
       { name: "value", label: "Ayar içeriği", type: "json", required: true, advanced: true, guardedJson: true, guardedJsonWarning: "Bu ayar ziyaretçi sitesinin görünümünü veya davranışını etkileyebilir. Yalnız metin, bağlantı ve izin verilen seçenek değerlerini değiştir; alan adlarını silme.", help: "Alan yapısını koruyarak yalnız gerekli metin veya bağlantıları değiştir." },
@@ -459,6 +462,7 @@ const resources: readonly AdminResource[] = [
     hardDeleteProtectionReason: "Site sayfaları içerik bloklarının üst kaydıdır. Sayfa silinirse bağlı bütün bloklar da gider; bu nedenle kalıcı silme kapalıdır ve sayfa yalnızca arşivlenebilir.",
     activeField: "is_active",
     statusField: "status",
+    revisionHistory: true,
     fields: [
       { name: "title", label: "Sayfa adı", type: "text", required: true },
       { name: "slug", label: "URL adı", type: "text", advanced: true, immutableOnUpdate: true, help: "Bu adres uygulama rotasıyla eşleşir ve mevcut sayfalarda değiştirilemez." },
@@ -488,6 +492,7 @@ const resources: readonly AdminResource[] = [
     allowHardDelete: true,
     activeField: "is_active",
     statusField: "status",
+    revisionHistory: true,
     fields: [
       { name: "page_id", label: "Sayfa", type: "foreign", optionSource: "pages", required: true, immutableOnUpdate: true },
       { name: "key", label: "İçerik alanı kodu", type: "text", required: true, immutableOnUpdate: true, help: "Sitenin bu alanı tanımasını sağlayan koddur ve mevcut kayıtlarda değiştirilemez." },
