@@ -1,0 +1,95 @@
+{
+  "createdAt": "2026-06-25T00:56:04.173Z",
+  "baseUrl": "https://kantin-website-ziyaattinaydns-projects.vercel.app",
+  "prefix": "TEST_QA_20260625T005604",
+  "mode": "Canlı TEST_ yazma kabul testi",
+  "steps": [
+    {
+      "name": "Yönetici girişi",
+      "ok": true,
+      "at": "2026-06-25T00:56:09.784Z"
+    },
+    {
+      "name": "Önceki yarım testten kalan TEST_ kategori temizlendi",
+      "ok": true,
+      "at": "2026-06-25T00:56:21.859Z",
+      "value": "TEST_QA_20260625T003921_DUPLICATEtest-qa-20260625t003921-kategori"
+    },
+    {
+      "name": "TEST_ kategori oluşturuldu",
+      "ok": true,
+      "at": "2026-06-25T00:56:24.107Z",
+      "value": "TEST_QA_20260625T005604_KATEGORI"
+    },
+    {
+      "name": "Tekrarlanan URL adı doğrulaması kontrollü gösterildi",
+      "ok": true,
+      "at": "2026-06-25T00:56:27.999Z"
+    },
+    {
+      "name": "İki aktif şube bulundu",
+      "ok": true,
+      "at": "2026-06-25T00:56:28.848Z",
+      "branches": [
+        "Alsancak (ALS)",
+        "Atakent (ATA)"
+      ]
+    },
+    {
+      "name": "Test akışı durdu",
+      "ok": false,
+      "at": "2026-06-25T00:57:13.902Z",
+      "message": "page.waitForFunction: Timeout 45000ms exceeded.\n    at waitForQueryOutcome (C:\\Users\\ziyaa\\kantin-website-next\\qa-live-write\\live-admin-write-acceptance.mjs:154:29)\n    at submitCreate (C:\\Users\\ziyaa\\kantin-website-next\\qa-live-write\\live-admin-write-acceptance.mjs:330:5)\n    at async createCategoryBranch (C:\\Users\\ziyaa\\kantin-website-next\\qa-live-write\\live-admin-write-acceptance.mjs:438:3)\n    at async file:///C:/Users/ziyaa/kantin-website-next/qa-live-write/live-admin-write-acceptance.mjs:813:3",
+      "url": "https://kantin-website-ziyaattinaydns-projects.vercel.app/admin/manage/menu-category-branches?new=1#new-record"
+    },
+    {
+      "name": "TEST_ kategori ve şube ilişkileri temizlendi",
+      "ok": true,
+      "at": "2026-06-25T00:57:20.913Z"
+    }
+  ],
+  "createdRecords": [
+    {
+      "resource": "menu-categories",
+      "label": "TEST_QA_20260625T005604_KATEGORI",
+      "id": "df33f206-3b08-4e6d-bc4a-b454af16c499"
+    }
+  ],
+  "cleanup": [
+    {
+      "resource": "menu-categories",
+      "label": "TEST_QA_20260625T003921_DUPLICATEtest-qa-20260625t003921-kategori",
+      "action": "archive",
+      "ok": true
+    },
+    {
+      "resource": "menu-categories",
+      "label": "TEST_QA_20260625T003921_DUPLICATEtest-qa-20260625t003921-kategori",
+      "action": "hard-delete",
+      "ok": true
+    },
+    {
+      "resource": "menu-items",
+      "label": "TEST_QA_20260625T005604_URUN",
+      "action": "cleanup-skipped",
+      "ok": true
+    },
+    {
+      "resource": "menu-categories",
+      "label": "TEST_QA_20260625T005604_KATEGORI",
+      "action": "archive",
+      "ok": true
+    },
+    {
+      "resource": "menu-categories",
+      "label": "TEST_QA_20260625T005604_KATEGORI",
+      "action": "hard-delete",
+      "ok": true
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "failedRequests": [],
+  "success": false,
+  "toolVersion": "3.1.0"
+}
