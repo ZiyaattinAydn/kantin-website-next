@@ -7,7 +7,7 @@ import {
   listFilesRecursively,
 } from "./lib/supabase-backup.mjs";
 
-const [command, inventoryPath, arg3, arg4] = process.argv.slice(2);
+const [command, inventoryPath, arg3] = process.argv.slice(2);
 
 function fail(message) {
   console.error(message);

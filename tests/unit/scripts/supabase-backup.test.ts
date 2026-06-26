@@ -6,11 +6,11 @@ import { promisify } from "node:util";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  BACKUP_FORMAT_VERSION,
   EXPECTED_STORAGE_BUCKETS,
   REQUIRED_DATABASE_FILES,
   buildStorageUri,
   findDuplicateMigrationVersions,
-  inspectStorageListing,
   verifySupabaseBackup,
 } from "../../../scripts/lib/supabase-backup.mjs";
 
@@ -28,22 +28,44 @@ const bucketDefinitions = EXPECTED_STORAGE_BUCKETS.map((id) => ({
       : ["image/jpeg", "image/png", "image/webp", "image/avif"],
 }));
 
+function createInventory(objectsByBucket: Record<string, Array<{ name: string; size: number | null }>> = {}) {
+  return {
+    formatVersion: 1,
+    buckets: bucketDefinitions.map((bucket) => ({
+      ...bucket,
+      exists: true,
+      objects: objectsByBucket[bucket.id] ?? [],
+    })),
+  };
+}
+
+async function writeInventory(
+  root: string,
+  objectsByBucket: Record<string, Array<{ name: string; size: number | null }>> = {},
+) {
+  await fs.writeFile(
+    path.join(root, "metadata", "storage-inventory.json"),
+    `${JSON.stringify(createInventory(objectsByBucket), null, 2)}\n`,
+  );
+}
+
 async function createBackupFixture() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "kantin-backup-"));
   tempDirs.push(root);
 
   await fs.mkdir(path.join(root, "database"), { recursive: true });
-  await fs.mkdir(path.join(root, "metadata", "storage-listings"), {
+  await fs.mkdir(path.join(root, "metadata", "storage-access"), {
     recursive: true,
   });
   await fs.writeFile(
     path.join(root, "metadata", "backup.json"),
     JSON.stringify({
-      formatVersion: 2,
+      formatVersion: BACKUP_FORMAT_VERSION,
       sourceProjectRef: "abcdefghijklmnopqrst",
       createdAt: "2026-06-25T00:00:00Z",
       includes: {
         migrationHistory: false,
+        storageInventory: true,
         storageBucketDefinitions: bucketDefinitions,
       },
     }),
@@ -62,11 +84,10 @@ async function createBackupFixture() {
   );
 
   for (const bucket of EXPECTED_STORAGE_BUCKETS) {
-    const bucketDir = path.join(root, "storage", bucket);
-    await fs.mkdir(bucketDir, { recursive: true });
+    await fs.mkdir(path.join(root, "storage", bucket), { recursive: true });
     await fs.writeFile(
-      path.join(root, "metadata", "storage-listings", `${bucket}.json`),
-      "[]\n",
+      path.join(root, "metadata", "storage-access", `${bucket}.txt`),
+      `${bucket}/\n`,
     );
   }
 
@@ -74,16 +95,9 @@ async function createBackupFixture() {
     path.join(root, "storage", "menu-images", "sample.webp"),
     "image-content",
   );
-  await fs.writeFile(
-    path.join(root, "metadata", "storage-listings", "menu-images.json"),
-    JSON.stringify([
-      {
-        name: "sample.webp",
-        id: "11111111-1111-1111-1111-111111111111",
-        metadata: { size: 13 },
-      },
-    ]),
-  );
+  await writeInventory(root, {
+    "menu-images": [{ name: "sample.webp", size: 13 }],
+  });
 
   return root;
 }
@@ -150,37 +164,40 @@ describe("Supabase yedek doğrulayıcısı", () => {
     ]);
   });
 
-  it("Storage liste çıktısından gerçek dosya yollarını ayırır", () => {
-    expect(
-      inspectStorageListing(
-        [
-          { name: "folder", id: null, metadata: null, type: "folder" },
-          { name: "folder/image.webp", id: "id", metadata: { size: 10 } },
-        ],
-        "menu-images",
-      ),
-    ).toMatchObject({
-      recognized: true,
-      entryCount: 2,
-      fileCount: 1,
-      files: ["folder/image.webp"],
-    });
-  });
-
-  it("uzak Storage listesinde olan dosya yerelde yoksa yedeği reddeder", async () => {
+  it("veritabanı envanterindeki uzak dosya yerelde yoksa yedeği reddeder", async () => {
     const root = await createBackupFixture();
-    await fs.writeFile(
-      path.join(root, "metadata", "storage-listings", "menu-images.json"),
-      JSON.stringify([
-        { name: "sample.webp", id: "id-1", metadata: { size: 13 } },
-        { name: "missing.webp", id: "id-2", metadata: { size: 5 } },
-      ]),
-    );
+    await writeInventory(root, {
+      "menu-images": [
+        { name: "sample.webp", size: 13 },
+        { name: "missing.webp", size: 5 },
+      ],
+    });
 
     const result = await verifySupabaseBackup(root, { writeReports: false });
 
     expect(result.valid).toBe(false);
-    expect(result.errors.some((item) => item.includes("uzak dosya yerelde bulunamadı"))).toBe(true);
+    expect(result.errors.some((item) => item.includes("uzak dosya yerelde eksik"))).toBe(true);
+  });
+
+  it("güvenli olmayan Storage nesne yolunu ön kontrolde reddeder", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "kantin-inventory-"));
+    tempDirs.push(root);
+    const inventoryPath = path.join(root, "inventory.json");
+    await fs.writeFile(
+      inventoryPath,
+      JSON.stringify(createInventory({
+        "menu-images": [{ name: "../escape.webp", size: 10 }],
+      })),
+    );
+
+    await expect(
+      execFile(
+        process.execPath,
+        [path.join(process.cwd(), "scripts", "storage-inventory.mjs"), "validate", inventoryPath],
+      ),
+    ).rejects.toMatchObject({
+      stderr: expect.stringContaining("güvenli yedeklenemeyen nesne yolu"),
+    });
   });
 
   it("restore aracı kaynak project ref ile aynı hedefi reddeder", async () => {
@@ -206,13 +223,25 @@ describe("Supabase yedek doğrulayıcısı", () => {
       "utf8",
     );
 
-    expect(backupScript).toContain('storage_uri="ss:///$bucket"');
-    expect(restoreScript).toContain('"ss:///$bucket"');
+    expect(backupScript).toContain('storage_uri="ss:///$bucket/"');
+    expect(backupScript).toContain('"ss:///$bucket/$object_path"');
+    expect(restoreScript).toContain('"ss:///$bucket/$object_path"');
     expect(backupScript).not.toContain('"ss://$bucket"');
     expect(restoreScript).not.toContain('"ss://$bucket"');
     expect(backupScript.indexOf("storage ls")).toBeLessThan(
       backupScript.indexOf("db dump --db-url"),
     );
+  });
+
+  it("backup aracı storage ls çıktısını JSON gibi ayrıştırmaz", async () => {
+    const backupScript = await fs.readFile(
+      path.join(process.cwd(), "scripts", "backup-supabase.sh"),
+      "utf8",
+    );
+
+    expect(backupScript).toContain("storage-inventory.mjs validate");
+    expect(backupScript).not.toContain("inspect-storage-listing.mjs");
+    expect(backupScript).not.toContain("storage-listings");
   });
 
   it("placeholder içeren connection string'e parolayı güvenli biçimde ekler", async () => {

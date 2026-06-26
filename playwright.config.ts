@@ -3,6 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100";
 const baseHost = new URL(baseURL).hostname;
 const localHosts = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+const configuredWorkers = Number.parseInt(process.env.PLAYWRIGHT_WORKERS ?? "", 10);
 
 if (!localHosts.has(baseHost)) {
   throw new Error("Playwright yalnız yerel bir site hedefinde çalıştırılabilir.");
@@ -20,6 +21,9 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
+  workers: Number.isFinite(configuredWorkers) && configuredWorkers > 0
+    ? configuredWorkers
+    : undefined,
   reporter: [["list"], ["html", { open: "never" }]],
   outputDir: "test-results",
   use: {

@@ -1,3 +1,0 @@
-5.0.0
-
-Final sağlamlaştırılmış sürüm: POST redirect başlığı + veri doğrulaması + bağımsız güvenli temizlik + hata trace kaydı.

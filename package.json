@@ -20,7 +20,10 @@
     "verify:deployment": "node scripts/verify-deployment.mjs",
     "backup:supabase": "bash scripts/backup-supabase.sh",
     "backup:verify": "node scripts/verify-supabase-backup.mjs",
-    "restore:supabase:test": "bash scripts/restore-supabase-to-test-project.sh"
+    "restore:supabase:test": "bash scripts/restore-supabase-to-test-project.sh",
+    "test:regression:local": "bash scripts/run-local-regression.sh",
+    "cleanup:release": "node scripts/finalize-release-tree.mjs",
+    "verify:release": "npm run cleanup:release && npm run lint && tsc --noEmit && npm run test:unit && npm run build && npm run preflight"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

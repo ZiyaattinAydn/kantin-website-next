@@ -11,6 +11,15 @@ describe("admin sistem kaydı korumaları", () => {
     },
   );
 
+  it.each(["branches", "site-settings", "site-pages", "content-blocks"])(
+    "%s kritik sistem kaynağında kalıcı silmeyi kapatır",
+    (key) => {
+      const resource = getAdminResource(key);
+      expect(resource?.allowHardDelete).toBe(false);
+      expect(resource?.hardDeleteProtectionReason).toBeTruthy();
+    },
+  );
+
   it("mevcut sistem kimliklerini düzenlemeye kapatır", () => {
     const lockedFields = {
       "site-settings": ["key"],

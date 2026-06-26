@@ -8,13 +8,14 @@
 - `operations/supabase-backup-restore.md`: Tam database + Storage yedeği, doğrulama ve güvenli test projesine geri yükleme
 - `debugging/bug-debugging-rehberi.md`: Hata ayıklama akışı ve sık karşılaşılan sorunlar
 - `testing/final-qa-kontrol-listesi.md`: Kapanış ve regresyon testleri
+- `testing/final-risk-audit-20260626.md`: Son risk sınıflandırması ve release kararı
 - `testing/faz-12-test-raporu.md`: Çalıştırılan kontroller ve açık test kapsamı
 - `testing/faz-14a-test-stratejisi.md`: Unit, pgTAP ve Playwright test katmanları ile yerel ortam güvenliği
 - `testing/faz-14b-admin-public-eslesmeleri.md`: Admin alanlarının public metadata, menü ve şube bileşenlerine bağlanması
 - `testing/faz-14c-medya-yasam-dongusu.md`: Medya kullanım takibi, güvenli arşiv, geri alma ve TEST_ silme kuralları
 - `testing/faz-14e-sorgu-ve-pagination.md`: Public sorgu daraltma, request cache ve admin server-side pagination
 - `testing/faz-14f-typed-crud-ve-kontrollu-formlar.md`: Kaynak bazlı CRUD doğrulaması, tipli hata modeli ve kontrollü JSON editörü
-- `deployment/production-kapanis.md`: Preview'dan Production'a geçiş
+- `deployment/production-kapanis.md`: Migration baseline, production deploy ve 1.0.0 kapanışı
 - `security/guvenlik-ve-kisisel-veri.md`: RLS, anahtarlar, CV ve kişisel veri notları
 - `security/kariyer-retention-anonimlestirme.md`: 180 gün retention incelemesi, CV silme ve iki aşamalı anonimleştirme
 

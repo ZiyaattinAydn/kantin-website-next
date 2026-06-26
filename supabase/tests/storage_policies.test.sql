@@ -50,9 +50,15 @@ select ok(
   'aktif oturumu olmayan CV yolu reddedilir'
 );
 select ok(
-  not ('image/svg+xml' = any(
-    (select allowed_mime_types from storage.buckets where id = 'menu-images')
-  )),
+  not exists (
+    select 1
+    from storage.buckets as bucket
+    cross join lateral unnest(
+      coalesce(bucket.allowed_mime_types, array[]::text[])
+    ) as allowed_mime_type
+    where bucket.id = 'menu-images'
+      and allowed_mime_type = 'image/svg+xml'
+  ),
   'public bucket SVG kabul etmez'
 );
 

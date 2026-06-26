@@ -85,3 +85,16 @@ Migration sonrasında:
 - `supabase/verification/verify_admin_record_revision_restore.sql`
 
 çalıştırılmalıdır. Yalnız RPC'yi geri almak gerekirse `supabase/manual/rollback_admin_record_revision_restore.sql` kullanılabilir; snapshot geçmişi korunur.
+
+## Service-role profil yönetimi
+
+`migrations/20260625030000_service_role_profile_management.sql`
+
+Bu migration, güvenilir sunucu ve yerel regresyon araçlarının `profiles` tablosunda
+TEST admin profili hazırlayabilmesi için `service_role` rolüne yalnız
+`SELECT`, `INSERT` ve `UPDATE` yetkilerini açıkça verir. `anon` ve
+`authenticated` yetkileri ile RLS politikaları değişmez.
+
+Migration sonrasında şu pgTAP testi çalıştırılmalıdır:
+
+- `supabase/tests/service_role_profiles.test.sql`

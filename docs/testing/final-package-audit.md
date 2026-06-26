@@ -2,41 +2,33 @@
 
 ## Kapsam
 
-Bu denetim güncel `main` kaynak paketinin dosya yapısı, kullanılmayan katmanları, responsive public tasarımı ve otomatik kalite kontrollerini kapsar. Gerçek Supabase/Storage/Auth entegrasyonu Docker aşamasında ayrıca doğrulanacaktır.
+Bu denetim güncel çalışma ağacının uygulama kodu, veritabanı migration zinciri, test altyapısı, release hijyeni, gizli bilgi riski ve operasyon belgelerini kapsar.
 
-## Kaldırılan gereksiz alanlar
+## Bulunan ve kapatılan son paket sorunları
 
-- Eski `src/content/*` statik içerik katmanı
-- Yinelenen `HomeMenuBranchCard`, `EventCards` ve eski navigation yardımcıları
-- Kullanılmayan Firebase/static admin JavaScript ve eski global CSS varlıkları
-- Artık çağrılmayan localStorage + `events.json` etkinlik demo katmanı
-- Referansı bulunmayan eski anı görselleri
-- Kullanılmayan test helper ve ölü türetilmiş merch exportları
-- Arşiv içindeki `.git`, coverage, Playwright raporları, `.vercel`, kurulum artefact'ları ve Vercel recovery code klasörü final pakete alınmadı
-
-## Tasarım düzeltmeleri
-
-- Header desktop breakpoint'i 1180 px'e taşındı; dinamik navigasyonlarda taşma riski azaltıldı.
-- Navigasyon link boşlukları ve yazı boyutları dar masaüstlerinde kontrollü hale getirildi.
-- Hero bölümünün viewport'a zorlanan minimum yüksekliği kaldırıldı.
-- Geniş masaüstü, tablet ve mobil için hero görsel/metin ritmi ayrı ayrı dengelendi.
-- Fallback veri uyarısı kompakt, daha düşük görsel ağırlıklı ve mobil uyumlu hale getirildi.
+- Ana `README.md` canlı kabul testi açıklamasıyla ezilmişti; proje README’si yeniden oluşturuldu.
+- Kullanılmayan eski Firebase admin katmanı ve `events.json` demo dosyası tespit edildi.
+- Beş referanssız eski anı görseli tespit edildi.
+- Step/handoff notları, local Vercel/Supabase metadata ve build artefactları için kontrollü temizlik aracı eklendi.
+- `.gitignore` local test, yedek, Supabase metadata ve kabul aracı kapsamına göre sadeleştirildi.
+- Release ön kontrolü migration timestamp çakışması, README, environment şablonu, secret, asset ve eski runtime dosyalarını denetleyecek şekilde güçlendirildi.
+- Production migration history bulunmama riski için salt okunur readiness SQL’i ve kontrollü kapanış sırası eklendi.
 
 ## Otomatik sonuçlar
 
-- Vitest: 29 dosya, 86 test başarılı
-- Coverage: satır %64.10, branch %43.66
+- Vitest: 56 dosya / 223 test başarılı
+- Coverage: satır %76.53 / branch %55.92
+- pgTAP: 12 dosya / 157 test başarılı
+- Playwright: 16 başarılı / 2 koşullu skipped
 - ESLint: başarılı
 - TypeScript (`tsc --noEmit`): başarılı
-- Next.js production build: derleme, type check, static page generation ve route manifest başarılı
-- `npm audit`: 0 vulnerability
+- Next.js production build: başarılı
+- Migration preflight: 19 benzersiz migration
+- Backup mock: başarılı
+- npm audit: 0 vulnerability
 
-## Bekleyen entegrasyon doğrulaması
+## Kalan operasyon riski
 
-Docker Desktop ve yerel Supabase açıldıktan sonra:
+Production şeması SQL Editor üzerinden kurulmuş olduğundan `supabase_migrations.schema_migrations` geçmişi eksik olabilir. Şema doğrulama yapılmadan eski migration’lar yeniden çalıştırılmamalıdır. `docs/deployment/production-kapanis.md` sırası bu riski engeller.
 
-1. `npx supabase start`
-2. `npm run test:db`
-3. Yerel TEST_ admin/medya/kariyer/CV senaryoları
-4. `npm run test:e2e`
-5. Final Vercel production health kontrolü
+Gerçek backup doğrulandı ancak boş bir uzak Supabase test projesine gerçek restore provası yapılmadı. Restore scripti mock ortamında test edilmiştir; tam disaster-recovery kabulü için gerçek prova önerilir.
