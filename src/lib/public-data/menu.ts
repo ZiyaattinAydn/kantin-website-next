@@ -291,6 +291,7 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
       "karisik-kup-peynir",
       "pasta-fredda",
       "patates-salata",
+      "bira-salatalar", // önceki düzeltmenin geçici tek satırı: zengin sunumda gizle
     ]);
     const featureEntry = deliEntries.find(
       (entry) => entry.item.slug === "sanayi-tabagi",
@@ -483,7 +484,7 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
               price: formatTryFromCents(variant.price_cents),
             }))
           : fallbackMenuData.cheesePortions.prices,
-        options: cheeseEntries.map((entry) => {
+        options: cheeseEntries.length ? cheeseEntries.map((entry) => {
           const metadata = asRecord(entry.item.metadata);
           return {
             name: entry.item.name,
@@ -491,16 +492,16 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
             portion: stringValue(metadata.portion),
             mixed: metadata.mixed === true ? true : undefined,
           };
-        }),
+        }) : fallbackMenuData.cheesePortions.options,
       },
-      beerSalads: saladEntries.map((entry) => ({
+      beerSalads: (saladEntries.length ? saladEntries.map((entry) => ({
         name: entry.item.name,
         description: entry.item.description ?? "",
         prices: entry.variants.map((variant) => ({
           label: variant.label,
           price: formatTryFromCents(variant.price_cents),
         })),
-      })),
+      })) : fallbackMenuData.beerSalads),
       alsancakWine: wineEntry
         ? {
             name: wineEntry.item.name,

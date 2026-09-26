@@ -98,7 +98,6 @@ function CheeseFeature({ data }: { data: MenuPublicData["cheesePortions"] }) {
         <p>{data.feature.description}</p>
       </div>
       <strong>{data.feature.price}</strong>
-      {data.options.length > 0 ? (
       <div aria-label="Küp peynir porsiyon seçenekleri" className="cheese-portion-panel">
         <div className="cheese-portion-heading">
           <div>
@@ -121,7 +120,6 @@ function CheeseFeature({ data }: { data: MenuPublicData["cheesePortions"] }) {
           ))}
         </div>
       </div>
-      ) : null}
     </article>
   );
 }
@@ -219,7 +217,7 @@ export function AlsancakMenuPanel({ hidden, panelRef, data, merchProducts, merch
             <section className="menu-sheet-block reveal"><SheetTitle>Fırın</SheetTitle><div className="cute-note">Paylaşmaya hazır: bütün sandviçler ikiye bölünerek servis edilir ♡</div>{data.alsancakOvenItems.map((item) => <BranchFoodItem key={item.name} item={item} />)}</section>
           </div>
           <div className="menu-sheet-column menu-sheet-column-left">
-            <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Deli + Salata</SheetTitle><CheeseFeature data={data.cheesePortions} />{data.alsancakDeliItems.map((item) => <BranchFoodItem key={item.name} item={item} />)}{data.beerSalads.length > 0 ? <BeerSalads salads={data.beerSalads} /> : null}</section>
+            <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Deli + Salata</SheetTitle><CheeseFeature data={data.cheesePortions} />{data.alsancakDeliItems.map((item) => <BranchFoodItem key={item.name} item={item} />)}<BeerSalads salads={data.beerSalads} /></section>
           </div>
         </div>
         <aside className="sauce-bar reveal"><div><p className="menu-kicker">{data.sauceBar.kicker}</p><h3>{data.sauceBar.title}</h3></div><p>{data.sauceBar.items.join(" · ")}</p></aside>

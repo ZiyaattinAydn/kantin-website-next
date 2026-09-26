@@ -9,7 +9,7 @@ vi.mock("@/lib/supabase/public", () => ({
 import { getMenuPublicData } from "@/lib/public-data/menu";
 
 describe("getMenuPublicData fallback", () => {
-  it("yeni Alsancak basılı menüsünde olmayan ürünleri fallback içinde göstermez", async () => {
+  it("Alsancak'ta peynir ve detaylı bira salatalarını, güncel fiyatları ve diğer menüleri korur", async () => {
     const result = await getMenuPublicData();
     const data = result.data;
 
@@ -22,10 +22,26 @@ describe("getMenuPublicData fallback", () => {
       "Ballı Jambon Sandviç",
       "Pretzel",
     ]);
-    expect(data.alsancakDeliItems.some((item) => item.name === "Bira Salatalar" && item.price === "₺200")).toBe(true);
-    expect(data.cheesePortions.options).toEqual([]);
-    expect(data.beerSalads).toEqual([]);
-    // Güncel görsellerin kapsamı dışında kalan bölümler aynen korunur.
+    expect(data.alsancakDeliItems.some((item) => item.name === "Bira Salatalar")).toBe(false);
+    expect(data.cheesePortions.feature.price).toBe("₺200");
+    expect(data.cheesePortions.options.map((item) => item.name)).toEqual([
+      "Tulum Peyniri",
+      "Eski Kaşar Peyniri",
+      "Karışık Küp Peynir",
+    ]);
+    expect(data.cheesePortions.prices).toEqual([
+      { label: "Yarım", price: "₺75" },
+      { label: "Tam", price: "₺150" },
+    ]);
+    expect(data.beerSalads.map((item) => item.name)).toEqual([
+      "Pasta Fredda",
+      "Patates Salata",
+    ]);
+    expect(data.beerSalads.every((item) =>
+      item.prices.some((price) => price.label === "Tam" && price.price === "₺200")
+      && item.prices.some((price) => price.label === "Yarım" && price.price === "₺100")
+    )).toBe(true);
+
     expect(data.coffeeGroups[0].items.some((item) => item.name === "Espresso")).toBe(true);
     expect(data.atakentHotItems.some((item) => item.name === "Tavuk Pane")).toBe(true);
   });

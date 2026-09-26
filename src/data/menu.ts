@@ -84,7 +84,6 @@ export const alsancakDeliItems: FoodMenuItem[] = [
     price: "₺150",
   },
   { name: "Çerez", price: "₺90", className: "beer-salad-preceding-item" },
-  { name: "Bira Salatalar", price: "₺200" },
 ];
 
 export const cheesePortions = {
@@ -94,17 +93,49 @@ export const cheesePortions = {
       "5 adet küp tulum peyniri · 5 adet küp eski kaşar peyniri · 2 adet turşu şiş.",
     price: "₺200",
   },
-  // Güncel basılı menüde ayrı peynir porsiyonları listelenmiyor.
-  note: "",
-  prices: [] as Array<{ label: string; price: string }>,
-  options: [] as Array<{ name: string; detail: string; portion: string; mixed?: boolean }>,
-};
+  note: "Tulum, eski kaşar veya yarım yarım karışık olarak hazırlanabilir.",
+  prices: [
+    { label: "Yarım", price: "₺75" },
+    { label: "Tam", price: "₺150" },
+  ],
+  options: [
+    {
+      name: "Tulum Peyniri",
+      detail: "Orta sertlikte · menşei Bergama",
+      portion: "Yarım: 6 küp · Tam: 12 küp",
+    },
+    {
+      name: "Eski Kaşar Peyniri",
+      detail: "Eski kaşar peyniri",
+      portion: "Yarım: 6 küp · Tam: 12 küp",
+    },
+    {
+      name: "Karışık Küp Peynir",
+      detail: "Tulum + eski kaşar birlikte",
+      portion: "Yarım: 3 tulum + 3 kaşar · Tam: 6 tulum + 6 kaşar",
+      mixed: true,
+    },
+  ],
+} as const;
 
-export const beerSalads: Array<{
-  name: string;
-  description: string;
-  prices: Array<{ label: string; price: string }>;
-}> = [];
+export const beerSalads = [
+  {
+    name: "Pasta Fredda",
+    description: "Fusilli makarna · biber · soğan · mısır · balzamik sos · turşu.",
+    prices: [
+      { label: "Tam", price: "₺200" },
+      { label: "Yarım", price: "₺100" },
+    ],
+  },
+  {
+    name: "Patates Salata",
+    description: "Patates · Dijon hardal · dereotu · taze soğan · hardal tohumu.",
+    prices: [
+      { label: "Tam", price: "₺200" },
+      { label: "Yarım", price: "₺100" },
+    ],
+  },
+] as const;
 
 export const alsancakWine = {
   name: "LA Smyrna",
