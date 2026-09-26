@@ -41,7 +41,6 @@ export const alsancakIntro = {
 export const alsancakDraftBeers: PriceTableRow[] = [
   { name: "Becks", prices: ["₺100", "₺230", "₺265"] },
   { name: "Stella Artois", prices: ["₺105", "₺245", "₺285"] },
-  { name: "Belfast", prices: ["₺90", "₺200", "₺230"] },
   { name: "Efes Pilsen", prices: ["₺95", "₺215", "₺250"] },
 ];
 
@@ -85,6 +84,7 @@ export const alsancakDeliItems: FoodMenuItem[] = [
     price: "₺150",
   },
   { name: "Çerez", price: "₺90", className: "beer-salad-preceding-item" },
+  { name: "Bira Salatalar", price: "₺200" },
 ];
 
 export const cheesePortions = {
@@ -94,49 +94,17 @@ export const cheesePortions = {
       "5 adet küp tulum peyniri · 5 adet küp eski kaşar peyniri · 2 adet turşu şiş.",
     price: "₺200",
   },
-  note: "Tulum, eski kaşar veya yarım yarım karışık olarak hazırlanabilir.",
-  prices: [
-    { label: "Yarım", price: "₺75" },
-    { label: "Tam", price: "₺150" },
-  ],
-  options: [
-    {
-      name: "Tulum Peyniri",
-      detail: "Orta sertlikte · menşei Bergama",
-      portion: "Yarım: 6 küp · Tam: 12 küp",
-    },
-    {
-      name: "Eski Kaşar Peyniri",
-      detail: "Eski kaşar peyniri",
-      portion: "Yarım: 6 küp · Tam: 12 küp",
-    },
-    {
-      name: "Karışık Küp Peynir",
-      detail: "Tulum + eski kaşar birlikte",
-      portion: "Yarım: 3 tulum + 3 kaşar · Tam: 6 tulum + 6 kaşar",
-      mixed: true,
-    },
-  ],
-} as const;
+  // Güncel basılı menüde ayrı peynir porsiyonları listelenmiyor.
+  note: "",
+  prices: [] as Array<{ label: string; price: string }>,
+  options: [] as Array<{ name: string; detail: string; portion: string; mixed?: boolean }>,
+};
 
-export const beerSalads = [
-  {
-    name: "Pasta Fredda",
-    description: "Fusilli makarna · biber · soğan · mısır · balzamik sos · turşu.",
-    prices: [
-      { label: "Tam", price: "₺200" },
-      { label: "Yarım", price: "₺100" },
-    ],
-  },
-  {
-    name: "Patates Salata",
-    description: "Patates · Dijon hardal · dereotu · taze soğan · hardal tohumu.",
-    prices: [
-      { label: "Tam", price: "₺200" },
-      { label: "Yarım", price: "₺100" },
-    ],
-  },
-] as const;
+export const beerSalads: Array<{
+  name: string;
+  description: string;
+  prices: Array<{ label: string; price: string }>;
+}> = [];
 
 export const alsancakWine = {
   name: "LA Smyrna",
@@ -179,17 +147,6 @@ export const alsancakFryerItems: FoodMenuItem[] = [
 ];
 
 export const alsancakOvenItems: FoodMenuItem[] = [
-  {
-    name: "Ege Sandviç",
-    description: "Stracciatella peyniri · roka · ot pesto · pembe domates · balzamik sos.",
-    price: "₺260",
-  },
-  {
-    name: "Kasap Sandviç",
-    description:
-      "Hindi füme · stracciatella peyniri · roka · ot pesto · pembe domates · balzamik sos.",
-    price: "₺320",
-  },
   {
     name: "Ballı Jambon Sandviç",
     description: "Antep fıstığı ezmesi · stracciatella peyniri · mortadella · roka.",
