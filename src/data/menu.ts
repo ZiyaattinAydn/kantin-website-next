@@ -39,50 +39,52 @@ export const alsancakIntro = {
 } as const;
 
 export const alsancakDraftBeers: PriceTableRow[] = [
-  { name: "Becks", prices: ["₺100", "₺215", "₺245"] },
+  { name: "Becks", prices: ["₺100", "₺230", "₺265"] },
+  { name: "Stella Artois", prices: ["₺105", "₺245", "₺285"] },
   { name: "Belfast", prices: ["₺90", "₺200", "₺230"] },
-  { name: "Efes Pilsen", prices: ["₺90", "₺200", "₺230"] },
+  { name: "Efes Pilsen", prices: ["₺95", "₺215", "₺250"] },
 ];
 
 export const alsancakBottleBeers: CompactMenuItem[] = [
-  { name: "Amsterdam", detail: "50 cl", price: "₺300" },
+  { name: "Amsterdam", detail: "50 cl", price: "₺340" },
   { name: "Becks", detail: "33 cl / 50 cl", price: "₺230 / ₺250" },
   { name: "Bomonti Filtresiz", detail: "50 cl", price: "₺240" },
-  { name: "Bud", detail: "33 cl / 50 cl", price: "₺250 / ₺275" },
-  { name: "Corona", detail: "35,5 cl", price: "₺275" },
-  { name: "Duvel", detail: "33 cl", price: "₺300" },
-  { name: "Efes Pilsen", detail: "30 cl / 50 cl", price: "₺150 / ₺230" },
+  { name: "Bud", detail: "33 cl / 50 cl", price: "₺260 / ₺280" },
+  { name: "Corona", detail: "33,5 cl", price: "₺300" },
+  { name: "Duvel", detail: "33 cl", price: "₺340" },
+  { name: "Efes Pilsen", detail: "30 cl / 50 cl", price: "₺160 / ₺230" },
   { name: "Efes Malt", detail: "50 cl", price: "₺230" },
   { name: "Efes Glutensiz", detail: "50 cl", price: "₺250" },
   { name: "Efes Özel Seri", detail: "50 cl", price: "₺230" },
-  { name: "Erdinger", detail: "33 cl", price: "₺300" },
-  { name: "Miller", detail: "33 cl", price: "₺250" },
-  { name: "Hoegaarden", detail: "33 cl", price: "₺300" },
+  { name: "Erdinger", detail: "33 cl", price: "₺340" },
+  { name: "Miller", detail: "33 cl", price: "₺260" },
+  { name: "Hoegaarden", detail: "33 cl", price: "₺340" },
+  { name: "Stella Artois", detail: "44 cl", price: "₺250" },
 ];
 
 export const alsancakDeliItems: FoodMenuItem[] = [
   {
     name: "Chorizo Şiş",
     description: "Baby enginar · chorizo · top peyniri · şeker domates.",
-    price: "₺200",
+    price: "₺220",
   },
   {
     name: "Peynir Şiş",
     description: "Top peyniri · şeker domates.",
-    price: "₺120",
+    price: "₺125",
   },
   {
     name: "Turşu Şiş",
     description:
       "Biberli zeytin · kornişon turşu · peynir dolgulu kiraz biber · biber turşusu.",
-    price: "₺75",
+    price: "₺85",
   },
   {
     name: "Kuru İncir Şiş",
     description: "Kuru incir · eski kaşar peyniri · siyah üzüm.",
-    price: "₺140",
+    price: "₺150",
   },
-  { name: "Çerez", price: "₺80", className: "beer-salad-preceding-item" },
+  { name: "Çerez", price: "₺90", className: "beer-salad-preceding-item" },
 ];
 
 export const cheesePortions = {
@@ -90,7 +92,7 @@ export const cheesePortions = {
     name: "Sanayi Tabağı",
     description:
       "5 adet küp tulum peyniri · 5 adet küp eski kaşar peyniri · 2 adet turşu şiş.",
-    price: "₺185",
+    price: "₺200",
   },
   note: "Tulum, eski kaşar veya yarım yarım karışık olarak hazırlanabilir.",
   prices: [
@@ -148,30 +150,32 @@ export const alsancakFryerItems: FoodMenuItem[] = [
     name: "Tortilla Cips",
     description: "Yanında seçtiğin {highlight}.",
     highlight: "1 sos ücretsiz",
-    price: "₺125",
+    price: "₺150",
   },
   {
     name: "Patates Kızartması",
     description: "Yanında seçtiğin {highlight}. Tulum veya trüf dokunuşu +₺70.",
     highlight: "2 sos ücretsiz",
-    price: "₺220",
+    price: "₺240",
   },
   {
     name: "Tavuk Kızartması",
     description: "Coleslaw ile birlikte servis edilir.",
-    price: "₺275",
+    price: "₺285",
   },
   {
     name: "Çıtır Chili Tavuk",
     description: "Çıtır ve belirgin acılı tavuk.",
-    price: "₺285",
+    price: "₺295",
     badge: "ACILI",
   },
   {
     name: "Frankfurter",
     description: "Coleslaw ile servis edilir. Glutensiz seçeneği bulunur.",
-    price: "₺250",
+    price: "₺320",
   },
+  { name: "Empanada Klasik", price: "₺150" },
+  { name: "Empanada (V)", price: "₺140" },
 ];
 
 export const alsancakOvenItems: FoodMenuItem[] = [
@@ -189,12 +193,12 @@ export const alsancakOvenItems: FoodMenuItem[] = [
   {
     name: "Ballı Jambon Sandviç",
     description: "Antep fıstığı ezmesi · stracciatella peyniri · mortadella · roka.",
-    price: "₺380",
+    price: "₺390",
   },
   {
     name: "Pretzel",
     description: "Cheddar sos ile servis edilir.",
-    price: "₺125",
+    price: "₺100",
   },
 ];
 
@@ -272,68 +276,68 @@ export const atakentIntro = {
 } as const;
 
 export const atakentDraftBeers: PriceTableRow[] = [
-  { name: "Becks", prices: ["₺160", "₺250"] },
-  { name: "Stella Artois", prices: ["₺180", "₺260"] },
-  { name: "Efes Pilsen", prices: ["₺150", "₺230"] },
+  { name: "Becks", prices: ["₺165", "₺265"] },
+  { name: "Stella Artois", prices: ["₺200", "₺275"] },
+  { name: "Efes Pilsen", prices: ["₺150", "₺250"] },
 ];
 
 export const atakentBubbleCocktails: EditorialMenuItem[] = [
   {
     name: "Garden Fizz",
-    description: "Malfy Originale, zencefil, limonotu ve tropical mate çayı.",
+    description: "Malfy Originale, zencefil, limonotu, vanilya, mate çayı",
     price: "₺480",
   },
   {
     name: "Banana Oolong",
-    description: "Havana Club Añejo 3, Malibu ve muz.",
+    description: "Havana Club Años 3, Malibu, muz",
     price: "₺480",
   },
   {
     name: "Cherry Paloma",
-    description: "Olmeca, vişne, greyfurt ve saline.",
+    description: "Olmeca Altos, vişne, greyfurt, lime, hibiskus, saline",
     price: "₺480",
   },
 ];
 
 export const atakentHouseCocktails: EditorialMenuItem[] = [
-  { name: "Greenhouse", description: "Absolut, kavun ve lime.", price: "₺520" },
+  { name: "Greenhouse", description: "Absolut, kavun-nane, vermut, lime cordial", price: "₺520" },
   {
     name: "Peach Leaf",
-    description: "Malfy Originale, şeftali, fesleğen ve Lillet Rosé.",
+    description: "Malfy Originale, Lillet Rosé, şeftali, beyaz çay, fesleğen",
     price: "₺520",
   },
   {
     name: "Palo Santo",
-    description: "Olmeca Altos, salatalık, bianco vermut ve mürver çiçeği.",
+    description: "Olmeca Altos, salatalık, palo santo infüzyonlu bianco vermut",
     price: "₺520",
   },
   {
     name: "Fig + Tonka",
-    description: "Jameson Black Barrel, incir, tonka ve mahlep.",
+    description: "Jameson Black Barrel, incir yaprağı, tonka, mahlep",
     price: "₺520",
   },
   {
     name: "Coffee Vermouth",
-    description: "Martini Fiero, kahve ve Ramazzotti.",
+    description: "Martini Fiero, Ramazzotti, kahve cordial",
     price: "₺520",
   },
 ];
 
 export const atakentBottleBeers: CompactMenuItem[] = [
-  { name: "Amsterdam", detail: "50 cl", price: "₺300" },
-  { name: "Becks", detail: "33 cl", price: "₺240" },
+  { name: "Amsterdam", detail: "50 cl", price: "₺350" },
+  { name: "Becks", detail: "33 cl", price: "₺220" },
   { name: "Bomonti Filtresiz", detail: "50 cl", price: "₺260" },
-  { name: "Bud", detail: "33 cl", price: "₺250" },
-  { name: "Bud", detail: "50 cl", price: "₺300" },
-  { name: "Corona", detail: "35,5 cl", price: "₺300" },
-  { name: "Duvel", detail: "33 cl", price: "₺320" },
+  { name: "Bud", detail: "33 cl", price: "₺260" },
+  { name: "Bud", detail: "50 cl", price: "₺340" },
+  { name: "Corona", detail: "33 cl", price: "₺340" },
+  { name: "Duvel", detail: "33 cl", price: "₺380" },
   { name: "Efes Pilsen", detail: "30 cl", price: "₺170" },
-  { name: "Efes Malt", detail: "50 cl", price: "₺250" },
-  { name: "Efes Glutensiz", detail: "50 cl", price: "₺270" },
-  { name: "Efes Özel Seri", detail: "50 cl", price: "₺250" },
-  { name: "Erdinger", detail: "33 cl", price: "₺320" },
-  { name: "Miller", detail: "33 cl", price: "₺270" },
-  { name: "Hoegaarden", detail: "33 cl", price: "₺320" },
+  { name: "Efes Malt", detail: "50 cl", price: "₺240" },
+  { name: "Efes Glutensiz", detail: "50 cl", price: "₺260" },
+  { name: "Efes Özel Seri", detail: "50 cl", price: "₺240" },
+  { name: "Erdinger", detail: "33 cl", price: "₺350" },
+  { name: "Miller", detail: "33 cl", price: "₺260" },
+  { name: "Hoegaarden", detail: "33 cl", price: "₺350" },
 ];
 
 export const atakentWines: PriceTableRow[] = [
