@@ -243,7 +243,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
           <BranchIntro {...data.atakentIntro} light />
           <MenuItemImages items={data.itemImages.filter((item) => item.branch === "atakent")} />
           <div className="menu-editorial-grid">
-            <section className="menu-editorial-block reveal"><EditorialTitle>Fıçıdan</EditorialTitle><p className="draft-beer-note draft-beer-note-light">Tüm fıçı biralar Mexican hazırlanabilir.</p><PriceTable headers={["Ürün", "33 cl", "50 cl"]} rows={data.atakentDraftBeers} /></section>
+            <section className="menu-editorial-block reveal"><EditorialTitle>Fıçıdan</EditorialTitle><p className="draft-beer-note draft-beer-note-light">Tüm fıçı biralar Mexican hazırlanabilir.</p><PriceTable headers={["Ürün", "25 cl", "50 cl"]} rows={data.atakentDraftBeers} /></section>
             <section className="menu-editorial-block reveal reveal-delay-1"><EditorialTitle>Bubble Kokteyller</EditorialTitle><EditorialItems items={data.atakentBubbleCocktails} /></section>
             <section className="menu-editorial-block menu-editorial-wide reveal"><EditorialTitle>House Kokteyller</EditorialTitle><EditorialItems items={data.atakentHouseCocktails} className="cocktail-grid" /></section>
             <section className="menu-editorial-block reveal"><EditorialTitle>Şişe Biralar</EditorialTitle><CompactList items={data.atakentBottleBeers} /></section>
