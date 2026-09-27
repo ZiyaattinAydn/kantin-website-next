@@ -39,9 +39,9 @@ export const alsancakIntro = {
 } as const;
 
 export const alsancakDraftBeers: PriceTableRow[] = [
+  { name: "Efes Pilsen", prices: ["₺95", "₺215", "₺250"] },
   { name: "Becks", prices: ["₺100", "₺230", "₺265"] },
   { name: "Stella Artois", prices: ["₺105", "₺245", "₺285"] },
-  { name: "Efes Pilsen", prices: ["₺95", "₺215", "₺250"] },
 ];
 
 export const alsancakBottleBeers: CompactMenuItem[] = [
