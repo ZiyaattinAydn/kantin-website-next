@@ -5,6 +5,7 @@ import { GenericMenuCategoryList } from "./GenericMenuPanel";
 import type { MenuPublicData } from "@/lib/public-data/types";
 import type { MerchBundle, MerchDoodle, MerchProductContent } from "@/types/content";
 import type { CoffeeMenuGroup } from "@/types/menu";
+import { sortAlsancakDraftBeers } from "@/lib/menu/alsancak-draft-beer-order";
 import {
   AtakentFoodItem,
   BranchFoodItem,
@@ -209,7 +210,7 @@ export function AlsancakMenuPanel({ hidden, panelRef, data, merchProducts, merch
         <BranchIntro {...data.alsancakIntro} />
         <MenuItemImages items={data.itemImages.filter((item) => item.branch === "alsancak")} />
         <div className="alsancak-menu-grid">
-          <section className="menu-sheet-block reveal"><SheetTitle>Fıçı Biralar</SheetTitle><p className="draft-beer-note">Tüm fıçı biralar Mexican hazırlanabilir.</p><PriceTable headers={["Ürün", "20 cl", "50 cl", "66 cl"]} rows={data.alsancakDraftBeers} headClassName="dark-head" rowClassName="four-cols" /></section>
+          <section className="menu-sheet-block reveal"><SheetTitle>Fıçı Biralar</SheetTitle><p className="draft-beer-note">Tüm fıçı biralar Mexican hazırlanabilir.</p><PriceTable headers={["Ürün", "20 cl", "50 cl", "66 cl"]} rows={sortAlsancakDraftBeers(data.alsancakDraftBeers)} headClassName="dark-head" rowClassName="four-cols" /></section>
           <section className="menu-sheet-block reveal reveal-delay-1"><SheetTitle>Şişe Biralar</SheetTitle><CompactList items={data.alsancakBottleBeers} className="bottle-grid-als" /></section>
           <div className="menu-sheet-column menu-sheet-column-right">
             <section className="menu-sheet-block reveal"><SheetTitle>Şaraplar</SheetTitle><article className="editorial-item editorial-dark"><div><h4>{data.alsancakWine.name}</h4><p>{data.alsancakWine.description}</p></div><strong>{data.alsancakWine.price}<br /><small>{data.alsancakWine.priceDetail}</small></strong></article></section>
