@@ -1,3 +1,4 @@
+import { adminTasks } from "@/lib/admin/navigation";
 import Link from "next/link";
 import AdminShell from "@/components/admin/AdminShell";
 import { requireAdmin } from "@/lib/auth/admin";
@@ -31,8 +32,8 @@ function activityLabel(action: string): string {
 }
 
 const cards = [
-  { key: "menu_items", label: "Menü ürünü", href: "/admin/manage/menu-items" },
-  { key: "menu_categories", label: "Kategori", href: "/admin/manage/menu-categories" },
+  { key: "menu_items", label: "Menü ürünü", href: "/admin/menu" },
+  { key: "menu_categories", label: "Kategori", href: "/admin/menu" },
   { key: "events", label: "Etkinlik", href: "/admin/manage/events" },
   { key: "merch_products", label: "Merch kaydı", href: "/admin/manage/merch-products" },
   { key: "instagram_posts", label: "Instagram gönderisi", href: "/admin/manage/instagram-posts" },
@@ -70,10 +71,10 @@ export default async function AdminDashboardPage() {
         <div>
           <p className="eyebrow">Güvenli yönetim alanı</p>
           <h1>
-            Yönetici paneli<span>.</span>
+            Bugün ne yapmak istiyorsunuz?
           </h1>
           <p>
-            Menüden kariyer başvurularına kadar bütün işletme içeriklerini tek yerden yönet. Değişiklikler yalnız yetkili hesaplar tarafından kaydedilebilir.
+            Yapmak istediğiniz işlemi seçin. Menü, içerik ve başvurular burada.
           </p>
         </div>
         <div className={styles.headActions}>
@@ -89,6 +90,9 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className={styles.cards}>
+        {adminTasks.map(task => <Link className={styles.card} href={task.href} key={task.label}><strong>{task.label}</strong><small>{task.description}</small><small>Başla →</small></Link>)}
+      </div>
+      <details className={styles.panel}><summary>İşletmeye genel bakış</summary><div className={styles.counts}>
         {counts.map((card) => (
           <Link className={styles.card} href={card.href} key={card.key}>
             <span>{card.count ?? "—"}</span>
@@ -96,7 +100,7 @@ export default async function AdminDashboardPage() {
             <small>Yönetimi aç →</small>
           </Link>
         ))}
-      </div>
+      </div></details>
 
       <div className={styles.grid}>
         <article className={styles.panel}>

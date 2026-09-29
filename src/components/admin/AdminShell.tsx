@@ -2,53 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import AdminSignOutButton from "@/components/admin/AdminSignOutButton";
+import { adminNavigation, advancedNavigation } from "@/lib/admin/navigation";
 import styles from "./AdminShell.module.css";
-
-const groups = [
-  {
-    label: "Genel",
-    links: [
-      { href: "/admin", label: "Ana ekran" },
-      { href: "/admin/media", label: "Medya kütüphanesi" },
-      { href: "/admin/applications", label: "Kariyer başvuruları" },
-    ],
-  },
-  {
-    label: "Menü",
-    links: [
-      { href: "/admin/manage/menu-categories", label: "Kategoriler" },
-      { href: "/admin/manage/menu-category-branches", label: "Kategori şubeleri" },
-      { href: "/admin/manage/menu-items", label: "Ürünler" },
-      { href: "/admin/pricing", label: "Fiyat yönetimi" },
-    ],
-    advancedLinks: [
-      { href: "/admin/manage/menu-item-branches", label: "Şube fiyat tablosu" },
-      { href: "/admin/manage/menu-item-variants", label: "Varyant tablosu" },
-    ],
-  },
-  {
-    label: "İçerik",
-    links: [
-      { href: "/admin/manage/events", label: "Etkinlikler" },
-      { href: "/admin/manage/event-branches", label: "Etkinlik şubeleri" },
-      { href: "/admin/manage/merch-products", label: "Merch ürünleri" },
-      { href: "/admin/manage/merch-product-branches", label: "Merch şubeleri" },
-      { href: "/admin/manage/instagram-posts", label: "Instagram" },
-      { href: "/admin/manage/site-pages", label: "Site sayfaları" },
-      { href: "/admin/manage/content-blocks", label: "İçerik blokları" },
-    ],
-  },
-  {
-    label: "Site",
-    links: [
-      { href: "/admin/manage/branches", label: "Şubeler" },
-      { href: "/admin/theme", label: "Tasarım ayarları" },
-      { href: "/admin/manage/site-settings", label: "Gelişmiş site verileri" },
-    ],
-  },
-] as const;
 
 export default function AdminShell({
   children,
@@ -59,6 +16,15 @@ export default function AdminShell({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", escape);
+    return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", escape); };
+  }, [open]);
 
   return (
     <div className={styles.shell}>
@@ -105,7 +71,7 @@ export default function AdminShell({
         </div>
 
         <nav className={styles.nav} aria-label="Admin navigasyonu">
-          {groups.map((group) => (
+          {adminNavigation.map((group) => (
             <section key={group.label}>
               <h2>{group.label}</h2>
               <div>
@@ -126,36 +92,14 @@ export default function AdminShell({
                     </Link>
                   );
                 })}
-                {"advancedLinks" in group ? (
-                  <details
-                    className={styles.advancedNav}
-                    open={group.advancedLinks.some((link) =>
-                      pathname === link.href || pathname.startsWith(`${link.href}/`),
-                    )}
-                  >
-                    <summary>Gelişmiş</summary>
-                    <div>
-                      {group.advancedLinks.map((link) => {
-                        const active =
-                          pathname === link.href || pathname.startsWith(`${link.href}/`);
-                        return (
-                          <Link
-                            aria-current={active ? "page" : undefined}
-                            className={active ? styles.active : undefined}
-                            href={link.href}
-                            key={link.href}
-                            onClick={() => setOpen(false)}
-                          >
-                            {link.label}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </details>
-                ) : null}
+
               </div>
             </section>
           ))}
+          <details className={styles.advancedNav} open={advancedNavigation.some(link => pathname === link.href)}>
+            <summary>Gelişmiş Yönetim</summary>
+            <div>{advancedNavigation.map(link => <Link key={link.href} href={link.href} aria-current={pathname === link.href ? "page" : undefined} onClick={() => setOpen(false)}>{link.label}</Link>)}</div>
+          </details>
         </nav>
 
         <div className={styles.sidebarFooter}>
@@ -173,7 +117,13 @@ export default function AdminShell({
         />
       ) : null}
 
-      <main className={styles.main}>{children}</main>
+      <main className={styles.main}>
+        <form action="/admin/search" className={styles.search} role="search">
+          <label htmlFor="admin-task-search">Panelde ara</label>
+          <div><input id="admin-task-search" name="q" placeholder="Ne yapmak istiyorsunuz?" maxLength={100} type="search" /><button type="submit">Ara</button></div>
+        </form>
+        {children}
+      </main>
     </div>
   );
 }
