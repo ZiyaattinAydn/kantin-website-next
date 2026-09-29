@@ -36,37 +36,44 @@ export default function AdminLoginForm({
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email") ?? "").trim();
     const password = String(form.get("password") ?? "");
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error || !data.user) {
-      setIsSubmitting(false);
+      if (error || !data.user) {
+        setIsSubmitting(false);
+        setIsError(true);
+        setMessage("Giriş başarısız. E-posta veya şifreyi kontrol et.");
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role, is_active")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+      if (profileError || !profile || !profile.is_active || profile.role !== "admin") {
+        await supabase.auth.signOut({ scope: "local" });
+        setIsSubmitting(false);
+        setIsError(true);
+        setMessage("Bu hesap yönetici paneline erişim yetkisine sahip değil.");
+        return;
+      }
+
+      setMessage("Giriş başarılı, yönlendiriliyorsun…");
+      router.replace(safeAdminPath(nextPath));
+      router.refresh();
+    } catch {
       setIsError(true);
-      setMessage("Giriş başarısız. E-posta veya şifreyi kontrol et.");
-      return;
-    }
-
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("role, is_active")
-      .eq("id", data.user.id)
-      .maybeSingle();
-
-    if (profileError || !profile || !profile.is_active || profile.role !== "admin") {
-      await supabase.auth.signOut({ scope: "local" });
+      setMessage("Bağlantı sorunu oluştu. Tekrar deneyin.");
+    } finally {
       setIsSubmitting(false);
-      setIsError(true);
-      setMessage("Bu hesap yönetici paneline erişim yetkisine sahip değil.");
-      return;
     }
-
-    setMessage("Giriş başarılı, yönlendiriliyorsun…");
-    router.replace(safeAdminPath(nextPath));
-    router.refresh();
   }
 
   return (

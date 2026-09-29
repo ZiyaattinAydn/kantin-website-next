@@ -55,6 +55,14 @@ Gerçek yerel Supabase ortamında mevcut kurallara uygun migration kurulumundan 
 
 ## Yayın öncesi manuel kontrol
 
+### Önizleme oturum hatası düzeltmesi
+
+Vercel build/deployment check başarılı olmasına rağmen `/admin` ve `/admin/login` HTTP 500 döndürdü. Supabase istemci kurulumu ve auth sorgusu proxy/login katmanında korumasızdı. Bu katmanlar artık ayar/bağlantı hatasında korunan sayfaya erişim vermeden güvenli giriş hata durumuna yönlenir. API güvenli 503 döndürür. Login formu bağlantı kurulamadığında gösterilmez; geçici tarayıcı auth hatalarında düğme tekrar kullanılabilir olur. Auth fallback logu yalnız standart mesaj/kod ve olay kimliği içerir; exception, e-posta, session veya secret yazdırılmaz.
+
+266 unit testi, lint, TypeScript ve ortam değişkenleri verilmeden Next.js build geçti. Gerçek yerel production HTTP kontrolünde `/admin` → `/admin/login?next=%2Fadmin&reason=unavailable` → 200, kısa bağlantı mesajı, parola formu yok ve ham ayar hatası yok doğrulandı. Bu düzeltme eksik Supabase ayarlarını kendisi oluşturmaz. Vercel runtime loglarına erişilmeden önizleme bağlantı hatasının kesin nedeni doğrulanmış sayılmaz.
+
+Önizleme için Vercel projesinde `NEXT_PUBLIC_SUPABASE_URL` ve `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` değerlerinin **Preview** kapsamı ve gerekirse bu branch için geçerli olması gerekir. Değerleri göstermeden kapsamı kontrol edin. Güvenli yazma testleri ayrı test Supabase projesini hedeflemelidir; production anahtarlarını önizlemeye kopyalamak test ortamı oluşturmaz. Ayar değişirse yeni preview build gerekir.
+
 - İki migration'ı ayrı test Supabase ortamında uygulayın; mevcut public Alsancak/Atakent menüleriyle karşılaştırın.
 - Efes fiyatını değiştirin; sadece hedef şube/porsiyonun değiştiğini kontrol edin.
 - TEST ürününü iki şubede oluşturun; taslak/yayın ve gizle/göster davranışlarını doğrulayın.

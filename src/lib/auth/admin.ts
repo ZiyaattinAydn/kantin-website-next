@@ -4,6 +4,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
+import { reportAuthUnavailable } from "./availability";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -16,6 +17,7 @@ type AdminIdentity = {
 
 export type AdminAccess =
   | { status: "signed_out" }
+  | { status: "unavailable" }
   | {
       status: "unauthorized";
       userId: string;
@@ -31,10 +33,22 @@ function claimEmail(claims: Record<string, unknown>): string | null {
 }
 
 export const getAdminAccess = cache(async (): Promise<AdminAccess> => {
+  try {
+    return await getAvailableAdminAccess();
+  } catch {
+    reportAuthUnavailable("access");
+    return { status: "unavailable" };
+  }
+});
+
+async function getAvailableAdminAccess(): Promise<AdminAccess> {
   const supabase = await createClient();
   const { data: claimData, error: claimError } = await supabase.auth.getClaims();
   const userId = claimData?.claims?.sub;
 
+  if (claimError && (claimError.name === "AuthRetryableFetchError" || ("status" in claimError && Number(claimError.status) >= 500))) {
+    throw new Error("Authentication unavailable");
+  }
   if (claimError || !userId) {
     return { status: "signed_out" };
   }
@@ -45,7 +59,8 @@ export const getAdminAccess = cache(async (): Promise<AdminAccess> => {
     .eq("id", userId)
     .maybeSingle();
 
-  if (profileError || !profile) {
+  if (profileError) throw new Error("Profile lookup unavailable");
+  if (!profile) {
     return {
       status: "unauthorized",
       userId,
@@ -74,11 +89,14 @@ export const getAdminAccess = cache(async (): Promise<AdminAccess> => {
       role: profile.role,
     },
   };
-});
+}
 
 export async function requireAdmin(): Promise<AdminIdentity> {
   const access = await getAdminAccess();
 
+  if (access.status === "unavailable") {
+    redirect("/admin/login?reason=unavailable");
+  }
   if (access.status === "signed_out") {
     redirect("/admin/login?next=/admin");
   }

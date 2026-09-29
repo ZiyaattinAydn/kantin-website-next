@@ -10,6 +10,12 @@ export async function GET(
 ) {
   const access = await getAdminAccess();
 
+  if (access.status === "unavailable") {
+    return NextResponse.json(
+      { ok: false, error: "Bu işlem şu anda tamamlanamadı. Tekrar deneyin." },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
   if (access.status === "signed_out") {
     return NextResponse.json(
       {

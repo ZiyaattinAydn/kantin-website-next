@@ -37,6 +37,33 @@ afterEach(() => {
 });
 
 describe("getAdminAccess", () => {
+  it("istemci kurulamadığında exception ve hassas değerleri yansıtmadan erişimi kapatır", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.doMock("@/lib/supabase/server", () => ({
+      createClient: async () => { throw new Error("TEST_secret_cookie_token"); },
+    }));
+    const { getAdminAccess } = await import("@/lib/auth/admin");
+    await expect(getAdminAccess()).resolves.toEqual({ status: "unavailable" });
+    expect(log).toHaveBeenCalled();
+    expect(JSON.stringify(log.mock.calls)).not.toContain("TEST_secret_cookie_token");
+  });
+
+  it("profil okunamadığında aktif admin claim'i olsa da yetki vermez", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mockClient({
+      claims: { sub: "00000000-0000-0000-0000-000000000001" },
+      profile: { data: null, error: new Error("Connection failed") },
+    });
+    const { getAdminAccess } = await import("@/lib/auth/admin");
+    await expect(getAdminAccess()).resolves.toEqual({ status: "unavailable" });
+  });
+
+  it("geçici auth hatasını yanlış parola olarak yorumlamaz", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    mockClient({ claimError: Object.assign(new Error("Connection failed"), { name: "AuthRetryableFetchError" }) });
+    const { getAdminAccess } = await import("@/lib/auth/admin");
+    await expect(getAdminAccess()).resolves.toEqual({ status: "unavailable" });
+  });
   it("claim yoksa signed_out döndürür", async () => {
     mockClient({ claims: null });
     const { getAdminAccess } = await import("@/lib/auth/admin");

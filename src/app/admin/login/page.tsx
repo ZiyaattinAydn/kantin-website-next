@@ -58,11 +58,18 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
             <h1>
               Yönetici paneli<span>.</span>
             </h1>
-            <AdminLoginForm
+            {access.status === "unavailable" ? (
+              <>
+                <p role="alert">Bağlantı sorunu oluştu. Tekrar deneyin.</p>
+                <Link className="button button-primary" href="/admin/login">
+                  Tekrar dene
+                </Link>
+              </>
+            ) : <AdminLoginForm
               initialMessage={initialMessage}
               initialMessageIsError={isUnauthorized}
               nextPath={nextPath}
-            />
+            />}
           </div>
         </section>
       </main>
