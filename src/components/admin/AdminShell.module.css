@@ -1,7 +1,11 @@
 .shell {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 25% 0%, rgba(0, 87, 214, 0.08), transparent 32rem),
+    radial-gradient(
+      circle at 25% 0%,
+      rgba(0, 87, 214, 0.08),
+      transparent 32rem
+    ),
     var(--cream);
 }
 
@@ -268,9 +272,38 @@
   font-size: 0.72rem;
 }
 
-.search { width: min(100%, 1480px); margin: 0 auto 26px; }
-.search label { display: block; font-size: .8rem; margin-bottom: 8px; font-weight: 800; }
-.search > div { display: flex; gap: 8px; }
-.search input { flex: 1; min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: white; }
-.search button { padding: 12px 20px; border: 0; border-radius: 12px; background: var(--blue); color: white; cursor: pointer; }
-.nav a, .menuButton, .sidebarClose { min-height: 44px; }
+.search {
+  width: min(100%, 1480px);
+  margin: 0 auto 26px;
+}
+.search label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+  font-weight: 800;
+}
+.search > div {
+  display: flex;
+  gap: 8px;
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+}
+.search button {
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--blue);
+  color: white;
+  cursor: pointer;
+}
+.nav a,
+.menuButton,
+.sidebarClose {
+  min-height: 44px;
+}

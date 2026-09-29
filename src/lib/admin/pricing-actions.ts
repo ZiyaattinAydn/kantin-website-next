@@ -1,5 +1,7 @@
 "use server";
 
+import { recordSystemEvent } from "./system-logs";
+import { friendlyAdminError } from "./user-error";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
@@ -52,12 +54,10 @@ function friendlyError(error: unknown): string {
     }
     if (code === "40001") return "Kayıt başka bir işlemle değişmiş. Sayfayı yenileyip tekrar dene.";
     if (code === "42501") return "Bu fiyatları değiştirmek için yetkin bulunmuyor.";
-    if (message) return message.slice(0, 220);
+
   }
 
-  return error instanceof Error && error.message.trim()
-    ? error.message.slice(0, 220)
-    : "Fiyat işlemi tamamlanamadı.";
+  return friendlyAdminError(error, "Fiyat işlemi tamamlanamadı. Tekrar deneyin.");
 }
 
 function revalidatePricingSurfaces() {
@@ -112,7 +112,7 @@ type VariantPricingChange = {
 };
 
 export async function saveAdminProductPricing(formData: FormData): Promise<never> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const returnTo = text(formData, "return_to");
   let destination: string;
 
@@ -211,6 +211,7 @@ export async function saveAdminProductPricing(formData: FormData): Promise<never
         )
       : pricingResultPath(returnTo, "notice", message);
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/pricing", operation: "save", entityType: "menu_items", entityId: text(formData, "menu_item_id"), error });
     destination = pricingResultPath(returnTo, "error", friendlyError(error));
   }
 
@@ -219,7 +220,7 @@ export async function saveAdminProductPricing(formData: FormData): Promise<never
 }
 
 export async function createAdminBranchPrice(formData: FormData): Promise<never> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const returnTo = text(formData, "return_to");
   let destination: string;
 
@@ -245,6 +246,7 @@ export async function createAdminBranchPrice(formData: FormData): Promise<never>
     if (error) throw error;
     destination = pricingResultPath(returnTo, "notice", "Şube fiyat bağlantısı oluşturuldu.");
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/pricing", operation: "create", entityType: "menu_items", entityId: text(formData, "menu_item_id"), error });
     destination = pricingResultPath(returnTo, "error", friendlyError(error));
   }
 
@@ -253,7 +255,7 @@ export async function createAdminBranchPrice(formData: FormData): Promise<never>
 }
 
 export async function updateAdminBranchPrice(formData: FormData): Promise<never> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const returnTo = text(formData, "return_to");
   let destination: string;
 
@@ -281,6 +283,7 @@ export async function updateAdminBranchPrice(formData: FormData): Promise<never>
     if (error || !data) throw error ?? new Error("Şube fiyat kaydı bulunamadı.");
     destination = pricingResultPath(returnTo, "notice", "Şube fiyatı güncellendi.");
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/pricing", operation: "update", entityType: "menu_items", entityId: text(formData, "menu_item_id"), error });
     destination = pricingResultPath(returnTo, "error", friendlyError(error));
   }
 
@@ -289,7 +292,7 @@ export async function updateAdminBranchPrice(formData: FormData): Promise<never>
 }
 
 export async function updateAdminVariantPrice(formData: FormData): Promise<never> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const returnTo = text(formData, "return_to");
   let destination: string;
 
@@ -313,6 +316,7 @@ export async function updateAdminVariantPrice(formData: FormData): Promise<never
     if (error || !data) throw error ?? new Error("Varyant kaydı bulunamadı.");
     destination = pricingResultPath(returnTo, "notice", "Varyant fiyatı güncellendi.");
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/pricing", operation: "update", entityType: "menu_item_variants", entityId: text(formData, "id"), error });
     destination = pricingResultPath(returnTo, "error", friendlyError(error));
   }
 

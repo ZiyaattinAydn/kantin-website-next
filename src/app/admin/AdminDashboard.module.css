@@ -91,7 +91,9 @@
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.62);
   color: var(--ink);
-  transition: transform 150ms ease, border-color 150ms ease;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease;
 }
 
 .card:hover {
@@ -218,10 +220,31 @@
   }
 }
 
-.head h1 { font-size: clamp(2rem, 4vw, 3.3rem); line-height: 1.1; max-width: 850px; }
-.card { min-height: 140px; }
-.card strong { font-size: 1.1rem; }
-.card small { font-size: .8rem; line-height: 1.6; }
-.counts { display: flex; flex-wrap: wrap; gap: 12px; padding-top: 16px; }
-.counts .card { flex: 1 1 150px; min-height: auto; }
-.counts .card > span { font-size: 1.5rem; }
+.head h1 {
+  font-size: clamp(2rem, 4vw, 3.3rem);
+  line-height: 1.1;
+  max-width: 850px;
+}
+.card {
+  min-height: 140px;
+}
+.card strong {
+  font-size: 1.1rem;
+}
+.card small {
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 16px;
+}
+.counts .card {
+  flex: 1 1 150px;
+  min-height: auto;
+}
+.counts .card > span {
+  font-size: 1.5rem;
+}

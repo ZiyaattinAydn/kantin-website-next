@@ -1,5 +1,6 @@
 "use server";
 
+import { recordSystemEvent } from "./system-logs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
@@ -126,7 +127,7 @@ export async function saveAdminResource(formData: FormData): Promise<never> {
   const resource = getAdminResource(resourceKey);
   if (!resource) redirect("/admin?error=Geçersiz yönetim modülü.");
 
-  await requireAdmin();
+  const admin = await requireAdmin();
   let destination: string;
 
   try {
@@ -173,6 +174,7 @@ export async function saveAdminResource(formData: FormData): Promise<never> {
       destination = resourcePath(resource.key, { notice: "Yeni kayıt oluşturuldu." });
     }
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: `/admin/manage/${resource.key}`, operation: "save", entityType: resource.table, entityId: id, error });
     const actionError = adminActionError(error);
     destination = resourcePath(resource.key, {
       error: actionError.message,
@@ -197,7 +199,7 @@ export async function archiveAdminResource(formData: FormData): Promise<never> {
     redirect("/admin?error=Geçersiz arşivleme isteği.");
   }
 
-  await requireAdmin();
+  const admin = await requireAdmin();
   let destination: string;
 
   try {
@@ -217,6 +219,7 @@ export async function archiveAdminResource(formData: FormData): Promise<never> {
     await updateAdminRow(supabase, resource.table, id, patch);
     destination = resourcePath(resource.key, { notice: "Kayıt pasife alındı / arşivlendi." });
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: `/admin/manage/${resource.key}`, operation: "archive", entityType: resource.table, entityId: id, error });
     destination = resourcePath(resource.key, { error: adminActionError(error).message, edit: id });
   }
 
@@ -249,7 +252,7 @@ export async function deleteAdminResource(formData: FormData): Promise<never> {
     redirect("/admin?error=Kalıcı silme bu modülde kapalı.");
   }
 
-  await requireAdmin();
+  const admin = await requireAdmin();
   let destination: string;
 
   try {
@@ -268,6 +271,7 @@ export async function deleteAdminResource(formData: FormData): Promise<never> {
     await deleteAdminRow(supabase, resource.table, id);
     destination = resourcePath(resource.key, { notice: "Kayıt ve ona ait alt bağlantılar kalıcı olarak silindi." });
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: `/admin/manage/${resource.key}`, operation: "delete", entityType: resource.table, entityId: id, error });
     destination = resourcePath(resource.key, { error: adminActionError(error).message, edit: id });
   }
 

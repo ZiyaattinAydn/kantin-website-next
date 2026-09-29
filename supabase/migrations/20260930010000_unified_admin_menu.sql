@@ -71,8 +71,12 @@ begin
     v_seen := array_append(v_seen,v_branch_id);
     if not exists(select 1 from public.branches where id=v_branch_id) then
       raise exception using errcode='23503',message='branch_not_found'; end if;
+    if exists(select 1 from public.menu_item_branches where menu_item_id=v_id and branch_id=v_branch_id
+      and is_active is distinct from (v_branch->>'is_active')::boolean)
+      and p_payload->>'confirmed' is distinct from 'EVET' then
+      raise exception using errcode='22023',message='visibility_confirmation_required'; end if;
     insert into public.menu_category_branches(category_id,branch_id,is_active,sort_order)
-    values(v_category,v_branch_id,true,-1) on conflict(category_id,branch_id) do update set is_active=true;
+    values(v_category,v_branch_id,true,-1) on conflict(category_id,branch_id) do nothing;
     insert into public.menu_item_branches(menu_item_id,branch_id,price_cents,is_active,sort_order)
     values(v_id,v_branch_id,(v_branch->>'price_cents')::integer,(v_branch->>'is_active')::boolean,-1)
     on conflict(menu_item_id,branch_id) do update set price_cents=excluded.price_cents,is_active=excluded.is_active
@@ -85,6 +89,9 @@ begin
       if v_variant_id is not null then
         if v_variant_id=any(v_options) or not exists(select 1 from public.menu_item_variants where id=v_variant_id and menu_item_branch_id=v_link_id) then
           raise exception using errcode='23503',message='variant_not_owned'; end if;
+        if exists(select 1 from public.menu_item_variants where id=v_variant_id and is_active is distinct from (v_variant->>'is_active')::boolean)
+          and p_payload->>'confirmed' is distinct from 'EVET' then
+          raise exception using errcode='22023',message='visibility_confirmation_required'; end if;
         update public.menu_item_variants set label=v_variant->>'label',price_cents=(v_variant->>'price_cents')::integer,
           is_active=(v_variant->>'is_active')::boolean where id=v_variant_id;
       else
@@ -94,6 +101,9 @@ begin
       end if;
       v_options := array_append(v_options,v_variant_id);
     end loop;
+    if exists(select 1 from public.menu_item_variants where menu_item_branch_id=v_link_id and not(id=any(v_options)) and is_active)
+      and p_payload->>'confirmed' is distinct from 'EVET' then
+      raise exception using errcode='22023',message='visibility_confirmation_required'; end if;
     -- Removing an option hides it; existing metadata, notes, and revision records survive.
     update public.menu_item_variants set is_active=false where menu_item_branch_id=v_link_id and not(id=any(v_options)) and is_active;
   end loop;

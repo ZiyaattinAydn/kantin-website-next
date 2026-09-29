@@ -24,11 +24,15 @@ function isAdminRow(value: unknown): value is AdminRow {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function operationError(error: RepositoryError | null, fallback: string): Error {
+function safeOperationError(error: RepositoryError | null, fallback: string): Error {
   if (error?.code === "23505") return new AdminRepositoryError("Aynı benzersiz değere sahip başka bir kayıt bulunuyor.", "unique");
   if (error?.code === "23503") return new AdminRepositoryError("Seçilen ilişkili kayıt bulunamadı veya artık kullanılamıyor.", "foreign_key");
   if (error?.code === "23514" || error?.code === "22P02") return new AdminRepositoryError("Alanlardan biri veritabanı kuralıyla uyuşmuyor.", "constraint");
   return new AdminRepositoryError(fallback);
+}
+
+function operationError(error: RepositoryError | null, fallback: string): Error {
+  return Object.assign(safeOperationError(error, fallback), { databaseCode: error?.code });
 }
 
 function rowOrThrow(value: unknown): AdminRow {

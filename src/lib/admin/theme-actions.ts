@@ -1,5 +1,7 @@
 "use server";
 
+import { recordSystemEvent } from "./system-logs";
+import { friendlyAdminError } from "./user-error";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
@@ -49,12 +51,11 @@ function parseOrder(formData: FormData): HomeSectionKey[] {
 }
 
 function safeMessage(error: unknown): string {
-  if (error instanceof Error && error.message) return error.message.slice(0, 220);
-  return "Tasarım ayarları kaydedilemedi.";
+  return friendlyAdminError(error, "Tasarım ayarları kaydedilemedi. Tekrar deneyin.");
 }
 
 export async function saveThemeSettings(formData: FormData): Promise<never> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const reset = textValue(formData, "_intent") === "reset";
   let destination: string;
 
@@ -127,7 +128,7 @@ export async function saveThemeSettings(formData: FormData): Promise<never> {
     });
 
     if (error || data !== true) {
-      throw new Error(error?.message || "Tasarım ayarları güvenli biçimde kaydedilemedi.");
+      throw error ?? new Error("Tasarım ayarları güvenli biçimde kaydedilemedi.");
     }
 
     destination = `/admin/theme?notice=${encodeURIComponent(
@@ -136,6 +137,7 @@ export async function saveThemeSettings(formData: FormData): Promise<never> {
         : "Tasarım ayarları kaydedildi.",
     )}`;
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/theme", operation: "save", entityType: "site_settings", entityId: null, error });
     destination = `/admin/theme?error=${encodeURIComponent(safeMessage(error))}`;
   }
 

@@ -21,9 +21,41 @@ export default function AdminShell({
     if (!open) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const sidebar = document.getElementById("admin-sidebar");
+    const focusable = () =>
+      Array.from(
+        sidebar?.querySelectorAll<HTMLElement>(
+          "a[href],button:not([disabled]),summary",
+        ) ?? [],
+      ).filter(
+        (element) =>
+          !element.closest("details:not([open])") ||
+          element.tagName === "SUMMARY",
+      );
+    focusable()[0]?.focus();
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Tab") {
+        const elements = focusable();
+        const first = elements[0];
+        const last = elements.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        }
+        if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    };
     window.addEventListener("keydown", escape);
-    return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", escape); };
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", escape);
+      previousFocus?.focus();
+    };
   }, [open]);
 
   return (
@@ -79,7 +111,8 @@ export default function AdminShell({
                   const active =
                     link.href === "/admin"
                       ? pathname === "/admin"
-                      : pathname === link.href || pathname.startsWith(`${link.href}/`);
+                      : pathname === link.href ||
+                        pathname.startsWith(`${link.href}/`);
                   return (
                     <Link
                       aria-current={active ? "page" : undefined}
@@ -92,18 +125,33 @@ export default function AdminShell({
                     </Link>
                   );
                 })}
-
               </div>
             </section>
           ))}
-          <details className={styles.advancedNav} open={advancedNavigation.some(link => pathname === link.href)}>
+          <details
+            className={styles.advancedNav}
+            open={advancedNavigation.some((link) => pathname === link.href)}
+          >
             <summary>Gelişmiş Yönetim</summary>
-            <div>{advancedNavigation.map(link => <Link key={link.href} href={link.href} aria-current={pathname === link.href ? "page" : undefined} onClick={() => setOpen(false)}>{link.label}</Link>)}</div>
+            <div>
+              {advancedNavigation.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={pathname === link.href ? "page" : undefined}
+                  onClick={() => setOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
           </details>
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <Link href="/" target="_blank">Ziyaretçi sitesini aç</Link>
+          <Link href="/" target="_blank">
+            Ziyaretçi sitesini aç
+          </Link>
           <AdminSignOutButton />
         </div>
       </aside>
@@ -120,7 +168,16 @@ export default function AdminShell({
       <main className={styles.main}>
         <form action="/admin/search" className={styles.search} role="search">
           <label htmlFor="admin-task-search">Panelde ara</label>
-          <div><input id="admin-task-search" name="q" placeholder="Ne yapmak istiyorsunuz?" maxLength={100} type="search" /><button type="submit">Ara</button></div>
+          <div>
+            <input
+              id="admin-task-search"
+              name="q"
+              placeholder="Ne yapmak istiyorsunuz?"
+              maxLength={100}
+              type="search"
+            />
+            <button type="submit">Ara</button>
+          </div>
         </form>
         {children}
       </main>

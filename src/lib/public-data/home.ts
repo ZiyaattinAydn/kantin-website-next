@@ -35,9 +35,10 @@ import type {
 import type { MemoryPhoto, MemoryPhotoLayout } from "@/data/memories";
 import type { BranchId } from "@/types/domain";
 
-function parseHero(value: Record<string, unknown> | undefined): HomeHeroData {
+function parseHero(value: Record<string, unknown> | undefined, activeMediaReferences: ReadonlySet<string>): HomeHeroData {
   if (!value) return fallbackHomeData.hero;
 
+  const imageSrc = stringValue(asRecord(value.image).src);
   const primaryAction = asRecord(value.primaryAction);
   const secondaryAction = asRecord(value.secondaryAction);
   const title = stringArray(value.title, fallbackHomeData.hero.title);
@@ -49,6 +50,7 @@ function parseHero(value: Record<string, unknown> | undefined): HomeHeroData {
     .filter((feature) => feature.label && feature.href);
 
   return {
+    image: imageSrc && !imageSrc.startsWith("//") && isAllowedPublicMediaReference(imageSrc, activeMediaReferences) ? { src: imageSrc } : undefined,
     eyebrow: stringValue(value.eyebrow, fallbackHomeData.hero.eyebrow),
     title: title.length >= 2 ? title : fallbackHomeData.hero.title,
     description: stringValue(
@@ -494,7 +496,7 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
 
     return {
       data: {
-        hero: parseHero(blocks.get("hero")),
+        hero: parseHero(blocks.get("hero"), activeMediaReferences),
         menuBranches,
         locationBranches,
         memoriesSection: parseMemoriesSection(blocks.get("memories-copy")),

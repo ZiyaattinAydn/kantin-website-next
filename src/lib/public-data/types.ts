@@ -65,6 +65,7 @@ export type CommonPublicData = {
 };
 
 export type HomeHeroData = {
+  image?: { src: string };
   eyebrow: string;
   title: string[];
   description: string;

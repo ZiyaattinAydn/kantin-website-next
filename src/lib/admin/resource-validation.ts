@@ -1,5 +1,6 @@
 import "server-only";
 
+import { friendlyAdminError } from "./user-error";
 import type { Json } from "@/lib/supabase/database.types";
 import {
   BODY_SCALES,
@@ -387,8 +388,6 @@ export function adminActionError(error: unknown): AdminActionIssue {
   return {
     code: "operation_failed",
     kind: "operation",
-    message: error instanceof Error && error.message
-      ? error.message.slice(0, 240)
-      : "İşlem tamamlanamadı.",
+    message: friendlyAdminError(error),
   };
 }

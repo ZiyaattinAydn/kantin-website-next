@@ -5,13 +5,48 @@ import { loadMediaChoices } from "@/lib/admin/media-choices";
 import { recordSystemEvent } from "@/lib/admin/system-logs";
 import styles from "@/components/admin/simple/SimpleAdmin.module.css";
 export const dynamic = "force-dynamic";
-export default async function MenuPage({searchParams}:{searchParams:Promise<Record<string,string|undefined>>}) {
+export default async function MenuPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
   const query = await searchParams;
+  let loaded:
+    | [
+        Awaited<ReturnType<typeof loadMenuData>>,
+        Awaited<ReturnType<typeof loadMediaChoices>>,
+      ]
+    | null = null;
   try {
-    const [data,media] = await Promise.all([loadMenuData(),loadMediaChoices()]);
-    return <MenuManager data={data} media={media} initialBranch={query.branch} initialSearch={query.q} initialEdit={query.edit} initialCategory={query.category} showNew={query.new==="1"} pricesOnly={query.mode==="prices"} />;
-  } catch(error) {
-    await recordSystemEvent({route:"/admin/menu",operation:"read",entityType:"menu_items",error});
-    return <section className={styles.page}><h1>Menüyü Düzenle</h1><p role="alert">Menü yüklenemedi. Tekrar deneyin.</p><Link href="/admin/menu">Tekrar dene</Link></section>;
+    loaded = await Promise.all([loadMenuData(), loadMediaChoices()]);
+  } catch (error) {
+    await recordSystemEvent({
+      route: "/admin/menu",
+      operation: "read",
+      entityType: "menu_items",
+      error,
+    });
   }
+  if (loaded) {
+    const [data, media] = loaded;
+    return (
+      <MenuManager
+        data={data}
+        media={media}
+        initialBranch={query.branch}
+        initialSearch={query.q}
+        initialEdit={query.edit}
+        initialCategory={query.category}
+        showNew={query.new === "1"}
+        pricesOnly={query.mode === "prices"}
+      />
+    );
+  }
+  return (
+    <section className={styles.page}>
+      <h1>Menüyü Düzenle</h1>
+      <p role="alert">Menü yüklenemedi. Tekrar deneyin.</p>
+      <Link href="/admin/menu">Tekrar dene</Link>
+    </section>
+  );
 }

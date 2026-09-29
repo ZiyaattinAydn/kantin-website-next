@@ -1,3 +1,4 @@
+vi.mock("@/lib/admin/system-logs", () => ({ recordSystemEvent: vi.fn().mockResolvedValue(undefined) }));
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({

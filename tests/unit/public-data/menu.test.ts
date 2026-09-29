@@ -14,9 +14,9 @@ describe("getMenuPublicData fallback", () => {
     const data = result.data;
 
     expect(data.alsancakDraftBeers.map((item) => item.name)).toEqual([
+      "Efes Pilsen",
       "Becks",
       "Stella Artois",
-      "Efes Pilsen",
     ]);
     expect(data.alsancakOvenItems.map((item) => item.name)).toEqual([
       "Ballı Jambon Sandviç",

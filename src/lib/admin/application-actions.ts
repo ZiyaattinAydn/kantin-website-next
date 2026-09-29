@@ -1,5 +1,7 @@
 "use server";
 
+import { recordSystemEvent } from "./system-logs";
+import { friendlyAdminError } from "./user-error";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -37,7 +39,7 @@ async function previewApplicationAnonymization(
     .eq("id", id)
     .maybeSingle();
 
-  if (applicationError) throw new Error(applicationError.message);
+  if (applicationError) throw applicationError;
   if (!application) throw new Error("Başvuru bulunamadı.");
 
   if (application.privacy_status === "anonymized") {
@@ -55,7 +57,7 @@ async function previewApplicationAnonymization(
       .eq("id", application.cv_media_id)
       .maybeSingle();
 
-    if (mediaError) throw new Error(mediaError.message);
+    if (mediaError) throw mediaError;
     if (!media) throw new Error("Dry-run: CV medya kaydı bulunamadı.");
     if (
       media.source !== "storage" ||
@@ -77,7 +79,7 @@ async function previewApplicationAnonymization(
 }
 
 export async function updateApplicationAction(formData: FormData): Promise<never> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const id = text(formData, "id");
   const status = text(formData, "status") as Status;
   const adminNotes = text(formData, "admin_notes");
@@ -97,11 +99,12 @@ export async function updateApplicationAction(formData: FormData): Promise<never
       .single();
 
     if (error || !data) {
-      throw new Error(error?.message || "Başvuru güvenli biçimde kaydedilemedi.");
+      throw error ?? new Error("Başvuru güvenli biçimde kaydedilemedi.");
     }
     destination = `/admin/applications?edit=${id}&notice=${encodeURIComponent("Başvuru güncellendi.")}#application-${id}`;
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Başvuru güncellenemedi.";
+    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/applications", operation: "update", entityType: "job_applications", entityId: text(formData, "id"), error });
+    const message = friendlyAdminError(error, "Başvuru güncellenemedi. Tekrar deneyin.");
     destination = `/admin/applications?edit=${id}&error=${encodeURIComponent(message)}#application-${id}`;
   }
 
@@ -111,7 +114,7 @@ export async function updateApplicationAction(formData: FormData): Promise<never
 }
 
 export async function anonymizeApplicationAction(formData: FormData): Promise<never> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const id = text(formData, "id");
   const intent = text(formData, "_intent");
   const confirmation = text(formData, "confirmation");
@@ -134,7 +137,7 @@ export async function anonymizeApplicationAction(formData: FormData): Promise<ne
         .rpc("begin_job_application_anonymization", { p_application_id: id })
         .single();
       if (beginError || !beginRow) {
-        throw new Error(beginError?.message || "Anonimleştirme başlatılamadı.");
+        throw beginError ?? new Error("Anonimleştirme başlatılamadı.");
       }
 
       const hasStorageReference = Boolean(beginRow.bucket_name || beginRow.object_path);
@@ -180,7 +183,8 @@ export async function anonymizeApplicationAction(formData: FormData): Promise<ne
       );
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Başvuru anonimleştirilemedi.";
+    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/applications", operation: "anonymize", entityType: "job_applications", entityId: text(formData, "id"), error });
+    const message = friendlyAdminError(error, "Başvuru anonimleştirilemedi. Tekrar deneyin.");
     destination = `/admin/applications?edit=${id}&error=${encodeURIComponent(message)}#application-${id}`;
   }
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { recordSystemEvent } from "./system-logs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
@@ -47,7 +48,7 @@ export async function restoreAdminResourceRevision(formData: FormData): Promise<
     redirect("/admin?error=Geçersiz sürüm geri yükleme isteği.");
   }
 
-  await requireAdmin();
+  const admin = await requireAdmin();
   let destination: string;
 
   try {
@@ -71,6 +72,7 @@ export async function restoreAdminResourceRevision(formData: FormData): Promise<
       edit: entityId,
     });
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: `/admin/manage/${resource.key}`, operation: "restore", entityType: resource.table, entityId: entityId, error });
     destination = resourcePath(resource.key, {
       error: restoreErrorMessage(error),
       edit: entityId,

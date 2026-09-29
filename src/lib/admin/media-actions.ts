@@ -1,5 +1,7 @@
 "use server";
 
+import { recordSystemEvent } from "./system-logs";
+import { friendlyAdminError } from "./user-error";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/admin";
@@ -20,7 +22,7 @@ function text(formData: FormData, key: string) {
 }
 
 function message(error: unknown) {
-  return error instanceof Error ? error.message.slice(0, 220) : "Medya işlemi tamamlanamadı.";
+  return friendlyAdminError(error, "Görsel işlemi tamamlanamadı. Tekrar deneyin.");
 }
 
 function mediaPath(params?: Record<string, string>, anchor?: string) {
@@ -78,7 +80,7 @@ function revalidateMediaSurfaces() {
 }
 
 export async function uploadAdminMedia(formData: FormData): Promise<never> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   let destination: string;
 
   try {
@@ -87,7 +89,7 @@ export async function uploadAdminMedia(formData: FormData): Promise<never> {
 
     const bucket = parsePublicBucket(text(formData, "bucket"));
     const validation = validateStorageFile(fileValue, bucket);
-    if (!validation.ok) throw new Error(validation.message);
+    if (!validation.ok) throw validation;
 
     const title = text(formData, "title");
     const altText = text(formData, "alt_text");
@@ -102,7 +104,7 @@ export async function uploadAdminMedia(formData: FormData): Promise<never> {
       contentType: fileValue.type,
       upsert: false,
     });
-    if (uploadError) throw new Error(uploadError.message);
+    if (uploadError) throw uploadError;
 
     const { data: mediaId, error: recordError } = await supabase.rpc(
       "create_admin_media_record",
@@ -123,11 +125,12 @@ export async function uploadAdminMedia(formData: FormData): Promise<never> {
           "Medya DB kaydı oluşturulamadı ve yüklenen Storage nesnesi temizlenemedi.",
         );
       }
-      throw new Error(recordError?.message || "Medya DB kaydı oluşturulamadı.");
+      throw recordError ?? new Error("Medya DB kaydı oluşturulamadı.");
     }
 
     destination = mediaPath({ notice: "Görsel başarıyla yüklendi." });
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/media", operation: "upload", entityType: "media", entityId: text(formData, "id"), error });
     destination = mediaPath({ new: "1", error: message(error) }, "media-editor");
   }
 
@@ -136,7 +139,7 @@ export async function uploadAdminMedia(formData: FormData): Promise<never> {
 }
 
 export async function updateAdminMedia(formData: FormData): Promise<never> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const id = text(formData, "id");
   let destination: string;
 
@@ -164,9 +167,10 @@ export async function updateAdminMedia(formData: FormData): Promise<never> {
       })
       .single();
 
-    if (error || !data) throw new Error(error?.message || "Medya ayarları güncellenemedi.");
+    if (error || !data) throw error ?? new Error("Medya ayarları güncellenemedi.");
     destination = mediaPath({ edit: id, notice: "Medya ayarları güncellendi." }, `media-${id}`);
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/media", operation: "update", entityType: "media", entityId: text(formData, "id"), error });
     destination = mediaPath({ edit: id, error: message(error) }, `media-${id}`);
   }
 
@@ -175,7 +179,7 @@ export async function updateAdminMedia(formData: FormData): Promise<never> {
 }
 
 export async function replaceAdminMedia(formData: FormData): Promise<never> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const id = text(formData, "id");
   let destination: string;
 
@@ -187,7 +191,7 @@ export async function replaceAdminMedia(formData: FormData): Promise<never> {
 
     const bucket = parsePublicBucket(text(formData, "bucket"));
     const validation = validateStorageFile(fileValue, bucket);
-    if (!validation.ok) throw new Error(validation.message);
+    if (!validation.ok) throw validation;
 
     const year = new Date().getUTCFullYear();
     const objectPath = `admin/${year}/replacements/${id}/${crypto.randomUUID()}.${extension(fileValue.name)}`;
@@ -198,7 +202,7 @@ export async function replaceAdminMedia(formData: FormData): Promise<never> {
       contentType: fileValue.type,
       upsert: false,
     });
-    if (uploadError) throw new Error(uploadError.message);
+    if (uploadError) throw uploadError;
 
     const publicUrl = newStorageBucket.getPublicUrl(objectPath).data.publicUrl;
     const { data: replaced, error: replaceError } = await supabase
@@ -219,7 +223,7 @@ export async function replaceAdminMedia(formData: FormData): Promise<never> {
           "Yeni dosya kayda bağlanamadı ve yüklenen Storage nesnesi temizlenemedi.",
         );
       }
-      throw new Error(replaceError?.message || "Görsel dosyası değiştirilemedi.");
+      throw replaceError ?? new Error("Görsel dosyası değiştirilemedi.");
     }
 
     let notice = "Görsel değiştirildi; mevcut içerik bağlantıları otomatik olarak korundu.";
@@ -244,6 +248,7 @@ export async function replaceAdminMedia(formData: FormData): Promise<never> {
 
     destination = mediaPath({ edit: id, notice }, `media-${id}`);
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/media", operation: "save", entityType: "media", entityId: text(formData, "id"), error });
     destination = mediaPath({ edit: id, error: message(error) }, `media-${id}`);
   }
 
@@ -252,7 +257,7 @@ export async function replaceAdminMedia(formData: FormData): Promise<never> {
 }
 
 export async function archiveAdminMedia(formData: FormData): Promise<never> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const id = text(formData, "id");
   let destination: string;
 
@@ -265,10 +270,11 @@ export async function archiveAdminMedia(formData: FormData): Promise<never> {
         p_action: "media_archive",
       })
       .single();
-    if (error || !data) throw new Error(error?.message || "Medya arşivlenemedi.");
+    if (error || !data) throw error ?? new Error("Medya arşivlenemedi.");
 
     destination = mediaPath({ edit: id, notice: "Medya arşivlendi ve ziyaretçi sitesinden kaldırıldı." }, `media-${id}`);
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/media", operation: "archive", entityType: "media", entityId: text(formData, "id"), error });
     destination = mediaPath({ edit: id, error: message(error) }, `media-${id}`);
   }
 
@@ -277,7 +283,7 @@ export async function archiveAdminMedia(formData: FormData): Promise<never> {
 }
 
 export async function restoreAdminMedia(formData: FormData): Promise<never> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const id = text(formData, "id");
   let destination: string;
 
@@ -290,10 +296,11 @@ export async function restoreAdminMedia(formData: FormData): Promise<never> {
         p_action: "media_restore",
       })
       .single();
-    if (error || !data) throw new Error(error?.message || "Medya geri alınamadı.");
+    if (error || !data) throw error ?? new Error("Medya geri alınamadı.");
 
     destination = mediaPath({ edit: id, notice: "Medya yeniden yayına alındı." }, `media-${id}`);
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/media", operation: "restore", entityType: "media", entityId: text(formData, "id"), error });
     destination = mediaPath({ edit: id, error: message(error) }, `media-${id}`);
   }
 
@@ -302,7 +309,7 @@ export async function restoreAdminMedia(formData: FormData): Promise<never> {
 }
 
 export async function deleteAdminMedia(formData: FormData): Promise<never> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const id = text(formData, "id");
   let destination: string;
 
@@ -320,7 +327,7 @@ export async function deleteAdminMedia(formData: FormData): Promise<never> {
       )
       .eq("id", id)
       .single();
-    if (mediaError || !media) throw new Error(mediaError?.message || "Medya kaydı bulunamadı.");
+    if (mediaError || !media) throw mediaError ?? new Error("Medya kaydı bulunamadı.");
 
     if (media.kind !== "image" || media.bucket_name === "career-cvs") {
       throw new Error("Kalıcı silme yalnız ziyaretçi sitesinde kullanılabilen görseller için uygulanabilir.");
@@ -333,7 +340,7 @@ export async function deleteAdminMedia(formData: FormData): Promise<never> {
       .rpc("begin_admin_media_delete", { p_media_id: id })
       .single();
     if (prepareError || !prepared) {
-      throw new Error(prepareError?.message || "Medya silme işlemi hazırlanamadı.");
+      throw prepareError ?? new Error("Medya silme işlemi hazırlanamadı.");
     }
 
     if (prepared.source === "storage") {
@@ -373,6 +380,7 @@ export async function deleteAdminMedia(formData: FormData): Promise<never> {
 
     destination = mediaPath({ notice: "Görsel ve bağlı içerik bağlantıları kalıcı olarak kaldırıldı." });
   } catch (error) {
+    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/media", operation: "delete", entityType: "media", entityId: text(formData, "id"), error });
     destination = mediaPath({ error: message(error) });
   }
 

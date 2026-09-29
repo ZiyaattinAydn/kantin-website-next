@@ -120,7 +120,7 @@ const resources: readonly AdminResource[] = [
         ],
       },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
-      { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
+      { name: "is_active", label: "Sitede göster", type: "checkbox", defaultValue: true },
     ],
   },
   {
@@ -144,7 +144,7 @@ const resources: readonly AdminResource[] = [
       { name: "branch_id", label: "Şube", type: "foreign", optionSource: "branches", required: true },
       { name: "display_name", label: "Şubeye özel ad", type: "text", nullable: true },
       { name: "description", label: "Şubeye özel açıklama", type: "textarea", nullable: true, rows: 3 },
-      { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
+      { name: "is_active", label: "Sitede göster", type: "checkbox", defaultValue: true },
     ],
   },
   {
@@ -176,7 +176,7 @@ const resources: readonly AdminResource[] = [
       { name: "badges", label: "Etiketler", type: "string-array", help: "Virgülle ayır." },
       { name: "image_media_id", label: "Ürün görseli", type: "foreign", optionSource: "media", nullable: true },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
-      { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
+      { name: "is_active", label: "Sitede göster", type: "checkbox", defaultValue: true },
     ],
   },
   {
@@ -228,7 +228,7 @@ const resources: readonly AdminResource[] = [
       { name: "detail", label: "Detay", type: "text", nullable: true },
       { name: "price_cents", label: "Fiyat (TL)", type: "money", required: true },
       { name: "price_note", label: "Fiyat notu", type: "text", nullable: true },
-      { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
+      { name: "is_active", label: "Sitede göster", type: "checkbox", defaultValue: true },
     ],
   },
   {
@@ -271,7 +271,7 @@ const resources: readonly AdminResource[] = [
       { name: "cta_label", label: "Bağlantı butonu yazısı", type: "text", nullable: true, placeholder: "Detayları gör" },
       { name: "image_media_id", label: "Görsel", type: "foreign", optionSource: "media", nullable: true },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
-      { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
+      { name: "is_active", label: "Sitede göster", type: "checkbox", defaultValue: true },
       { name: "is_featured", label: "Öne çıkar", type: "checkbox" },
       { name: "published_at", label: "Yayın zamanı", type: "datetime", nullable: true },
       { name: "publish_start_at", label: "Yayın başlangıcı", type: "datetime", nullable: true },
@@ -297,7 +297,7 @@ const resources: readonly AdminResource[] = [
     fields: [
       { name: "event_id", label: "Etkinlik", type: "foreign", optionSource: "events", required: true },
       { name: "branch_id", label: "Şube", type: "foreign", optionSource: "branches", required: true },
-      { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
+      { name: "is_active", label: "Sitede göster", type: "checkbox", defaultValue: true },
     ],
   },
   {
@@ -328,7 +328,7 @@ const resources: readonly AdminResource[] = [
       { name: "stock_quantity", label: "Stok adedi", type: "number", nullable: true },
       { name: "image_media_id", label: "Ürün görseli", type: "foreign", optionSource: "media", nullable: true },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
-      { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
+      { name: "is_active", label: "Sitede göster", type: "checkbox", defaultValue: true },
       { name: "published_at", label: "Yayın zamanı", type: "datetime", nullable: true },
     ],
   },
@@ -380,7 +380,7 @@ const resources: readonly AdminResource[] = [
       { name: "image_media_id", label: "Görsel", type: "foreign", optionSource: "media", nullable: true },
       { name: "published_at", label: "Gönderi tarihi", type: "datetime", required: true },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
-      { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
+      { name: "is_active", label: "Sitede göster", type: "checkbox", defaultValue: true },
     ],
   },
   {
@@ -413,7 +413,7 @@ const resources: readonly AdminResource[] = [
       { name: "features", label: "Özellikler", type: "string-array" },
       { name: "opening_hours", label: "Çalışma saatleri", type: "json", required: true, advanced: true, guardedJson: true, guardedJsonWarning: "Bu alan şubenin çalışma saatlerini veri yapısı olarak saklar. Yalnız saat ve açıklama metinlerini değiştir; alan adlarını silme veya yeniden adlandırma.", help: "Örnek: {\"note\":\"Her gün 09:00-00:00\"}" },
       { name: "status", label: "Yayın durumu", type: "select", required: true, options: contentStatusOptions },
-      { name: "is_active", label: "Aktif", type: "checkbox" },
+      { name: "is_active", label: "Sitede göster", type: "checkbox" },
     ],
   },
   {
@@ -441,7 +441,7 @@ const resources: readonly AdminResource[] = [
       { name: "description", label: "Açıklama", type: "textarea", nullable: true, rows: 3 },
       { name: "is_public", label: "Ziyaretçi sitesinde kullanılabilir", type: "checkbox" },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
-      { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
+      { name: "is_active", label: "Sitede göster", type: "checkbox", defaultValue: true },
     ],
   },
   {
@@ -470,7 +470,7 @@ const resources: readonly AdminResource[] = [
       { name: "seo_description", label: "SEO açıklaması", type: "textarea", nullable: true, rows: 3 },
       { name: "metadata", label: "Ek sayfa ayarları", type: "json", required: true, defaultValue: "{}", advanced: true, guardedJson: true, guardedJsonWarning: "Bu alan sayfanın teknik ek ayarlarını içerir. Geliştirici tarafından belirli bir değişiklik istenmedikçe düzenleme.", help: "Geliştirici tarafından özel bir değer istenmedikçe değiştirme." },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
-      { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
+      { name: "is_active", label: "Sitede göster", type: "checkbox", defaultValue: true },
       { name: "published_at", label: "Yayın zamanı", type: "datetime", nullable: true },
     ],
   },
@@ -500,7 +500,7 @@ const resources: readonly AdminResource[] = [
       { name: "block_type", label: "İçerik şablonu", type: "text", required: true, immutableOnUpdate: true, help: "Bu alanın sitede hangi şablonla gösterileceğini belirler ve mevcut kayıtlarda değiştirilemez." },
       { name: "content", label: "İçerik verisi", type: "json", required: true, advanced: true, guardedJson: true, guardedJsonWarning: "Bu alan içerik bloğunun metin, görsel ve bağlantı yapısını birlikte saklar. Değerleri güncelleyebilirsin; alan adlarını veya liste yapısını bilinçsizce değiştirme.", help: "Alan yapısını bozmadan metin, görsel ve bağlantı değerlerini güncelle." },
       { name: "status", label: "Yayın durumu", type: "select", required: true, defaultValue: "draft", options: contentStatusOptions },
-      { name: "is_active", label: "Aktif", type: "checkbox", defaultValue: true },
+      { name: "is_active", label: "Sitede göster", type: "checkbox", defaultValue: true },
     ],
   },
 ] as const;
