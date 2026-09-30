@@ -1,5 +1,8 @@
 import type { Ref, ReactNode } from "react";
-import { defaultMenuGroup } from "@/lib/menu/presentation";
+import {
+  categoryNeedsManagedPresentation,
+  defaultMenuGroup,
+} from "@/lib/menu/presentation";
 import managedStyles from "./ManagedMenu.module.css";
 import AmbientDoodles from "@/components/effects/AmbientDoodles";
 import MenuMerchShowcase from "@/components/merch/MenuMerchShowcase";
@@ -301,11 +304,7 @@ function requiresManagedLayout(data: MenuPublicData, slug: string) {
   return (
     data.branches
       .find((b) => b.slug === slug)
-      ?.categories.some(
-        (c) =>
-          c.presentationOverride ||
-          (c.group && c.group.key !== defaultMenuGroup(c.slug).key),
-      ) ?? false
+      ?.categories.some(categoryNeedsManagedPresentation) ?? false
   );
 }
 
