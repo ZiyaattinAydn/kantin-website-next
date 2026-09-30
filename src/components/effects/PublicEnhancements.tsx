@@ -34,6 +34,18 @@ export default function PublicEnhancements() {
     let animationFrame: number | null = null;
     let currentY = window.scrollY;
     let targetY = window.scrollY;
+    const root = document.documentElement;
+    const previousInlineScrollBehavior = root.style.scrollBehavior;
+
+    const beginWheelAnimation = () => {
+      // html { scroll-behavior: smooth } ile her animation frame'in tekrar
+      // yumuşatılmasını engeller; aksi halde mouse wheel "pingli" hisseder.
+      root.style.scrollBehavior = "auto";
+    };
+
+    const endWheelAnimation = () => {
+      root.style.scrollBehavior = previousInlineScrollBehavior;
+    };
 
     const maxScroll = () =>
       Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
@@ -68,16 +80,17 @@ export default function PublicEnhancements() {
 
     const animateScroll = () => {
       const distance = targetY - currentY;
-      currentY += distance * 0.14;
+      currentY += distance * 0.16;
 
       if (Math.abs(distance) < 0.7) {
         currentY = targetY;
-        window.scrollTo(0, targetY);
+        window.scrollTo({ top: targetY, left: 0, behavior: "auto" });
         animationFrame = null;
+        endWheelAnimation();
         return;
       }
 
-      window.scrollTo(0, currentY);
+      window.scrollTo({ top: currentY, left: 0, behavior: "auto" });
       animationFrame = window.requestAnimationFrame(animateScroll);
     };
 
@@ -103,8 +116,8 @@ export default function PublicEnhancements() {
             : 1;
 
       const delta = Math.max(
-        -180,
-        Math.min(180, event.deltaY * deltaMultiplier),
+        -120,
+        Math.min(120, event.deltaY * deltaMultiplier),
       );
 
       if (animationFrame === null) {
@@ -115,6 +128,7 @@ export default function PublicEnhancements() {
       targetY = clampTarget(targetY + delta);
 
       if (animationFrame === null) {
+        beginWheelAnimation();
         animationFrame = window.requestAnimationFrame(animateScroll);
       }
     };
@@ -137,6 +151,8 @@ export default function PublicEnhancements() {
       if (animationFrame !== null) {
         window.cancelAnimationFrame(animationFrame);
       }
+
+      endWheelAnimation();
     };
   }, [pathname]);
 
