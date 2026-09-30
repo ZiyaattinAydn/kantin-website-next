@@ -11,6 +11,7 @@ type DoodleParallaxStageProps = {
   className: string;
   movementX?: number;
   movementY?: number;
+  disabled?: boolean;
 };
 
 export default function DoodleParallaxStage({
@@ -18,12 +19,13 @@ export default function DoodleParallaxStage({
   className,
   movementX = 12,
   movementY = 9,
+  disabled = false,
 }: DoodleParallaxStageProps) {
   const stageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const stage = stageRef.current;
-    if (!stage) return undefined;
+    if (!stage || disabled) return undefined;
     if (typeof window.matchMedia !== "function") return undefined;
     if (!window.matchMedia("(pointer: fine)").matches) return undefined;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
@@ -88,7 +90,7 @@ export default function DoodleParallaxStage({
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerleave", reset);
     };
-  }, [movementX, movementY]);
+  }, [disabled, movementX, movementY]);
 
   return (
     <div ref={stageRef} aria-hidden="true" className={className}>
