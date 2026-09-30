@@ -36,6 +36,7 @@ export default function MenuPageClient({
   const [activeBranch, setActiveBranch] = useState<MenuBranch>(initialBranch);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const selectorRef = useRef<HTMLDivElement | null>(null);
+  const selectorSentinelRef = useRef<HTMLDivElement | null>(null);
   const panelRefs = useRef(new Map<string, HTMLElement>());
   const shouldScrollAfterBranchChangeRef = useRef(false);
 
@@ -65,6 +66,45 @@ export default function MenuPageClient({
       top: Math.max(0, panelTop - headerHeight - selectorHeight - 8),
       behavior: reduceMotion ? "auto" : "smooth",
     });
+  }, []);
+
+  useEffect(() => {
+    const selector = selectorRef.current;
+    const sentinel = selectorSentinelRef.current;
+    if (!selector || !sentinel) return;
+
+    let frame: number | null = null;
+
+    const updateStickyState = () => {
+      if (frame !== null) return;
+
+      frame = window.requestAnimationFrame(() => {
+        const rootStyles = window.getComputedStyle(document.documentElement);
+        const headerHeight =
+          Number.parseFloat(rootStyles.getPropertyValue("--header-height")) || 0;
+        const headerHidden = document.body.classList.contains("header-hidden");
+        const stickyTop = headerHidden ? 0 : headerHeight;
+        const sentinelTop = sentinel.getBoundingClientRect().top;
+
+        selector.dataset.stuck = String(sentinelTop <= stickyTop + 1);
+        frame = null;
+      });
+    };
+
+    updateStickyState();
+    window.addEventListener("scroll", updateStickyState, { passive: true });
+    window.addEventListener("resize", updateStickyState);
+    window.addEventListener("pageshow", updateStickyState);
+
+    return () => {
+      window.removeEventListener("scroll", updateStickyState);
+      window.removeEventListener("resize", updateStickyState);
+      window.removeEventListener("pageshow", updateStickyState);
+
+      if (frame !== null) {
+        window.cancelAnimationFrame(frame);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -133,6 +173,11 @@ export default function MenuPageClient({
         </section>
       ) : (
         <>
+          <div
+            ref={selectorSentinelRef}
+            className={styles.selectorSentinel}
+            aria-hidden="true"
+          />
           <div ref={selectorRef} className={styles.selectorWrap}>
             <div
               className={`container ${styles.selector}`}
