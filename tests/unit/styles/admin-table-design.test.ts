@@ -17,18 +17,14 @@ const applicationPage = readFileSync(
   "src/app/admin/(panel)/applications/page.tsx",
   "utf8",
 );
-const resourcesSource = readFileSync(
-  "src/lib/admin/resources.ts",
-  "utf8",
-);
-const adminDashboard = readFileSync(
-  "src/app/admin/page.tsx",
-  "utf8",
-);
+const resourcesSource = readFileSync("src/lib/admin/resources.ts", "utf8");
+const adminDashboard = readFileSync("src/app/admin/page.tsx", "utf8");
 
 describe("admin tablo tasarım sistemi", () => {
   it("generic CRUD kayıtlarını tüm satırdan açılan dinamik kartlara dönüştürür", () => {
-    expect(resourcePage).toContain("<details className={styles.recordCard}");
+    expect(resourcePage).toMatch(
+      /<AdminDialog\s+className=\{styles.recordCard\}/,
+    );
     expect(resourcePage).toContain("<summary");
     expect(resourceCss).toMatch(/\.recordCard\[open\][\s\S]*\.recordSummary/);
     expect(resourceCss).toMatch(
@@ -44,11 +40,13 @@ describe("admin tablo tasarım sistemi", () => {
     expect(resourcePage).toContain("Son güncelleme");
   });
 
-  it("kariyer başvurularını satırdan açılan inline yönetim alanıyla sunar", () => {
-    expect(applicationPage).toContain("<details");
+  it("kariyer başvurularını satırdan açılan pencere içinde yönetim alanıyla sunar", () => {
+    expect(applicationPage).toContain("<AdminDialog");
     expect(applicationPage).toContain("className={styles.applicationCard}");
     expect(applicationPage).toContain("className={styles.applicationEditor}");
-    expect(applicationCss).toMatch(/\.applicationCard\[open\][\s\S]*\.applicationSummary/);
+    expect(applicationCss).toMatch(
+      /\.applicationCard\[open\][\s\S]*\.applicationSummary/,
+    );
     expect(applicationCss).toMatch(
       /@media \(max-width: 1100px\)[\s\S]*\.applicationSummary\s*{[\s\S]*grid-template-columns:/,
     );
@@ -61,5 +59,4 @@ describe("admin tablo tasarım sistemi", () => {
     expect(resourcePage).not.toContain("TEST kaydını kalıcı sil");
     expect(adminDashboard).not.toContain("yalnız adı <b>TEST_</b>");
   });
-
 });

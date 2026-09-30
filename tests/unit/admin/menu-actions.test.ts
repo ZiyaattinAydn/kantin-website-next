@@ -13,6 +13,8 @@ import {
   saveMenuProduct,
   setMenuVisibility,
   moveMenuProduct,
+  saveMenuCategory,
+  saveQuickMenuPrices,
 } from "@/lib/admin/menu-actions";
 const id = "11111111-1111-4111-8111-111111111111",
   branch = "22222222-2222-4222-8222-222222222222",
@@ -31,6 +33,91 @@ beforeEach(() => {
   m.log.mockResolvedValue(undefined);
 });
 describe("menu actions", () => {
+  it("authorizes the new category and price operations before database access", async () => {
+    m.auth.mockRejectedValue(new Error("forbidden"));
+    await expect(saveMenuCategory({})).rejects.toThrow("forbidden");
+    await expect(saveQuickMenuPrices({})).rejects.toThrow("forbidden");
+    expect(m.client).not.toHaveBeenCalled();
+  });
+  it("saves category choices and branch snapshot through one RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: category, error: null });
+    m.client.mockResolvedValue({ rpc });
+    const branch_snapshot = [
+      { id: branch, updated_at: "2026-09-30T00:00:00Z" },
+    ];
+    expect(
+      await saveMenuCategory({
+        id: category,
+        name: "TEST_Kategori",
+        branches: [branch],
+        status: "draft",
+        is_active: true,
+        sort_order: 2,
+        branch_snapshot,
+      }),
+    ).toMatchObject({ ok: true, id: category });
+    expect(rpc).toHaveBeenCalledExactlyOnceWith("save_admin_menu_category", {
+      p_payload: expect.objectContaining({
+        id: category,
+        branches: [branch],
+        branch_snapshot,
+      }),
+    });
+  });
+  it("sends only changed price records to the narrow price RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ error: null });
+    m.client.mockResolvedValue({ rpc });
+    expect(
+      await saveQuickMenuPrices({
+        id,
+        branches: [
+          { id: branch, updated_at: "2026-09-30T00:00:00Z", price: "215,50" },
+        ],
+        variants: [],
+      }),
+    ).toMatchObject({ ok: true });
+    expect(rpc).toHaveBeenCalledExactlyOnceWith("save_admin_menu_prices", {
+      p_payload: {
+        id,
+        branches: [
+          {
+            id: branch,
+            updated_at: "2026-09-30T00:00:00Z",
+            price_cents: 21550,
+          },
+        ],
+        variants: [],
+      },
+    });
+  });
+  it("does not expose database errors from either new operation", async () => {
+    m.client.mockResolvedValue({
+      rpc: vi
+        .fn()
+        .mockResolvedValue({
+          error: { code: "40001", message: "token=SECRET" },
+        }),
+    });
+    const categoryResult = await saveMenuCategory({
+      name: "TEST_Kategori",
+      branches: [branch],
+      status: "draft",
+      is_active: true,
+      sort_order: 0,
+    });
+    const priceResult = await saveQuickMenuPrices({
+      id,
+      branches: [
+        { id: branch, updated_at: "2026-09-30T00:00:00Z", price: "215" },
+      ],
+      variants: [],
+    });
+    expect(categoryResult.ok || priceResult.ok).toBe(false);
+    expect(categoryResult.message + priceResult.message).not.toMatch(
+      /SECRET|40001|token/,
+    );
+    expect(m.refresh).not.toHaveBeenCalled();
+  });
   it("authorizes before parsing or writing", async () => {
     m.auth.mockRejectedValue(new Error("forbidden"));
     await expect(saveMenuProduct(payload())).rejects.toThrow("forbidden");
@@ -45,11 +132,9 @@ describe("menu actions", () => {
   });
   it("hides raw error contents and records safe event context", async () => {
     m.client.mockResolvedValue({
-      rpc: vi
-        .fn()
-        .mockResolvedValue({
-          error: { code: "23505", message: "token=SECRET; private schema" },
-        }),
+      rpc: vi.fn().mockResolvedValue({
+        error: { code: "23505", message: "token=SECRET; private schema" },
+      }),
     });
     const r = await saveMenuProduct(payload());
     expect(r.ok).toBe(false);

@@ -34,7 +34,6 @@ function Example() {
   );
 }
 
-
 function VisibilityExample({ onSubmit }: { onSubmit: () => void }) {
   return (
     <div id="admin-visibility-root">
@@ -55,7 +54,11 @@ function VisibilityExample({ onSubmit }: { onSubmit: () => void }) {
         }}
       >
         <input defaultValue="" name="_visibility_confirm" type="hidden" />
-        <select aria-label="Yayın durumu" defaultValue="published" name="status">
+        <select
+          aria-label="Yayın durumu"
+          defaultValue="published"
+          name="status"
+        >
           <option value="draft">Taslak</option>
           <option value="published">Yayında</option>
           <option value="archived">Arşiv</option>
@@ -76,12 +79,13 @@ describe("AdminInteractionGuard", () => {
     await user.clear(input);
     await user.type(input, "Yeni değer");
 
-    expect(screen.getByText("Kaydedilmemiş değişiklikler var")).toBeInTheDocument();
+    expect(
+      screen.getByText("Kaydedilmemiş değişiklikler var"),
+    ).toBeInTheDocument();
   });
 
   it("kullanıcı vazgeçerse kirli satırı kapatmaz ve diğer satırı açmaz", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "confirm").mockReturnValue(false);
     render(<Example />);
 
     const first = screen.getByText("Birinci kayıt").closest("details")!;
@@ -89,14 +93,18 @@ describe("AdminInteractionGuard", () => {
     await user.type(screen.getByLabelText("Ad"), " değişti");
     await user.click(screen.getByText("İkinci kayıt"));
 
-    expect(window.confirm).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Düzenlemeye devam et" }),
+    );
     expect(first).toHaveAttribute("open");
     expect(second).not.toHaveAttribute("open");
   });
 
   it("onay verilince eski formu sıfırlar ve yalnız yeni satırı açık bırakır", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<Example />);
 
     const input = screen.getByLabelText("Ad");
@@ -106,11 +114,14 @@ describe("AdminInteractionGuard", () => {
     await user.type(input, "Kaydedilmemiş");
     await user.click(screen.getByText("İkinci kayıt"));
 
+    await user.click(screen.getByRole("button", { name: "Kaydetmeden çık" }));
     expect(first).not.toHaveAttribute("open");
     expect(second).toHaveAttribute("open");
     expect(input).toHaveValue("İlk değer");
     await waitFor(() => {
-      expect(screen.queryByText("Kaydedilmemiş değişiklikler var")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Kaydedilmemiş değişiklikler var"),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -135,9 +146,15 @@ describe("AdminInteractionGuard", () => {
     await user.selectOptions(screen.getByLabelText("Yayın durumu"), "draft");
     await user.click(screen.getByRole("button", { name: "Kaydet" }));
 
-    expect(window.prompt).toHaveBeenCalledWith(expect.stringContaining("PASİFE AL"));
+    expect(window.prompt).toHaveBeenCalledWith(
+      expect.stringContaining("PASİFE AL"),
+    );
     expect(submit).not.toHaveBeenCalled();
-    expect(document.querySelector<HTMLInputElement>('input[name="_visibility_confirm"]')).toHaveValue("");
+    expect(
+      document.querySelector<HTMLInputElement>(
+        'input[name="_visibility_confirm"]',
+      ),
+    ).toHaveValue("");
   });
 
   it("doğru görünürlük onayında gizli sunucu alanını doldurup formu gönderir", async () => {
@@ -150,7 +167,10 @@ describe("AdminInteractionGuard", () => {
     await user.click(screen.getByRole("button", { name: "Kaydet" }));
 
     expect(submit).toHaveBeenCalledOnce();
-    expect(document.querySelector<HTMLInputElement>('input[name="_visibility_confirm"]')).toHaveValue("PASİFE AL");
+    expect(
+      document.querySelector<HTMLInputElement>(
+        'input[name="_visibility_confirm"]',
+      ),
+    ).toHaveValue("PASİFE AL");
   });
-
 });

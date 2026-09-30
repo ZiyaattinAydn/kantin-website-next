@@ -5,10 +5,7 @@ const css = readFileSync(
   "src/app/admin/(panel)/media/MediaLibrary.module.css",
   "utf8",
 );
-const page = readFileSync(
-  "src/app/admin/(panel)/media/page.tsx",
-  "utf8",
-);
+const page = readFileSync("src/app/admin/(panel)/media/page.tsx", "utf8");
 
 describe("admin medya responsive ve kullanım kontratı", () => {
   it("medya kayıtlarını tüm satırdan açılan dinamik yönetim kartları olarak sunar", () => {
@@ -38,6 +35,6 @@ describe("admin medya responsive ve kullanım kontratı", () => {
   it("sıra numarasını görünür medya arayüzünden kaldırır", () => {
     expect(page).not.toContain("Sıra:");
     expect(page).not.toContain("<span>Sıra</span>");
-    expect(page).toContain('name="sort_order" type="hidden"');
+    expect(page).toMatch(/name="sort_order"\s+type="hidden"/);
   });
 });

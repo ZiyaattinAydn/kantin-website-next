@@ -1,4 +1,6 @@
-vi.mock("@/lib/admin/system-logs", () => ({ recordSystemEvent: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("@/lib/admin/system-logs", () => ({
+  recordSystemEvent: vi.fn().mockResolvedValue(undefined),
+}));
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -58,6 +60,39 @@ describe("admin resource actions", () => {
       userId: "TEST_admin",
       role: "admin",
     });
+  });
+  it("creates an announcement with branch choices through one atomic RPC", async () => {
+    const rpc = vi
+      .fn()
+      .mockResolvedValue({
+        data: "44444444-4444-4444-8444-444444444444",
+        error: null,
+      });
+    mocks.createClient.mockResolvedValue({ rpc });
+    const form = new FormData();
+    form.set("_resource", "events");
+    form.set("title", "TEST_Duyuru");
+    form.set("content_type", "announcement");
+    form.set("status", "draft");
+    form.set("is_active", "on");
+    form.set("_event_branches_present", "true");
+    form.append("_event_branch", "22222222-2222-4222-8222-222222222222");
+    await expect(saveAdminResource(form)).rejects.toThrow(
+      "REDIRECT:/admin/manage/events?notice=",
+    );
+    expect(rpc).toHaveBeenCalledExactlyOnceWith(
+      "save_admin_event_with_branches",
+      expect.objectContaining({
+        p_id: null,
+        p_branches: ["22222222-2222-4222-8222-222222222222"],
+        p_branch_snapshot: [],
+        p_payload: expect.objectContaining({
+          title: "TEST_Duyuru",
+          content_type: "announcement",
+          status: "draft",
+        }),
+      }),
+    );
   });
 
   it("yeni kaydı transaction içi otomatik sıra için sentinel değerle gönderir", async () => {
@@ -138,12 +173,13 @@ describe("admin resource actions", () => {
       "REDIRECT:/admin/manage/menu-items?notice=",
     );
 
-    expect(update).toHaveBeenCalledWith(expect.objectContaining({
-      category_id: "33333333-3333-4333-8333-333333333333",
-      sort_order: -1,
-    }));
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category_id: "33333333-3333-4333-8333-333333333333",
+        sort_order: -1,
+      }),
+    );
   });
-
 
   it("site ayarı kodunu değiştirilmiş POST isteğinde mevcut değerle korur", async () => {
     const id = "11111111-1111-4111-8111-111111111111";
@@ -156,29 +192,38 @@ describe("admin resource actions", () => {
       status: "draft",
       is_active: true,
     };
-    const updateSingle = vi.fn().mockResolvedValue({ data: current, error: null });
+    const updateSingle = vi
+      .fn()
+      .mockResolvedValue({ data: current, error: null });
     const updateSelect = vi.fn(() => ({ single: updateSingle }));
     const updateEq = vi.fn(() => ({ select: updateSelect }));
     const update = vi.fn(() => ({ eq: updateEq }));
-    const readSingle = vi.fn().mockResolvedValue({ data: current, error: null });
+    const readSingle = vi
+      .fn()
+      .mockResolvedValue({ data: current, error: null });
     const readEq = vi.fn(() => ({ single: readSingle }));
     const select = vi.fn(() => ({ eq: readEq }));
-    mocks.createClient.mockResolvedValue({ from: vi.fn(() => ({ select, update })) });
+    mocks.createClient.mockResolvedValue({
+      from: vi.fn(() => ({ select, update })),
+    });
 
     const formData = new FormData();
     formData.set("_resource", "site-settings");
     formData.set("_id", id);
     formData.set("key", "site.identity");
-    formData.set("value", JSON.stringify({
-      homeHero: true,
-      branches: true,
-      menu: true,
-      events: true,
-      merch: true,
-      memories: true,
-      instagram: true,
-      careers: true,
-    }));
+    formData.set(
+      "value",
+      JSON.stringify({
+        homeHero: true,
+        branches: true,
+        menu: true,
+        events: true,
+        merch: true,
+        memories: true,
+        instagram: true,
+        careers: true,
+      }),
+    );
     formData.set("description", "Güncel açıklama");
     formData.set("is_public", "on");
     formData.set("status", "draft");
@@ -188,10 +233,12 @@ describe("admin resource actions", () => {
       "REDIRECT:/admin/manage/site-settings?notice=",
     );
 
-    expect(update).toHaveBeenCalledWith(expect.objectContaining({
-      key: "sections.visibility",
-      description: "Güncel açıklama",
-    }));
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        key: "sections.visibility",
+        description: "Güncel açıklama",
+      }),
+    );
   });
 
   it("sayfa ve içerik bloğu sistem kimliklerini değiştirilmiş POST isteğinde korur", async () => {
@@ -206,14 +253,20 @@ describe("admin resource actions", () => {
       status: "draft",
       is_active: true,
     };
-    const updateSingle = vi.fn().mockResolvedValue({ data: current, error: null });
+    const updateSingle = vi
+      .fn()
+      .mockResolvedValue({ data: current, error: null });
     const updateSelect = vi.fn(() => ({ single: updateSingle }));
     const updateEq = vi.fn(() => ({ select: updateSelect }));
     const update = vi.fn(() => ({ eq: updateEq }));
-    const readSingle = vi.fn().mockResolvedValue({ data: current, error: null });
+    const readSingle = vi
+      .fn()
+      .mockResolvedValue({ data: current, error: null });
     const readEq = vi.fn(() => ({ single: readSingle }));
     const select = vi.fn(() => ({ eq: readEq }));
-    mocks.createClient.mockResolvedValue({ from: vi.fn(() => ({ select, update })) });
+    mocks.createClient.mockResolvedValue({
+      from: vi.fn(() => ({ select, update })),
+    });
 
     const formData = new FormData();
     formData.set("_resource", "content-blocks");
@@ -229,12 +282,14 @@ describe("admin resource actions", () => {
       "REDIRECT:/admin/manage/content-blocks?notice=",
     );
 
-    expect(update).toHaveBeenCalledWith(expect.objectContaining({
-      page_id: originalPageId,
-      key: "home.hero",
-      block_type: "hero",
-      content: { title: "Yeni" },
-    }));
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        page_id: originalPageId,
+        key: "home.hero",
+        block_type: "hero",
+        content: { title: "Yeni" },
+      }),
+    );
   });
 
   it("geçersiz JSON'u veritabanına gitmeden reddeder", async () => {
@@ -279,7 +334,11 @@ describe("admin resource actions", () => {
     const deleteEq = vi.fn().mockResolvedValue({ error: null });
     const deleteMethod = vi.fn(() => ({ eq: deleteEq }));
     const single = vi.fn().mockResolvedValue({
-      data: { id: "11111111-1111-4111-8111-111111111111", is_active: true, status: "published" },
+      data: {
+        id: "11111111-1111-4111-8111-111111111111",
+        is_active: true,
+        status: "published",
+      },
       error: null,
     });
     const eq = vi.fn(() => ({ single }));
@@ -303,7 +362,11 @@ describe("admin resource actions", () => {
     const deleteEq = vi.fn().mockResolvedValue({ error: null });
     const deleteMethod = vi.fn(() => ({ eq: deleteEq }));
     const single = vi.fn().mockResolvedValue({
-      data: { id: "11111111-1111-4111-8111-111111111111", is_active: false, status: "archived" },
+      data: {
+        id: "11111111-1111-4111-8111-111111111111",
+        is_active: false,
+        status: "archived",
+      },
       error: null,
     });
     const eq = vi.fn(() => ({ single }));
@@ -383,7 +446,6 @@ describe("admin resource actions", () => {
     expect(deleteMethod).not.toHaveBeenCalled();
   });
 
-
   it("yayındaki kaydı onaysız gizleme isteğini sunucuda reddeder", async () => {
     const update = vi.fn();
     const current = {
@@ -397,7 +459,9 @@ describe("admin resource actions", () => {
     const single = vi.fn().mockResolvedValue({ data: current, error: null });
     const eq = vi.fn(() => ({ single }));
     const select = vi.fn(() => ({ eq }));
-    mocks.createClient.mockResolvedValue({ from: vi.fn(() => ({ select, update })) });
+    mocks.createClient.mockResolvedValue({
+      from: vi.fn(() => ({ select, update })),
+    });
 
     const formData = new FormData();
     formData.set("_resource", "menu-items");
@@ -430,10 +494,14 @@ describe("admin resource actions", () => {
     const updateSelect = vi.fn(() => ({ single: updateSingle }));
     const updateEq = vi.fn(() => ({ select: updateSelect }));
     const update = vi.fn(() => ({ eq: updateEq }));
-    const readSingle = vi.fn().mockResolvedValue({ data: current, error: null });
+    const readSingle = vi
+      .fn()
+      .mockResolvedValue({ data: current, error: null });
     const readEq = vi.fn(() => ({ single: readSingle }));
     const select = vi.fn(() => ({ eq: readEq }));
-    mocks.createClient.mockResolvedValue({ from: vi.fn(() => ({ select, update })) });
+    mocks.createClient.mockResolvedValue({
+      from: vi.fn(() => ({ select, update })),
+    });
 
     const formData = new FormData();
     formData.set("_resource", "menu-items");
@@ -448,10 +516,12 @@ describe("admin resource actions", () => {
     await expect(saveAdminResource(formData)).rejects.toThrow(
       "REDIRECT:/admin/manage/menu-items?notice=",
     );
-    expect(update).toHaveBeenCalledWith(expect.objectContaining({
-      status: "draft",
-      is_active: true,
-    }));
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "draft",
+        is_active: true,
+      }),
+    );
   });
 
   it("doğrudan yayında oluşturulan içeriği YAYINLA onayı olmadan eklemez", async () => {
@@ -529,5 +599,4 @@ describe("admin resource actions", () => {
       status: "archived",
     });
   });
-
 });

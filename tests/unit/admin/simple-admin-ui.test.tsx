@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 const m = vi.hoisted(() => ({
   save: vi.fn(),
+  quick: vi.fn(),
+  category: vi.fn(),
   visibility: vi.fn(),
   move: vi.fn(),
   refresh: vi.fn(),
@@ -15,6 +17,8 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/lib/admin/menu-actions", () => ({
   saveMenuProduct: m.save,
+  saveQuickMenuPrices: m.quick,
+  saveMenuCategory: m.category,
   setMenuVisibility: m.visibility,
   moveMenuProduct: m.move,
 }));
@@ -97,6 +101,8 @@ function manager(
 beforeEach(() => {
   vi.clearAllMocks();
   vi.spyOn(window, "confirm").mockReturnValue(true);
+  m.quick.mockResolvedValue({ ok: true, message: "Fiyatlar güncellendi." });
+  m.category.mockResolvedValue({ ok: true, message: "Kategori kaydedildi." });
   m.save.mockResolvedValue({ ok: true, message: "Ürün kaydedildi.", id });
   m.visibility.mockResolvedValue({ ok: true, message: "Ürün gizlendi." });
   m.content.mockResolvedValue({
@@ -105,23 +111,33 @@ beforeEach(() => {
   });
 });
 describe("simple admin flows", () => {
-  it("lets a user change a product price in one form", async () => {
+  it("changes prices through a compact form without changing product fields", async () => {
     const user = userEvent.setup();
-    manager({ pricesOnly: true });
-    await user.click(screen.getByRole("button", { name: "Fiyatı düzenle" }));
-    const form = screen.getByRole("region", { name: "Ürünü düzenle" });
-    const price = within(form).getByLabelText("Fiyat (TL)");
+    manager();
+    await user.click(
+      screen.getByRole("button", { name: "Fiyatları değiştir" }),
+    );
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).queryByLabelText("Ürün adı")).not.toBeInTheDocument();
+    const price = within(dialog).getByLabelText("Ana fiyat (TL)");
     await user.clear(price);
     await user.type(price, "215");
     await user.click(
-      within(form).getByRole("button", { name: "Ürünü kaydet" }),
+      within(dialog).getByRole("button", { name: "Fiyatları kaydet" }),
     );
-    await waitFor(() => expect(m.save).toHaveBeenCalled());
-    expect(m.save.mock.calls[0][0]).toMatchObject({
-      id,
-      branches: [expect.objectContaining({ id: branch, price: "215" })],
-    });
-    expect(screen.getByRole("status")).toHaveTextContent("Ürün kaydedildi.");
+    await waitFor(() =>
+      expect(m.quick).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id,
+          branches: [expect.objectContaining({ price: "215" })],
+          variants: [],
+        }),
+      ),
+    );
+    expect(m.save).not.toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Fiyatlar güncellendi.",
+    );
   });
   it("creates a product through branch and portion steps", async () => {
     const user = userEvent.setup();
@@ -197,7 +213,7 @@ describe("simple admin flows", () => {
         }}
       />,
     );
-    await user.click(screen.getByText("Ana başlık"));
+    await user.click(screen.getByRole("button", { name: /Ana başlık/ }));
     const field = screen.getByLabelText("Alt açıklama");
     await user.clear(field);
     await user.type(field, "Yeni açıklama");
@@ -213,29 +229,62 @@ describe("simple admin flows", () => {
       ),
     );
   });
-  it("keeps technical navigation collapsed and closes mobile menu with Escape", async () => {
+  it("keeps a failed content draft and clears it only after deliberate discard", async () => {
+    const user = userEvent.setup();
+    m.content.mockRejectedValue(new Error("token=SECRET"));
+    render(
+      <ContentEditor
+        media={media}
+        record={{
+          id,
+          table: "content_blocks",
+          label: "TEST_İçerik",
+          updated_at: "v1",
+          revisionHref: "/admin/manage/content-blocks",
+          fields: [
+            {
+              path: ["description"],
+              label: "Alt açıklama",
+              value: "Önceki",
+              kind: "textarea",
+            },
+          ],
+        }}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: /TEST_İçerik/ }));
+    await user.clear(screen.getByLabelText("Alt açıklama"));
+    await user.type(screen.getByLabelText("Alt açıklama"), "TEST_Taslak");
+    await user.click(
+      screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
+    );
+    await screen.findByText("Değişiklikler kaydedilemedi. Tekrar deneyin.");
+    expect(screen.getByLabelText("Alt açıklama")).toHaveValue("TEST_Taslak");
+    expect(screen.queryByText(/SECRET/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Düzenlemeyi kapat" }));
+    await user.click(screen.getByRole("button", { name: "Kaydetmeden çık" }));
+    await user.click(screen.getByRole("button", { name: /TEST_İçerik/ }));
+    expect(screen.getByLabelText("Alt açıklama")).toHaveValue("Önceki");
+  });
+  it("shows one Menu and one Site entry, keeps only logs as a technical tool, and closes mobile menu with Escape", async () => {
     const user = userEvent.setup();
     render(
       <AdminShell identity="TEST_admin">
         <p>Content</p>
       </AdminShell>,
     );
-    const advanced = screen.getByText("Gelişmiş Yönetim").closest("details");
-    expect(advanced).not.toHaveAttribute("open");
+    expect(screen.queryByText("Gelişmiş Yönetim")).not.toBeInTheDocument();
+    expect(screen.queryByText("Varyant kayıtları")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Menü" })).toHaveLength(1);
+    expect(screen.getAllByRole("link", { name: "Site" })).toHaveLength(1);
     expect(
-      screen
-        .getByRole("link", { name: "Varyant kayıtları" })
-        .closest("details"),
-    ).toBe(advanced);
+      screen.getByRole("link", { name: "Sistem Kayıtları / Teknik Loglar" }),
+    ).toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Yönetim menüsünü aç" }),
     );
     expect(document.body.style.overflow).toBe("hidden");
     await user.keyboard("{Escape}");
     expect(document.body.style.overflow).toBe("");
-    await user.click(screen.getByText("Gelişmiş Yönetim"));
-    expect(
-      screen.getByRole("link", { name: "Sistem Kayıtları / Teknik Loglar" }),
-    ).toBeInTheDocument();
   });
 });
