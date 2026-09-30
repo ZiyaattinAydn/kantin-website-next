@@ -4775,8 +4775,14 @@ body {
 .ambient-doodle-stage .merch-doodle {
   opacity: var(--ambient-doodle-opacity, 0.28);
   filter: none;
-  animation: none;
+  animation: merch-doodle-drift var(--doodle-duration, 8s) ease-in-out
+    var(--doodle-delay, 0s) infinite;
+  animation-play-state: paused;
   will-change: auto;
+}
+
+.ambient-doodle-stage[data-visible="true"] .merch-doodle {
+  animation-play-state: running;
 }
 
 .ambient-doodle-stage {
