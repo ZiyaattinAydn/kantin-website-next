@@ -5,6 +5,11 @@
   border-block: 1px solid var(--line);
   background: rgba(244, 239, 230, 0.94);
   backdrop-filter: blur(18px);
+  transition: top 360ms var(--ease);
+}
+
+:global(body.header-hidden) .selectorWrap {
+  top: 0;
 }
 
 .selector {
