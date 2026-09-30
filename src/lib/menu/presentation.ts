@@ -36,6 +36,19 @@ export function menuGroup(slug: string, metadata: unknown): MenuGroup {
     return { key: value.key, label: value.label.trim() };
   return defaultMenuGroup(slug);
 }
+export function categoryNeedsManagedPresentation(category: {
+  slug: string;
+  group?: MenuGroup | null;
+  presentationOverride?: boolean;
+  managedOrder?: boolean;
+}) {
+  return Boolean(
+    category.presentationOverride ||
+      (category.group &&
+        category.group.key !== defaultMenuGroup(category.slug).key),
+  );
+}
+
 export function categoryHidden(
   category: { status: string; is_active: boolean },
   link?: { is_active: boolean },
