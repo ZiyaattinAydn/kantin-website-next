@@ -9,6 +9,8 @@ import type { NavigationItem } from "@/types/content";
 import styles from "./SiteHeader.module.css";
 
 const DESKTOP_BREAKPOINT = 1180;
+const HEADER_HIDE_THRESHOLD = 96;
+const SCROLL_DIRECTION_DELTA = 8;
 
 function isNavigationItemActive(pathname: string, item: NavigationItem) {
   if (item.href.includes("#")) return false;
@@ -24,10 +26,13 @@ export default function SiteHeader({
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const lastFocusedElementRef = useRef<HTMLElement | null>(null);
+  const lastScrollYRef = useRef(0);
+  const scrollFrameRef = useRef<number | null>(null);
 
   const closeMenu = useCallback((restoreFocus = false) => {
     setIsOpen(false);
@@ -112,19 +117,55 @@ export default function SiteHeader({
       }
     };
 
-    const updateScrollState = () => setIsScrolled(window.scrollY > 8);
+    const updateScrollState = () => {
+      if (scrollFrameRef.current !== null) return;
+
+      scrollFrameRef.current = window.requestAnimationFrame(() => {
+        const currentScrollY = Math.max(window.scrollY, 0);
+        const previousScrollY = lastScrollYRef.current;
+        const delta = currentScrollY - previousScrollY;
+
+        setIsScrolled(currentScrollY > 8);
+
+        if (currentScrollY <= 24) {
+          setIsHidden(false);
+        } else if (
+          currentScrollY > HEADER_HIDE_THRESHOLD &&
+          delta > SCROLL_DIRECTION_DELTA
+        ) {
+          setIsHidden(true);
+        } else if (delta < -SCROLL_DIRECTION_DELTA) {
+          setIsHidden(false);
+        }
+
+        lastScrollYRef.current = currentScrollY;
+        scrollFrameRef.current = null;
+      });
+    };
+
+    const restoreViewportState = () => {
+      updateViewportState();
+      lastScrollYRef.current = Math.max(window.scrollY, 0);
+      setIsScrolled(window.scrollY > 8);
+      setIsHidden(false);
+    };
 
     updateViewportState();
-    updateScrollState();
+    lastScrollYRef.current = Math.max(window.scrollY, 0);
+    setIsScrolled(window.scrollY > 8);
 
     window.addEventListener("resize", updateViewportState);
     window.addEventListener("scroll", updateScrollState, { passive: true });
-    window.addEventListener("pageshow", updateViewportState);
+    window.addEventListener("pageshow", restoreViewportState);
 
     return () => {
       window.removeEventListener("resize", updateViewportState);
       window.removeEventListener("scroll", updateScrollState);
-      window.removeEventListener("pageshow", updateViewportState);
+      window.removeEventListener("pageshow", restoreViewportState);
+
+      if (scrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameRef.current);
+      }
     };
   }, []);
 
@@ -136,6 +177,7 @@ export default function SiteHeader({
   }, [isMobile, isOpen]);
 
   useEffect(() => {
+    if (isOpen) setIsHidden(false);
     document.body.classList.toggle("nav-open", isOpen);
 
     if (isOpen) {
@@ -190,7 +232,10 @@ export default function SiteHeader({
   }, [closeMenu, isMobile, isOpen]);
 
   return (
-    <header className={`${styles.header}${isScrolled ? ` ${styles.scrolled}` : ""}`}>
+    <header
+      className={`${styles.header}${isScrolled ? ` ${styles.scrolled}` : ""}${isHidden && !isOpen ? ` ${styles.hidden}` : ""}`}
+      onFocus={() => setIsHidden(false)}
+    >
       <div className={`container ${styles.navWrap}`}>
         <Link
           className={styles.brand}
