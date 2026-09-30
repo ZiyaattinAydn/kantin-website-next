@@ -445,3 +445,38 @@
     transition: none;
   }
 }
+
+
+@media (max-width: 420px) {
+  .brandBlock,
+  .branchCard,
+  .workCard {
+    padding: 22px;
+  }
+
+  .branchHeading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .cityPill {
+    white-space: normal;
+  }
+
+  .navigationGroups {
+    grid-template-columns: 1fr;
+  }
+
+  .brandActions,
+  .branchActions {
+    flex-direction: column;
+  }
+
+  .primaryAction,
+  .secondaryAction,
+  .branchActions a,
+  .workCard > a {
+    width: 100%;
+  }
+}
