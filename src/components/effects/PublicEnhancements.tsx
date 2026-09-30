@@ -24,6 +24,123 @@ export default function PublicEnhancements() {
   const pathname = usePathname();
 
   useEffect(() => {
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const finePointer = window.matchMedia("(pointer: fine)").matches;
+
+    if (reduceMotion || !finePointer) return;
+
+    let animationFrame: number | null = null;
+    let currentY = window.scrollY;
+    let targetY = window.scrollY;
+
+    const maxScroll = () =>
+      Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
+    const clampTarget = (value: number) =>
+      Math.min(Math.max(value, 0), maxScroll());
+
+    const hasScrollableAncestor = (target: EventTarget | null, deltaY: number) => {
+      let element = target instanceof Element ? target : null;
+
+      while (element && element !== document.documentElement) {
+        const style = window.getComputedStyle(element);
+        const canScroll =
+          /(auto|scroll)/.test(style.overflowY) &&
+          element.scrollHeight > element.clientHeight + 1;
+
+        if (canScroll) {
+          const atTop = element.scrollTop <= 0;
+          const atBottom =
+            element.scrollTop + element.clientHeight >= element.scrollHeight - 1;
+
+          if ((deltaY < 0 && !atTop) || (deltaY > 0 && !atBottom)) {
+            return true;
+          }
+        }
+
+        element = element.parentElement;
+      }
+
+      return false;
+    };
+
+    const animateScroll = () => {
+      const distance = targetY - currentY;
+      currentY += distance * 0.14;
+
+      if (Math.abs(distance) < 0.7) {
+        currentY = targetY;
+        window.scrollTo(0, targetY);
+        animationFrame = null;
+        return;
+      }
+
+      window.scrollTo(0, currentY);
+      animationFrame = window.requestAnimationFrame(animateScroll);
+    };
+
+    const handleWheel = (event: WheelEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.ctrlKey ||
+        event.metaKey ||
+        Math.abs(event.deltaX) > Math.abs(event.deltaY) ||
+        document.body.classList.contains("nav-open") ||
+        hasScrollableAncestor(event.target, event.deltaY)
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const deltaMultiplier =
+        event.deltaMode === WheelEvent.DOM_DELTA_LINE
+          ? 18
+          : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+            ? window.innerHeight
+            : 1;
+
+      const delta = Math.max(
+        -180,
+        Math.min(180, event.deltaY * deltaMultiplier),
+      );
+
+      if (animationFrame === null) {
+        currentY = window.scrollY;
+        targetY = window.scrollY;
+      }
+
+      targetY = clampTarget(targetY + delta);
+
+      if (animationFrame === null) {
+        animationFrame = window.requestAnimationFrame(animateScroll);
+      }
+    };
+
+    const syncScrollPosition = () => {
+      if (animationFrame !== null) return;
+      currentY = window.scrollY;
+      targetY = window.scrollY;
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("scroll", syncScrollPosition, { passive: true });
+    window.addEventListener("resize", syncScrollPosition);
+
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("scroll", syncScrollPosition);
+      window.removeEventListener("resize", syncScrollPosition);
+
+      if (animationFrame !== null) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, [pathname]);
+
+  useEffect(() => {
     const revealItems = Array.from(
       document.querySelectorAll<HTMLElement>(REVEAL_SELECTOR),
     );
