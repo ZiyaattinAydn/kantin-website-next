@@ -21,7 +21,7 @@
   top: 0;
 }
 
-:global(body.header-hidden) .selectorWrap[data-stuck="true"] {
+:global(body.header-hidden) .selectorWrap[data-hide-ready="true"] {
   transform: translateY(calc(-100% - 1px));
 }
 
