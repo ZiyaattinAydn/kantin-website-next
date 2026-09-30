@@ -609,7 +609,7 @@ export function AlsancakMenuPanel({
             </section>
           ) : null}
           <div className="menu-sheet-column menu-sheet-column-right">
-            {(["saraplar", "fritoz", "firin"] as const)
+            {["saraplar", "fritoz", "firin"]
               .sort(
                 (first, second) =>
                   richCategorySortOrder(data, "alsancak", first) -
