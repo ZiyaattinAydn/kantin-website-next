@@ -303,10 +303,22 @@ function requiresManagedLayout(data: MenuPublicData, slug: string) {
       .find((b) => b.slug === slug)
       ?.categories.some(
         (c) =>
-          c.managedOrder ||
           c.presentationOverride ||
           (c.group && c.group.key !== defaultMenuGroup(c.slug).key),
       ) ?? false
+  );
+}
+
+function richCategorySortOrder(
+  data: MenuPublicData,
+  branchSlug: string,
+  categorySlug: string,
+) {
+  return (
+    data.branches
+      .find((branch) => branch.slug === branchSlug)
+      ?.categories.find((category) => category.slug === categorySlug)
+      ?.sortOrder ?? Number.MAX_SAFE_INTEGER
   );
 }
 function ManagedBranchMenu({
@@ -597,42 +609,75 @@ export function AlsancakMenuPanel({
             </section>
           ) : null}
           <div className="menu-sheet-column menu-sheet-column-right">
-            {data.alsancakWine.name ? (
-              <section className="menu-sheet-block reveal">
-                <SheetTitle>Şaraplar</SheetTitle>
-                <article className="editorial-item editorial-dark">
-                  <div>
-                    <h4>{data.alsancakWine.name}</h4>
-                    <p>{data.alsancakWine.description}</p>
-                  </div>
-                  <strong>
-                    {data.alsancakWine.price}
-                    <br />
-                    <small>{data.alsancakWine.priceDetail}</small>
-                  </strong>
-                </article>
-              </section>
-            ) : null}
-            {data.alsancakFryerItems.length ? (
-              <section className="menu-sheet-block reveal reveal-delay-1">
-                <SheetTitle>Fritöz</SheetTitle>
-                {data.alsancakFryerItems.map((item) => (
-                  <BranchFoodItem key={item.name} item={item} />
-                ))}
-              </section>
-            ) : null}
-            {data.alsancakOvenItems.length ? (
-              <section className="menu-sheet-block reveal">
-                <SheetTitle>Fırın</SheetTitle>
-                <div className="cute-note">
-                  Paylaşmaya hazır: bütün sandviçler ikiye bölünerek servis
-                  edilir ♡
-                </div>
-                {data.alsancakOvenItems.map((item) => (
-                  <BranchFoodItem key={item.name} item={item} />
-                ))}
-              </section>
-            ) : null}
+            {(["saraplar", "fritoz", "firin"] as const)
+              .sort(
+                (first, second) =>
+                  richCategorySortOrder(data, "alsancak", first) -
+                  richCategorySortOrder(data, "alsancak", second),
+              )
+              .map((categorySlug) => {
+                if (categorySlug === "saraplar" && data.alsancakWine.name) {
+                  return (
+                    <section
+                      className="menu-sheet-block reveal"
+                      key={categorySlug}
+                    >
+                      <SheetTitle>Şaraplar</SheetTitle>
+                      <article className="editorial-item editorial-dark">
+                        <div>
+                          <h4>{data.alsancakWine.name}</h4>
+                          <p>{data.alsancakWine.description}</p>
+                        </div>
+                        <strong>
+                          {data.alsancakWine.price}
+                          <br />
+                          <small>{data.alsancakWine.priceDetail}</small>
+                        </strong>
+                      </article>
+                    </section>
+                  );
+                }
+
+                if (
+                  categorySlug === "fritoz" &&
+                  data.alsancakFryerItems.length
+                ) {
+                  return (
+                    <section
+                      className="menu-sheet-block reveal reveal-delay-1"
+                      key={categorySlug}
+                    >
+                      <SheetTitle>Fritöz</SheetTitle>
+                      {data.alsancakFryerItems.map((item) => (
+                        <BranchFoodItem key={item.name} item={item} />
+                      ))}
+                    </section>
+                  );
+                }
+
+                if (
+                  categorySlug === "firin" &&
+                  data.alsancakOvenItems.length
+                ) {
+                  return (
+                    <section
+                      className="menu-sheet-block reveal"
+                      key={categorySlug}
+                    >
+                      <SheetTitle>Fırın</SheetTitle>
+                      <div className="cute-note">
+                        Paylaşmaya hazır: bütün sandviçler ikiye bölünerek servis
+                        edilir ♡
+                      </div>
+                      {data.alsancakOvenItems.map((item) => (
+                        <BranchFoodItem key={item.name} item={item} />
+                      ))}
+                    </section>
+                  );
+                }
+
+                return null;
+              })}
           </div>
           <div className="menu-sheet-column menu-sheet-column-left">
             {data.alsancakDeliItems.length ||
