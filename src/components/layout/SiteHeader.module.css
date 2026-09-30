@@ -6,7 +6,16 @@
   background: rgba(244, 239, 230, 0.91);
   border-bottom: 1px solid transparent;
   backdrop-filter: blur(18px);
-  transition: border-color 220ms ease, box-shadow 220ms ease;
+  transform: translateY(0);
+  transition:
+    transform 240ms var(--ease),
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+  will-change: transform;
+}
+
+.hidden {
+  transform: translateY(calc(-100% - 1px));
 }
 
 .scrolled {
@@ -219,4 +228,13 @@
     color: var(--blue);
   }
 
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .header {
+    transition:
+      border-color 220ms ease,
+      box-shadow 220ms ease;
+  }
 }
