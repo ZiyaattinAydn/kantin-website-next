@@ -231,3 +231,33 @@
     justify-content: flex-start;
   }
 }
+
+
+@media (max-width: 520px) {
+  .itemBody {
+    padding: 16px;
+  }
+
+  .itemHeading {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .singlePrice {
+    justify-items: start;
+  }
+
+  .variants {
+    width: 100%;
+  }
+
+  .variants span {
+    min-width: 0;
+    flex: 1 1 92px;
+    text-align: left;
+  }
+
+  .categoryHeading h2 {
+    overflow-wrap: anywhere;
+  }
+}
