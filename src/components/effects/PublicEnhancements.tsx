@@ -80,7 +80,7 @@ export default function PublicEnhancements() {
 
     const animateScroll = () => {
       const distance = targetY - currentY;
-      currentY += distance * 0.16;
+      currentY += distance * 0.24;
 
       if (Math.abs(distance) < 0.7) {
         currentY = targetY;
@@ -116,8 +116,8 @@ export default function PublicEnhancements() {
             : 1;
 
       const delta = Math.max(
-        -120,
-        Math.min(120, event.deltaY * deltaMultiplier),
+        -110,
+        Math.min(110, event.deltaY * deltaMultiplier),
       );
 
       if (animationFrame === null) {
