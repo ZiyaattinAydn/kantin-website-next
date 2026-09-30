@@ -8,7 +8,7 @@
   backdrop-filter: blur(18px);
   transform: translateY(0);
   transition:
-    transform 240ms var(--ease),
+    transform 360ms var(--ease),
     border-color 220ms ease,
     box-shadow 220ms ease;
   will-change: transform;
