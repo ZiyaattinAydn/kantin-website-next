@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 const m = vi.hoisted(() => ({ client: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: m.client }));
-import { sanitizeSystemEvent } from "@/lib/admin/log-safety";
+import { sanitizeSystemEvent, safeSystemLogView } from "@/lib/admin/log-safety";
 import { recordSystemEvent, loadSystemHealth } from "@/lib/admin/system-logs";
 import { friendlyAdminError } from "@/lib/admin/user-error";
 beforeEach(() => vi.clearAllMocks());
@@ -22,6 +22,40 @@ describe("technical log privacy", () => {
     expect(s.route).toBe("/admin/menu");
     expect(s.error_code).toBe("23505");
     expect(JSON.stringify(s)).not.toMatch(/SECRET|private@|STACK|cookie/);
+  });
+  it("keeps expected conflicts and validation in warning, including old error rows", () => {
+    for (const code of ["40001", "22023", "22P02", "23514", "VALIDATION"]) {
+      expect(
+        sanitizeSystemEvent({
+          route: "/admin/site",
+          operation: "save",
+          error: { code },
+          level: "error",
+        }).level,
+      ).toBe("warning");
+      expect(
+        safeSystemLogView({
+          route: "/admin/site",
+          operation: "save",
+          error_code: code,
+          level: "error",
+        }).level,
+      ).toBe("warning");
+    }
+    expect(
+      sanitizeSystemEvent({
+        route: "/admin/site",
+        operation: "save",
+        error: new Error("invalid_content_payload"),
+      }).level,
+    ).toBe("warning");
+    expect(
+      sanitizeSystemEvent({
+        route: "/admin/site",
+        operation: "save",
+        error: { code: "NETWORK" },
+      }).level,
+    ).toBe("error");
   });
   it("rejects arbitrary codes and context strings", () => {
     const s = sanitizeSystemEvent({

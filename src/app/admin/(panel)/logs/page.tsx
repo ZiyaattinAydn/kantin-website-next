@@ -8,6 +8,7 @@ import {
   LOG_CODES,
   LOG_LEVELS,
   LOG_OPERATIONS,
+  EXPECTED_LOG_CODES,
   safeLogRoute,
   safeSystemLogView,
   systemLogSearch,
@@ -84,8 +85,14 @@ export default async function LogsPage({
       "created_at",
       new Date(Date.parse(to) + 86400000).toISOString(),
     );
-  if (LOG_LEVELS.some((v) => v === p.level))
-    query = query.eq("level", p.level!);
+  if (p.level === "warning")
+    query = query.or(
+      `level.eq.warning,error_code.in.(${EXPECTED_LOG_CODES.join(",")})`,
+    );
+  else if (LOG_LEVELS.some((v) => v === p.level))
+    query = query
+      .eq("level", p.level!)
+      .not("error_code", "in", `(${EXPECTED_LOG_CODES.join(",")})`);
   if (isUuid(p.user)) query = query.eq("actor_id", p.user);
   if (p.route && safeLogRoute(p.route) === p.route)
     query = query.eq("route", p.route);

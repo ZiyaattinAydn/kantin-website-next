@@ -13,6 +13,8 @@ export type ContentRecord = {
   fields: ContentField[];
   revisionHref: string;
   visibility?: { status: string; is_active: boolean };
+  context?: string;
+  publicHref?: string;
 };
 const labels: Record<string, string> = {
   title: "Başlık",
@@ -215,4 +217,78 @@ export function withHeroImage(content: Json): Json {
         ? content.image
         : { src: "" },
   };
+}
+
+export type ContentSnapshot = Pick<
+  ContentRecord,
+  "updated_at" | "fields" | "visibility"
+>;
+export const contentColumns = {
+  content_blocks:
+    "id,page_id,key,block_type,content,status,is_active,updated_at",
+  site_settings: "id,key,value,is_public,status,is_active,updated_at",
+  site_pages:
+    "id,slug,title,seo_title,seo_description,metadata,published_at,status,is_active,updated_at",
+  branches:
+    "id,name,short_description,address_line,district,city,maps_url,phone,public_email,features,opening_hours,status,is_active,updated_at",
+} as const;
+export function contentSnapshot(
+  table: ContentRecord["table"],
+  row: Record<string, unknown>,
+): ContentSnapshot {
+  const value =
+    table === "content_blocks"
+      ? row.key === "hero"
+        ? withHeroImage(row.content as Json)
+        : row.content
+      : table === "site_settings"
+        ? row.value
+        : Object.fromEntries(
+            (table === "site_pages"
+              ? ["title", "seo_title", "seo_description"]
+              : [
+                  "name",
+                  "short_description",
+                  "address_line",
+                  "district",
+                  "city",
+                  "maps_url",
+                  "phone",
+                  "public_email",
+                  "features",
+                  "opening_hours",
+                ]
+            ).map((k) => [k, row[k] ?? ""]),
+          );
+  return {
+    updated_at: String(row.updated_at),
+    fields: editableContentFields(value),
+    visibility: {
+      status: String(row.status),
+      is_active: row.is_active === true,
+    },
+  };
+}
+export function applyContentSnapshot(
+  record: ContentRecord,
+  snapshot: ContentSnapshot,
+): ContentRecord {
+  const byPath = new Map(
+    snapshot.fields.map((f) => [JSON.stringify(f.path), f]),
+  );
+  return {
+    ...record,
+    updated_at: snapshot.updated_at,
+    visibility: record.visibility ? snapshot.visibility : undefined,
+    fields: record.fields.map((f) => byPath.get(JSON.stringify(f.path)) ?? f),
+  };
+}
+export function rebaseContentDraft(
+  record: ContentRecord,
+  values: ContentField["value"][],
+  next: ContentRecord,
+) {
+  return next.fields.map((f, i) =>
+    values[i] !== record.fields[i]?.value ? values[i] : f.value,
+  );
 }

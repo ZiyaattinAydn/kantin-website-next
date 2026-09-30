@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
+import { useFormStatus } from "react-dom";
 import { saveThemeSettings } from "@/lib/admin/theme-actions";
 import type { SectionVisibility, ThemeSettings } from "@/lib/public-data/types";
 import {
+  DEFAULT_THEME_SETTINGS,
+  DEFAULT_SECTION_VISIBILITY,
   BODY_SCALES,
   CARD_DENSITIES,
   COLOR_PRESETS,
@@ -113,6 +116,12 @@ export default function ThemeSettingsForm({
   initialVisibility: SectionVisibility;
   view?: "sections" | "design";
 }) {
+  const [review, setReview] = useState<
+    { label: string; before: string; after: string }[] | null
+  >(null);
+  const intent = useRef("save");
+  const [reviewIntent, setReviewIntent] = useState("save");
+  const formRef = useRef<HTMLFormElement>(null);
   const [order, setOrder] = useState<HomeSectionKey[]>(
     initialTheme.homeSectionOrder,
   );
@@ -126,10 +135,71 @@ export default function ThemeSettingsForm({
 
   return (
     <form
+      ref={formRef}
       action={saveThemeSettings}
+      onChange={() => {
+        setReview(null);
+        intent.current = "save";
+      }}
+      onSubmit={(event) => {
+        if (review && intent.current !== "reset") return;
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        const reset = intent.current === "reset";
+        const changes: { label: string; before: string; after: string }[] = [];
+        const labels: Record<string, string> = {
+          fontPreset: "Font düzeni",
+          colorPreset: "Renk paleti",
+          headingScale: "Başlık boyutu",
+          bodyScale: "Metin boyutu",
+          cardDensity: "Kart aralığı",
+          homeSectionOrder: "Ana sayfa bölüm sırası",
+        };
+        const display = (key: string, value: unknown) =>
+          key === "homeSectionOrder"
+            ? (value as string[])
+                .map(
+                  (v) => visibilityOptions.find((o) => o.key === v)?.label ?? v,
+                )
+                .join(" → ")
+            : ((
+                THEME_OPTION_LABELS[key as keyof typeof THEME_OPTION_LABELS] as
+                  Record<string, string> | undefined
+              )?.[String(value)] ?? String(value));
+        for (const key of Object.keys(
+          initialTheme,
+        ) as (keyof ThemeSettings)[]) {
+          const next = reset
+            ? DEFAULT_THEME_SETTINGS[key]
+            : key === "homeSectionOrder"
+              ? order
+              : data.get(key);
+          if (JSON.stringify(next) !== JSON.stringify(initialTheme[key]))
+            changes.push({
+              label: labels[key],
+              before: display(key, initialTheme[key]),
+              after: display(key, next),
+            });
+        }
+        for (const option of visibilityOptions) {
+          const next = reset
+            ? DEFAULT_SECTION_VISIBILITY[option.key]
+            : data.get(`visibility.${option.key}`) === "on";
+          if (next !== initialVisibility[option.key])
+            changes.push({
+              label: option.label,
+              before: initialVisibility[option.key] ? "Açık" : "Kapalı",
+              after: next ? "Açık" : "Kapalı",
+            });
+        }
+        setReviewIntent(reset ? "reset" : "save");
+        intent.current = "save";
+        setReview(changes);
+      }}
       className={styles.form}
       data-admin-dirty-guard="true"
     >
+      <input type="hidden" name="_intent" value={reviewIntent} />
       <input
         type="hidden"
         name="_return_to"
@@ -348,21 +418,69 @@ export default function ThemeSettingsForm({
         </p>
       </aside>
 
+      {review ? (
+        <section className={styles.panel} aria-label="Değişiklik özeti">
+          <h3>Değişiklikleri kontrol edin</h3>
+          {review.length ? (
+            review.map((change) => (
+              <p key={change.label}>
+                <strong>{change.label}</strong>
+                <br />
+                {change.before} → {change.after}
+              </p>
+            ))
+          ) : (
+            <p>Değişiklik yok.</p>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setReview(null);
+              intent.current = "save";
+            }}
+          >
+            Düzenlemeye dön
+          </button>
+        </section>
+      ) : null}
       <div className={styles.actions}>
-        <button className={styles.primary} type="submit">
-          {view === "sections"
-            ? "Bölüm ayarlarını kaydet"
-            : "Tasarım ayarlarını kaydet"}
-        </button>
+        <ThemeSaveButton
+          review={!!review}
+          disabled={review !== null && !review.length}
+          className={styles.primary}
+        />
         <button
           className={styles.secondary}
-          name="_intent"
-          type="submit"
-          value="reset"
+          type="button"
+          onClick={() => {
+            intent.current = "reset";
+            formRef.current?.requestSubmit();
+          }}
         >
           Tüm site ayarlarını varsayılana döndür
         </button>
       </div>
     </form>
+  );
+}
+
+function ThemeSaveButton({
+  review,
+  disabled,
+  className,
+}: {
+  review: boolean;
+  disabled: boolean;
+  className: string;
+}) {
+  const { pending } = useFormStatus();
+  return (
+    <button className={className} type="submit" disabled={pending || disabled}>
+      {pending
+        ? "Kaydediliyor…"
+        : review
+          ? "Onayla ve kaydet"
+          : "Değişiklikleri incele"}
+    </button>
   );
 }

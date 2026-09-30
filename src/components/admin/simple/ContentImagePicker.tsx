@@ -1,6 +1,7 @@
 "use client";
+import { loadMediaChoicePage } from "@/lib/admin/media-choice-actions";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import type { MediaChoice } from "@/lib/admin/media-choices";
 import { safeImageUrl } from "@/lib/events";
@@ -18,14 +19,35 @@ export default function ContentImagePicker({
   label: string;
   onChange: (value: string) => void;
 }) {
+  const [loadedChoices, setChoices] = useState<MediaChoice[]>([]);
+  const choices = [...media, ...loadedChoices].filter(
+    (m, i, all) => all.findIndex((other) => other.id === m.id) === i,
+  );
+  const [page, setPage] = useState(0),
+    [hasMore, setHasMore] = useState(true),
+    [message, setMessage] = useState("");
+  const [pending, start] = useTransition();
+  function load(nextPage: number, term = search) {
+    start(async () => {
+      const r = await loadMediaChoicePage(nextPage, term);
+      if (!r.ok) {
+        setMessage(r.message);
+        return;
+      }
+      setMessage("");
+      setPage(nextPage);
+      setHasMore(r.media.length === 24);
+      setChoices((prev) => (nextPage ? [...prev, ...r.media] : r.media));
+    });
+  }
   const [open, setOpen] = useState(false),
     [search, setSearch] = useState("");
   const url = (value: string) =>
     value.startsWith("media:")
-      ? (media.find((m) => m.id === value.slice(6))?.url ?? null)
+      ? (choices.find((m) => m.id === value.slice(6))?.url ?? null)
       : safeImageUrl(value);
   const name = (value: string) =>
-    media.find((m) => m.url === value || `media:${m.id}` === value)?.label ||
+    choices.find((m) => m.url === value || `media:${m.id}` === value)?.label ||
     value.split("/").at(-1)?.split("?")[0] ||
     "Görsel yok";
   return (
@@ -69,7 +91,10 @@ export default function ContentImagePicker({
       <div className={styles.actions}>
         <button
           type="button"
-          onClick={() => setOpen(!open)}
+          onClick={() => {
+            setOpen(!open);
+            if (!open && !choices.length) load(0);
+          }}
           aria-expanded={open}
         >
           Görsel değiştir
@@ -95,8 +120,13 @@ export default function ContentImagePicker({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <button type="button" disabled={pending} onClick={() => load(0)}>
+            Ara
+          </button>
+          {message ? <p role="alert">{message}</p> : null}
+          {pending ? <p role="status">Görseller yükleniyor…</p> : null}
           <div className={styles.media}>
-            {media
+            {choices
               .filter((m) =>
                 m.label
                   .toLocaleLowerCase("tr")
@@ -124,6 +154,15 @@ export default function ContentImagePicker({
                 </button>
               ))}
           </div>
+          {hasMore ? (
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => load(page + 1)}
+            >
+              Daha fazla görsel
+            </button>
+          ) : null}
         </div>
       ) : null}
     </div>

@@ -1,4 +1,5 @@
 "use client";
+import { menuGroup, categoryHidden } from "@/lib/menu/presentation";
 import Link from "next/link";
 import { runAdminAction } from "@/lib/admin/client-action";
 import { useState, useTransition } from "react";
@@ -6,7 +7,11 @@ import { useRouter } from "next/navigation";
 import type { MenuData } from "@/lib/admin/menu-model";
 import type { MediaChoice } from "@/lib/admin/media-choices";
 import { formatTryPriceInput } from "@/lib/admin/pricing";
-import { moveMenuProduct, setMenuVisibility } from "@/lib/admin/menu-actions";
+import {
+  moveMenuCategory,
+  moveMenuProduct,
+  setMenuVisibility,
+} from "@/lib/admin/menu-actions";
 import AdminDialog from "../ui/AdminDialog";
 import MenuPriceForm from "./MenuPriceForm";
 import MenuCategoryForm from "./MenuCategoryForm";
@@ -257,16 +262,59 @@ export default function MenuManager({
       ) : null}
       {categories
         .filter((c) => !filterCategory || c.id === filterCategory)
-        .sort(
-          (a, b) =>
+        .sort((a, b) => {
+          const groupOf = (category: typeof a) =>
+            menuGroup(
+              category.slug,
+              data.categoryBranches.find(
+                (l) => l.category_id === category.id && l.branch_id === branch,
+              )?.metadata,
+            );
+          const groupA = groupOf(a),
+            groupB = groupOf(b);
+          const rank = (key: string) =>
+            key === "main" ? 0 : key === "coffee" ? 1 : 2;
+          if (groupA.key !== groupB.key)
+            return (
+              rank(groupA.key) - rank(groupB.key) ||
+              groupA.label.localeCompare(groupB.label, "tr")
+            );
+          return (
             (data.categoryBranches.find(
               (l) => l.category_id === a.id && l.branch_id === branch,
             )?.sort_order ?? a.sort_order) -
             (data.categoryBranches.find(
               (l) => l.category_id === b.id && l.branch_id === branch,
-            )?.sort_order ?? b.sort_order),
-        )
+            )?.sort_order ?? b.sort_order)
+          );
+        })
         .map((c) => {
+          const categoryLink = data.categoryBranches.find(
+            (l) => l.category_id === c.id && l.branch_id === branch,
+          );
+          const group = menuGroup(c.slug, categoryLink?.metadata);
+          const groupCategories = categories
+            .filter(
+              (other) =>
+                menuGroup(
+                  other.slug,
+                  data.categoryBranches.find(
+                    (l) => l.category_id === other.id && l.branch_id === branch,
+                  )?.metadata,
+                ).key === group.key,
+            )
+            .sort(
+              (a, b) =>
+                (data.categoryBranches.find(
+                  (l) => l.category_id === a.id && l.branch_id === branch,
+                )?.sort_order ?? a.sort_order) -
+                (data.categoryBranches.find(
+                  (l) => l.category_id === b.id && l.branch_id === branch,
+                )?.sort_order ?? b.sort_order),
+            );
+          const groupPosition = groupCategories.findIndex(
+            (other) => other.id === c.id,
+          );
           const products = data.products
             .filter(
               (p) =>
@@ -312,6 +360,44 @@ export default function MenuManager({
                   (b) => b.category_id === c.id && b.branch_id === branch,
                 )?.display_name || c.name}
               </h2>
+              <small>
+                {group.label} · Bu menüde {groupPosition + 1}. sırada
+              </small>
+              <div className={styles.actions}>
+                {(["up", "down"] as const).map((direction) => (
+                  <button
+                    type="button"
+                    key={direction}
+                    aria-label={`${c.name} kategorisini ${direction === "up" ? "yukarı" : "aşağı"} taşı`}
+                    disabled={
+                      pending ||
+                      !!filterCategory ||
+                      !categoryLink ||
+                      (direction === "up"
+                        ? groupPosition === 0
+                        : groupPosition === groupCategories.length - 1)
+                    }
+                    onClick={() =>
+                      start(async () => {
+                        const result = await runAdminAction(
+                          () =>
+                            moveMenuCategory(
+                              c.id,
+                              branch,
+                              direction,
+                              categoryLink!.updated_at,
+                            ),
+                          "Kategori sırası değiştirilemedi.",
+                        );
+                        setMessage(result.message);
+                        if (result.ok) router.refresh();
+                      })
+                    }
+                  >
+                    {direction === "up" ? "↑" : "↓"}
+                  </button>
+                ))}
+              </div>
               <button type="button" onClick={() => setCategoryEdit(c.id)}>
                 Kategoriyi düzenle
               </button>
@@ -338,23 +424,33 @@ export default function MenuManager({
                       <h3>
                         {p.name}{" "}
                         <span className={styles.badge}>
-                          {!c.is_active ||
-                          c.status !== "published" ||
-                          !data.categoryBranches.some(
-                            (l) =>
-                              l.category_id === c.id &&
-                              l.branch_id === branch &&
-                              l.is_active,
-                          ) ||
-                          !link.is_active ||
-                          !p.is_active ||
-                          p.status === "archived"
-                            ? "Gizli"
-                            : p.status === "draft"
-                              ? "Taslak"
-                              : "Yayında"}
+                          {categoryHidden(c, categoryLink)
+                            ? "Kategori nedeniyle gizli"
+                            : !link.is_active ||
+                                !p.is_active ||
+                                p.status === "archived"
+                              ? "Gizli"
+                              : p.status === "draft"
+                                ? "Taslak"
+                                : "Yayında"}
                         </span>
                       </h3>
+                      <small>
+                        Bu kategori ve şubede{" "}
+                        {data.placements
+                          .filter(
+                            (l) =>
+                              l.branch_id === branch &&
+                              data.products.some(
+                                (product) =>
+                                  product.id === l.menu_item_id &&
+                                  product.category_id === c.id,
+                              ),
+                          )
+                          .sort((a, b) => a.sort_order - b.sort_order)
+                          .findIndex((l) => l.id === link.id) + 1}
+                        . sırada
+                      </small>
                       <ul className={styles.prices}>
                         {link.price_cents !== null ? (
                           <li>
@@ -413,7 +509,13 @@ export default function MenuManager({
                       </button>
                       <button
                         aria-label={`${p.name} yukarı taşı`}
-                        disabled={pending || !!editing || i === 0 || !!search}
+                        disabled={
+                          pending ||
+                          !!editing ||
+                          i === 0 ||
+                          !!search ||
+                          !!filterVisibility
+                        }
                         onClick={() =>
                           start(async () => {
                             const r = await runAdminAction(
@@ -439,7 +541,8 @@ export default function MenuManager({
                           pending ||
                           !!editing ||
                           i === products.length - 1 ||
-                          !!search
+                          !!search ||
+                          !!filterVisibility
                         }
                         onClick={() =>
                           start(async () => {

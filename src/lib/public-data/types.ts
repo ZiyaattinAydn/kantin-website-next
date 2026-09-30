@@ -1,6 +1,21 @@
-import type { FooterLink, HomeMenuBranch, InstagramPost, LocationBranch, MerchBundle, MerchDoodle, MerchProductContent, NavigationItem } from "@/types/content";
+import type {
+  FooterLink,
+  HomeMenuBranch,
+  InstagramPost,
+  LocationBranch,
+  MerchBundle,
+  MerchDoodle,
+  MerchProductContent,
+  NavigationItem,
+} from "@/types/content";
 import type { Branch } from "@/types/domain";
-import type { CoffeeMenuGroup, CompactMenuItem, EditorialMenuItem, FoodMenuItem, PriceTableRow } from "@/types/menu";
+import type {
+  CoffeeMenuGroup,
+  CompactMenuItem,
+  EditorialMenuItem,
+  FoodMenuItem,
+  PriceTableRow,
+} from "@/types/menu";
 import type { MemoryPhoto } from "@/data/memories";
 import type { KantinEvent } from "@/lib/events";
 
@@ -43,14 +58,15 @@ export type SectionVisibility = {
   careers: boolean;
 };
 
-
 export type ThemeSettings = {
   fontPreset: "brand" | "clean" | "editorial";
   colorPreset: "kantin" | "midnight" | "ocean";
   headingScale: "compact" | "balanced" | "expressive";
   bodyScale: "compact" | "balanced" | "comfortable";
   cardDensity: "compact" | "balanced" | "airy";
-  homeSectionOrder: Array<"menu" | "merch" | "memories" | "events" | "branches">;
+  homeSectionOrder: Array<
+    "menu" | "merch" | "memories" | "events" | "branches"
+  >;
 };
 
 export type CommonPublicData = {
@@ -144,7 +160,6 @@ export type MenuItemImageData = {
   height: number;
 };
 
-
 export type MenuCategoryDisplay =
   | "price_table"
   | "compact"
@@ -183,6 +198,9 @@ export type GenericMenuItemData = {
 };
 
 export type GenericMenuCategoryData = {
+  group?: { key: string; label: string };
+  managedOrder?: boolean;
+  presentationOverride?: boolean;
   id: string;
   slug: string;
   name: string;
@@ -204,7 +222,12 @@ export type GenericMenuBranchData = {
 export type MenuPublicData = {
   hasMenuData: boolean;
   itemImages: MenuItemImageData[];
-  branchOptions: Array<{ id: string; code: string; label: string; description: string }>;
+  branchOptions: Array<{
+    id: string;
+    code: string;
+    label: string;
+    description: string;
+  }>;
   branches: GenericMenuBranchData[];
   menuHero: MenuHeroData;
   alsancakIntro: BranchIntroData;
@@ -213,7 +236,12 @@ export type MenuPublicData = {
   alsancakDeliItems: FoodMenuItem[];
   cheesePortions: CheesePortionsData;
   beerSalads: BeerSaladData[];
-  alsancakWine: { name: string; description: string; price: string; priceDetail: string };
+  alsancakWine: {
+    name: string;
+    description: string;
+    price: string;
+    priceDetail: string;
+  };
   alsancakFryerItems: FoodMenuItem[];
   alsancakOvenItems: FoodMenuItem[];
   sauceBar: { kicker: string; title: string; items: string[] };

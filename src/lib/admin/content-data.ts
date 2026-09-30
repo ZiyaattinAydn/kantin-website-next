@@ -1,7 +1,6 @@
 import "server-only";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
-import { loadAllAdminRows } from "./menu-data";
 import {
   withHeroImage,
   blockLabels,
@@ -9,7 +8,6 @@ import {
   editableContentFields,
   type ContentRecord,
 } from "./content-model";
-import type { Database } from "@/lib/supabase/database.types";
 export const contentSections = [
   { key: "home", label: "Ana Sayfa", url: "/" },
   { key: "alsancak", label: "Alsancak Şubesi", url: "/menu?sube=alsancak" },
@@ -31,7 +29,9 @@ export async function loadContentRecords(
   if (section === "alsancak" || section === "atakent") {
     const { data, error } = await c
       .from("branches")
-      .select("*")
+      .select(
+        "id,name,short_description,address_line,district,city,maps_url,phone,public_email,features,opening_hours,status,is_active,updated_at",
+      )
       .eq("slug", section);
     if (error) throw error;
     for (const b of data ?? [])
@@ -56,15 +56,17 @@ export async function loadContentRecords(
         visibility: { status: b.status, is_active: b.is_active },
       });
   }
-  if (section === "settings" || section === "home") {
-    const rows = await loadAllAdminRows<
-      Database["public"]["Tables"]["site_settings"]["Row"]
-    >(c, "site_settings");
-    for (const s of rows.filter((s) =>
-      section === "home"
-        ? false
-        : !!settingLabels[s.key] && s.key !== "sections.visibility",
-    ))
+  if (section === "settings") {
+    const { data: rows, error } = await c
+      .from("site_settings")
+      .select("id,key,value,status,is_active,updated_at")
+      .eq("is_public", true)
+      .in(
+        "key",
+        Object.keys(settingLabels).filter((k) => k !== "sections.visibility"),
+      );
+    if (error) throw error;
+    for (const s of rows ?? [])
       records.push({
         id: s.id,
         table: "site_settings",
@@ -75,9 +77,18 @@ export async function loadContentRecords(
         visibility: { status: s.status, is_active: s.is_active },
       });
   }
+  if (section === "settings")
+    return records.map((r) => ({
+      ...r,
+      context: `Site → Footer ve İletişim → ${r.label}`,
+      publicHref: "/#footer",
+    }));
   const { data: pages, error: pageError } = await c
     .from("site_pages")
-    .select("*");
+    .select(
+      "id,slug,title,seo_title,seo_description,status,is_active,updated_at",
+    )
+    .eq("slug", section === "events" ? "events" : "home");
   if (pageError) throw pageError;
   const page = (pages ?? []).find(
     (p) => p.slug === (section === "events" ? "events" : "home"),
@@ -99,8 +110,16 @@ export async function loadContentRecords(
       });
     const { data: blocks, error } = await c
       .from("content_blocks")
-      .select("*")
+      .select("id,key,content,status,is_active,updated_at")
       .eq("page_id", page.id)
+      .in(
+        "key",
+        section === "memories"
+          ? ["memories-copy", "memories-gallery"]
+          : ["alsancak", "atakent"].includes(section)
+            ? ["locations", "menu-branches"]
+            : Object.keys(blockLabels).filter((k) => !k.startsWith("memories")),
+      )
       .order("sort_order");
     if (error) throw error;
     for (const b of blocks ?? []) {
@@ -141,5 +160,20 @@ export async function loadContentRecords(
       });
     }
   }
-  return records.filter((r) => r.fields.length);
+  return records
+    .filter((r) => r.fields.length)
+    .map((r) => ({
+      ...r,
+      context: `Site → ${contentSections.find((s) => s.key === section)?.label ?? section} → ${r.label}`,
+      publicHref:
+        section === "events"
+          ? "/events"
+          : ["alsancak", "atakent"].includes(section)
+            ? `/#${r.table === "branches" || r.label.includes("konum") ? "subeler" : "menu"}`
+            : section === "memories"
+              ? "/#anilarimiz"
+              : r.label === "Ana başlık"
+                ? "/"
+                : `/#${r.label.includes("menüsü") ? "menu" : r.label.includes("konum") ? "subeler" : r.label.includes("Instagram") ? "subeler" : ""}`,
+    }));
 }

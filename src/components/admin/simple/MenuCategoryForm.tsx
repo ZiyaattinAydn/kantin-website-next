@@ -1,4 +1,10 @@
 "use client";
+import {
+  DEFAULT_MENU_GROUPS,
+  MENU_DISPLAY_PRESETS,
+  menuGroup,
+} from "@/lib/menu/presentation";
+import { menuSlug } from "@/lib/admin/menu-model";
 import { runAdminAction } from "@/lib/admin/client-action";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -24,9 +30,31 @@ export default function MenuCategoryForm({
       ? links.filter((l) => l.is_active).map((l) => l.branch_id)
       : [branchId],
   );
-  const [order, setOrder] = useState(
-    current?.sort_order ?? data.categories.length,
+  const order = current?.sort_order ?? data.categories.length * 10;
+  const [groups, setGroups] = useState(() =>
+    Object.fromEntries(
+      data.branches.map((b) => {
+        const link = links.find((l) => l.branch_id === b.id);
+        return [
+          b.id,
+          {
+            ...menuGroup(current?.slug ?? "", link?.metadata),
+            display_type: current ? "preserve" : "cards",
+          },
+        ];
+      }),
+    ),
   );
+  const options = [
+    ...DEFAULT_MENU_GROUPS,
+    ...data.categoryBranches.flatMap((link) => {
+      if (link.branch_id !== branchId) return [];
+      const category = data.categories.find((c) => c.id === link.category_id);
+      const group = menuGroup(category?.slug ?? "", link.metadata);
+      return group.key.startsWith("custom:") ? [group] : [];
+    }),
+  ].filter((g, i, all) => all.findIndex((other) => other.key === g.key) === i);
+
   const [status, setStatus] = useState(current?.status ?? "draft");
   const [active, setActive] = useState(current?.is_active ?? true);
   const [pending, start] = useTransition();
@@ -57,6 +85,10 @@ export default function MenuCategoryForm({
                 updated_at: current?.updated_at,
                 name,
                 branches,
+                branch_groups: branches.map((branch_id) => ({
+                  branch_id,
+                  ...groups[branch_id],
+                })),
                 sort_order: order,
                 status,
                 is_active: active,
@@ -104,16 +136,89 @@ export default function MenuCategoryForm({
           </label>
         ))}
         <div className={styles.grid}>
-          <label className={styles.field}>
-            Sıralama
-            <input
-              type="number"
-              min={0}
-              max={100000}
-              value={order}
-              onChange={(e) => setOrder(Number(e.target.value))}
-            />
-          </label>
+          {branches.map((branch) => (
+            <section key={branch}>
+              <h3>
+                {data.branches.find((b) => b.id === branch)?.name} · Bu kategori
+                hangi menüde gösterilecek?
+              </h3>
+              <label className={styles.field}>
+                Menü grubu
+                <select
+                  value={
+                    groups[branch].key.startsWith("custom:") &&
+                    !options.some((o) => o.key === groups[branch].key)
+                      ? "new"
+                      : groups[branch].key
+                  }
+                  onChange={(e) => {
+                    const group = options.find(
+                      (o) => o.key === e.target.value,
+                    ) ?? { key: "custom:yeni", label: "Yeni menü" };
+                    setGroups((prev) => ({
+                      ...prev,
+                      [branch]: { ...prev[branch], ...group },
+                    }));
+                  }}
+                >
+                  {options.map((option) => (
+                    <option key={option.key} value={option.key}>
+                      {option.label}
+                    </option>
+                  ))}
+                  <option value="new">+ Yeni menü grubu</option>
+                </select>
+              </label>
+              {groups[branch].key.startsWith("custom:") ? (
+                <label className={styles.field}>
+                  Özel menü adı
+                  <input
+                    required
+                    maxLength={80}
+                    value={groups[branch].label}
+                    onChange={(e) =>
+                      setGroups((prev) => ({
+                        ...prev,
+                        [branch]: {
+                          ...prev[branch],
+                          key: `custom:${menuSlug(e.target.value).slice(0, 60)}`,
+                          label: e.target.value,
+                        },
+                      }))
+                    }
+                  />
+                </label>
+              ) : null}
+              <label className={styles.field}>
+                Görünüm
+                <select
+                  value={groups[branch].display_type}
+                  onChange={(e) =>
+                    setGroups((prev) => ({
+                      ...prev,
+                      [branch]: {
+                        ...prev[branch],
+                        display_type: e.target.value,
+                      },
+                    }))
+                  }
+                >
+                  <option value="preserve">
+                    {current ? "Mevcut özel görünümü koru" : "Ürün kartları"}
+                  </option>
+                  {MENU_DISPLAY_PRESETS.map((preset) => (
+                    <option value={preset.key} key={preset.key}>
+                      {preset.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <small>
+                Kategori sırasını listedeki ↑ / ↓ düğmeleriyle değiştirin. Merch
+                ürünleri kendi bölümünden yönetilir.
+              </small>
+            </section>
+          ))}
           <label className={styles.field}>
             Yayın durumu
             <select

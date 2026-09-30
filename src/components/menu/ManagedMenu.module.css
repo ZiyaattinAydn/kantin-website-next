@@ -1,0 +1,30 @@
+.panel {
+  padding: clamp(36px, 5vw, 72px) 0;
+}
+.group {
+  margin: 36px 0;
+}
+.group > h2 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  margin-bottom: 24px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  align-items: start;
+}
+.category {
+  min-width: 0;
+}
+.category[data-dark="true"] {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 24px;
+  border-radius: 16px;
+}
+@media (max-width: 760px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

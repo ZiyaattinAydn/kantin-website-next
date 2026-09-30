@@ -1,5 +1,6 @@
 import "server-only";
 
+import { menuGroup } from "@/lib/menu/presentation";
 import { getPublicBranchRows } from "./branches";
 import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -77,7 +78,10 @@ type MenuEntry = {
 export function mapMenuItemImages(
   client: Parameters<typeof resolveMediaUrl>[0],
   entries: Array<{
-    item: Pick<TableRow<"menu_items">, "id" | "slug" | "name" | "image_media_id">;
+    item: Pick<
+      TableRow<"menu_items">,
+      "id" | "slug" | "name" | "image_media_id"
+    >;
     branch: BranchSlug;
   }>,
   mediaRows: PublicMediaRow[],
@@ -91,20 +95,25 @@ export function mapMenuItemImages(
     const imageUrl = resolveMediaUrl(client, media);
     if (!media || !imageUrl) return [];
 
-    return [{
-      itemId: item.id,
-      slug: item.slug,
-      name: item.name,
-      branch,
-      imageUrl,
-      imageAlt: media.alt_text ?? item.name,
-      width: media.width ?? 960,
-      height: media.height ?? 720,
-    }];
+    return [
+      {
+        itemId: item.id,
+        slug: item.slug,
+        name: item.name,
+        branch,
+        imageUrl,
+        imageAlt: media.alt_text ?? item.name,
+        width: media.width ?? 960,
+        height: media.height ?? 720,
+      },
+    ];
   });
 }
 
-function withHighlightPlaceholder(description: string | null, highlight: string | null) {
+function withHighlightPlaceholder(
+  description: string | null,
+  highlight: string | null,
+) {
   if (!description) return undefined;
   if (!highlight || !description.includes(highlight)) return description;
   return description.replace(highlight, "{highlight}");
@@ -158,7 +167,9 @@ function editorialFromEntry(entry: MenuEntry): EditorialMenuItem {
   };
 }
 
-async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>> {
+async function loadMenuPublicData(): Promise<
+  PublicDataEnvelope<MenuPublicData>
+> {
   try {
     const client = createPublicClient();
     const [
@@ -174,23 +185,48 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
       getPublicBranchRows(),
       client
         .from("menu_categories")
-        .select("id, slug, name, description, display_type, metadata, sort_order")
+        .select(
+          "id, slug, name, description, display_type, metadata, sort_order",
+        )
         .order("sort_order"),
-      client
-        .from("menu_category_branches")
-        .select("category_id, branch_id, display_name, description, sort_order")
-        .order("sort_order"),
+      (async () => {
+        const result = await client
+          .from("menu_category_branches")
+          .select(
+            "category_id, branch_id, display_name, description, sort_order, metadata",
+          )
+          .order("sort_order");
+        if (result.error && ["42703", "PGRST204"].includes(result.error.code)) {
+          const old = await client
+            .from("menu_category_branches")
+            .select(
+              "category_id, branch_id, display_name, description, sort_order",
+            )
+            .order("sort_order");
+          return {
+            ...old,
+            data: old.data?.map((row) => ({ ...row, metadata: {} })) ?? null,
+          };
+        }
+        return result;
+      })(),
       client
         .from("menu_items")
-        .select("id, category_id, slug, name, description, detail, highlight_text, allergen_text, badges, image_media_id, metadata, sort_order")
+        .select(
+          "id, category_id, slug, name, description, detail, highlight_text, allergen_text, badges, image_media_id, metadata, sort_order",
+        )
         .order("sort_order"),
       client
         .from("menu_item_branches")
-        .select("id, menu_item_id, branch_id, price_cents, price_label, price_note, availability_note, sort_order")
+        .select(
+          "id, menu_item_id, branch_id, price_cents, price_label, price_note, availability_note, sort_order",
+        )
         .order("sort_order"),
       client
         .from("menu_item_variants")
-        .select("id, menu_item_branch_id, slug, label, detail, price_cents, price_note, sort_order")
+        .select(
+          "id, menu_item_branch_id, slug, label, detail, price_cents, price_note, sort_order",
+        )
         .order("sort_order"),
     ]);
 
@@ -204,11 +240,13 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
       if (result.error) throw result.error;
     }
 
-    const mediaIds = [...new Set(
-      (itemsResult.data ?? [])
-        .map((item) => item.image_media_id)
-        .filter((id): id is string => Boolean(id)),
-    )];
+    const mediaIds = [
+      ...new Set(
+        (itemsResult.data ?? [])
+          .map((item) => item.image_media_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
     const mediaRows = await getPublicMediaRows(client, mediaIds);
 
     const branchByUuid = new Map(
@@ -228,26 +266,40 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
       variantsByLink.set(variant.menu_item_branch_id, variants);
     }
 
+    const visibleCategoryLinks = new Set(
+      (categoryLinksResult.data ?? []).map(
+        (l) => `${l.branch_id}:${l.category_id}`,
+      ),
+    );
     const entries = (itemLinksResult.data ?? [])
-      .map((link): (MenuEntry & { branch: BranchSlug; categorySlug: string }) | null => {
-        const branchSlug = branchByUuid.get(link.branch_id)?.slug;
-        const item = itemByUuid.get(link.menu_item_id);
-        if (!item || !branchSlug) {
-          return null;
-        }
-        const categorySlug = categoryByUuid.get(item.category_id)?.slug;
-        if (!categorySlug) return null;
-
-        return {
-          item,
+      .map(
+        (
           link,
-          variants: [...(variantsByLink.get(link.id) ?? [])].sort(
-            (first, second) => first.sort_order - second.sort_order,
-          ),
-          branch: branchSlug,
-          categorySlug,
-        };
-      })
+        ):
+          (MenuEntry & { branch: BranchSlug; categorySlug: string }) | null => {
+          const branchSlug = branchByUuid.get(link.branch_id)?.slug;
+          const item = itemByUuid.get(link.menu_item_id);
+          if (!item || !branchSlug) {
+            return null;
+          }
+          const categorySlug = categoryByUuid.get(item.category_id)?.slug;
+          if (
+            !categorySlug ||
+            !visibleCategoryLinks.has(`${link.branch_id}:${item.category_id}`)
+          )
+            return null;
+
+          return {
+            item,
+            link,
+            variants: [...(variantsByLink.get(link.id) ?? [])].sort(
+              (first, second) => first.sort_order - second.sort_order,
+            ),
+            branch: branchSlug,
+            categorySlug,
+          };
+        },
+      )
       .filter(
         (
           entry,
@@ -257,8 +309,12 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
 
     function categoryEntries(slug: string, branch: BranchSlug): MenuEntry[] {
       return entries
-        .filter((entry) => entry.categorySlug === slug && entry.branch === branch)
-        .sort((first, second) => first.link.sort_order - second.link.sort_order);
+        .filter(
+          (entry) => entry.categorySlug === slug && entry.branch === branch,
+        )
+        .sort(
+          (first, second) => first.link.sort_order - second.link.sort_order,
+        );
     }
 
     function priceTable(slug: string, branch: BranchSlug): PriceTableRow[] {
@@ -266,7 +322,9 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
         name: entry.item.name,
         detail: entry.item.detail ?? undefined,
         prices: entry.variants.length
-          ? entry.variants.map((variant) => formatTryFromCents(variant.price_cents))
+          ? entry.variants.map((variant) =>
+              formatTryFromCents(variant.price_cents),
+            )
           : [formatTryFromCents(entry.link.price_cents)],
       }));
     }
@@ -279,7 +337,10 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
       return categoryEntries(slug, branch).map(foodFromEntry);
     }
 
-    function editorialList(slug: string, branch: BranchSlug): EditorialMenuItem[] {
+    function editorialList(
+      slug: string,
+      branch: BranchSlug,
+    ): EditorialMenuItem[] {
       return categoryEntries(slug, branch).map(editorialFromEntry);
     }
 
@@ -341,10 +402,7 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
     );
     const itemImages = mapMenuItemImages(client, entries, mediaRows);
     const imageByBranchAndItem = new Map(
-      itemImages.map((image) => [
-        `${image.branch}:${image.itemId}`,
-        image,
-      ]),
+      itemImages.map((image) => [`${image.branch}:${image.itemId}`, image]),
     );
     const genericBranches = branchRows
       .map((branch) => {
@@ -363,9 +421,7 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
               );
             if (!categoryItems.length) return null;
 
-            const link = categoryLinkByKey.get(
-              `${branch.id}:${category.id}`,
-            );
+            const link = categoryLinkByKey.get(`${branch.id}:${category.id}`);
 
             return {
               id: category.id,
@@ -373,7 +429,18 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
               name: link?.display_name ?? category.name,
               description:
                 link?.description ?? category.description ?? undefined,
-              displayType: category.display_type,
+              group: menuGroup(category.slug, link?.metadata),
+              managedOrder: asRecord(link?.metadata).managed_order === true,
+              presentationOverride: !!asRecord(link?.metadata).display_type,
+              displayType: ([
+                "cards",
+                "compact",
+                "price_table",
+                "editorial",
+                "coffee",
+              ].includes(String(asRecord(link?.metadata).display_type))
+                ? asRecord(link?.metadata).display_type
+                : category.display_type) as typeof category.display_type,
               sortOrder: link?.sort_order ?? category.sort_order,
               items: categoryItems.map((entry) => ({
                 id: entry.item.id,
@@ -387,8 +454,7 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
                 price: formatTryFromCents(entry.link.price_cents),
                 priceLabel: entry.link.price_label ?? undefined,
                 priceNote: entry.link.price_note ?? undefined,
-                availabilityNote:
-                  entry.link.availability_note ?? undefined,
+                availabilityNote: entry.link.availability_note ?? undefined,
                 image: imageByBranchAndItem.get(
                   `${branch.slug}:${entry.item.id}`,
                 ),
@@ -405,7 +471,9 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
               })),
             };
           })
-          .filter((category): category is NonNullable<typeof category> => Boolean(category))
+          .filter((category): category is NonNullable<typeof category> =>
+            Boolean(category),
+          )
           .sort((first, second) => first.sortOrder - second.sortOrder);
 
         return {
@@ -433,33 +501,27 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
       })),
       branches: genericBranches,
       menuHero: {
-        eyebrow: stringValue(heroBlock.eyebrow, fallbackMenuData.menuHero.eyebrow),
-        title: stringValue(heroBlock.title, fallbackMenuData.menuHero.title),
+        eyebrow: stringValue(heroBlock.eyebrow, ""),
+        title: stringValue(heroBlock.title, ""),
         description: stringValue(
           heroBlock.description,
           genericBranches.length
             ? `${genericBranches.map((branch) => branch.name).join(", ")} şubelerinin ürün ve fiyatları birbirinden farklı olabilir. Gideceğin şubeyi seçerek güncel menüyü incele.`
-            : fallbackMenuData.menuHero.description,
+            : "",
         ),
         mark: stringValue(
           heroBlock.mark,
-          genericBranches.map((branch) => branch.code).join("—") || fallbackMenuData.menuHero.mark,
+          genericBranches.map((branch) => branch.code).join("—") || "",
         ),
       },
       alsancakIntro: {
-        kicker: stringValue(
-          alsancakIntroBlock.kicker,
-          fallbackMenuData.alsancakIntro.kicker,
-        ),
+        kicker: stringValue(alsancakIntroBlock.kicker, ""),
         titleLines: Array.isArray(alsancakIntroBlock.titleLines)
           ? alsancakIntroBlock.titleLines.filter(
               (value): value is string => typeof value === "string",
             )
-          : fallbackMenuData.alsancakIntro.titleLines,
-        description: stringValue(
-          alsancakIntroBlock.description,
-          fallbackMenuData.alsancakIntro.description,
-        ),
+          : [],
+        description: stringValue(alsancakIntroBlock.description, ""),
       },
       alsancakDraftBeers: priceTable("fici-biralar", "alsancak"),
       alsancakBottleBeers: compactList("sise-biralar", "alsancak"),
@@ -473,35 +535,36 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
               description: featureEntry.item.description ?? "",
               price: formatTryFromCents(featureEntry.link.price_cents),
             }
-          : fallbackMenuData.cheesePortions.feature,
-        note: stringValue(
-          deliMetadata.cheese_note,
-          fallbackMenuData.cheesePortions.note,
-        ),
+          : { name: "", description: "", price: "" },
+        note: stringValue(deliMetadata.cheese_note, ""),
         prices: cheeseVariants.length
           ? cheeseVariants.map((variant) => ({
               label: variant.label,
               price: formatTryFromCents(variant.price_cents),
             }))
-          : fallbackMenuData.cheesePortions.prices,
-        options: cheeseEntries.length ? cheeseEntries.map((entry) => {
-          const metadata = asRecord(entry.item.metadata);
-          return {
-            name: entry.item.name,
-            detail: entry.item.detail ?? "",
-            portion: stringValue(metadata.portion),
-            mixed: metadata.mixed === true ? true : undefined,
-          };
-        }) : fallbackMenuData.cheesePortions.options,
+          : [],
+        options: cheeseEntries.length
+          ? cheeseEntries.map((entry) => {
+              const metadata = asRecord(entry.item.metadata);
+              return {
+                name: entry.item.name,
+                detail: entry.item.detail ?? "",
+                portion: stringValue(metadata.portion),
+                mixed: metadata.mixed === true ? true : undefined,
+              };
+            })
+          : [],
       },
-      beerSalads: (saladEntries.length ? saladEntries.map((entry) => ({
-        name: entry.item.name,
-        description: entry.item.description ?? "",
-        prices: entry.variants.map((variant) => ({
-          label: variant.label,
-          price: formatTryFromCents(variant.price_cents),
-        })),
-      })) : fallbackMenuData.beerSalads),
+      beerSalads: saladEntries.length
+        ? saladEntries.map((entry) => ({
+            name: entry.item.name,
+            description: entry.item.description ?? "",
+            prices: entry.variants.map((variant) => ({
+              label: variant.label,
+              price: formatTryFromCents(variant.price_cents),
+            })),
+          }))
+        : [],
       alsancakWine: wineEntry
         ? {
             name: wineEntry.item.name,
@@ -513,18 +576,12 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
               ? `${wineVariants[1].label} ${formatTryFromCents(wineVariants[1].price_cents)}`
               : "",
           }
-        : fallbackMenuData.alsancakWine,
+        : { name: "", description: "", price: "", priceDetail: "" },
       alsancakFryerItems: foodList("fritoz", "alsancak"),
       alsancakOvenItems: foodList("firin", "alsancak"),
       sauceBar: {
-        kicker: stringValue(
-          sauceMetadata.kicker,
-          fallbackMenuData.sauceBar.kicker,
-        ),
-        title: stringValue(
-          sauceMetadata.title,
-          fallbackMenuData.sauceBar.title,
-        ),
+        kicker: stringValue(sauceMetadata.kicker, ""),
+        title: stringValue(sauceMetadata.title, ""),
         items: categoryEntries("soslar", "alsancak").map(
           (entry) => entry.item.name,
         ),
@@ -538,25 +595,16 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
         }),
       ),
       atakentIntro: {
-        kicker: stringValue(
-          atakentIntroBlock.kicker,
-          fallbackMenuData.atakentIntro.kicker,
-        ),
+        kicker: stringValue(atakentIntroBlock.kicker, ""),
         titleLines: Array.isArray(atakentIntroBlock.titleLines)
           ? atakentIntroBlock.titleLines.filter(
               (value): value is string => typeof value === "string",
             )
-          : fallbackMenuData.atakentIntro.titleLines,
-        description: stringValue(
-          atakentIntroBlock.description,
-          fallbackMenuData.atakentIntro.description,
-        ),
+          : [],
+        description: stringValue(atakentIntroBlock.description, ""),
       },
       atakentDraftBeers: priceTable("fici-biralar", "atakent"),
-      atakentBubbleCocktails: editorialList(
-        "bubble-kokteyller",
-        "atakent",
-      ),
+      atakentBubbleCocktails: editorialList("bubble-kokteyller", "atakent"),
       atakentHouseCocktails: editorialList("house-kokteyller", "atakent"),
       atakentBottleBeers: compactList("sise-biralar", "atakent"),
       atakentWines: priceTable("saraplar", "atakent"),
@@ -572,7 +620,7 @@ async function loadMenuPublicData(): Promise<PublicDataEnvelope<MenuPublicData>>
               allergens: dessert.item.allergen_text ?? "",
               price: formatTryFromCents(dessert.link.price_cents),
             }
-          : fallbackMenuData.atakentDessert;
+          : { kicker: "", name: "", description: "", allergens: "", price: "" };
       })(),
     };
 

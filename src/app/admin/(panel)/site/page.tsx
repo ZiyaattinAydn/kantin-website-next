@@ -1,7 +1,7 @@
+import DeliveryBaselineRestore from "@/components/admin/simple/DeliveryBaselineRestore";
 import AdminInteractionGuard from "@/components/admin/AdminInteractionGuard";
 import Link from "next/link";
 import { contentSections, loadContentRecords } from "@/lib/admin/content-data";
-import { loadMediaChoices } from "@/lib/admin/media-choices";
 import { recordSystemEvent } from "@/lib/admin/system-logs";
 import ThemeSettingsPage from "../theme/page";
 import ContentEditor from "@/components/admin/simple/ContentEditor";
@@ -19,14 +19,9 @@ export default async function ContentPage({
   const section =
     contentSections.find((s) => s.key === query.section) ?? contentSections[0];
   let records: Awaited<ReturnType<typeof loadContentRecords>> = [];
-  let media: Awaited<ReturnType<typeof loadMediaChoices>> = [];
   let failed = false;
   try {
-    if (tab === "content")
-      [records, media] = await Promise.all([
-        loadContentRecords(section.key),
-        loadMediaChoices(),
-      ]);
+    if (tab === "content") records = await loadContentRecords(section.key);
   } catch (error) {
     failed = true;
     await recordSystemEvent({
@@ -51,6 +46,7 @@ export default async function ContentPage({
           Canlı siteyi aç
         </Link>
       </header>
+      <DeliveryBaselineRestore />
       <nav className={styles.tabs} aria-label="Site yönetimi">
         {[
           ["content", "İçerik"],
@@ -122,10 +118,9 @@ export default async function ContentPage({
           ) : null}
           {records.map((r) => (
             <ContentEditor
-              key={`${r.id}-${r.updated_at}`}
+              key={r.id}
               record={r}
               initialOpen={query.record === r.id}
-              media={media}
             />
           ))}
           {!failed && !records.length ? (

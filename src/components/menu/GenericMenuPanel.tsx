@@ -53,14 +53,22 @@ function MenuItemCard({ item }: { item: GenericMenuItemData }) {
           <ItemPrice item={item} />
         </div>
         {item.description ? <p>{item.description}</p> : null}
-        {item.highlight ? <b className={styles.highlight}>{item.highlight}</b> : null}
+        {item.highlight ? (
+          <b className={styles.highlight}>{item.highlight}</b>
+        ) : null}
         {item.badges.length ? (
           <div className={styles.badges}>
-            {item.badges.map((badge) => <span key={badge}>{badge}</span>)}
+            {item.badges.map((badge) => (
+              <span key={badge}>{badge}</span>
+            ))}
           </div>
         ) : null}
-        {item.allergens ? <small className={styles.note}>{item.allergens}</small> : null}
-        {item.priceNote ? <small className={styles.note}>{item.priceNote}</small> : null}
+        {item.allergens ? (
+          <small className={styles.note}>{item.allergens}</small>
+        ) : null}
+        {item.priceNote ? (
+          <small className={styles.note}>{item.priceNote}</small>
+        ) : null}
         {item.availabilityNote ? (
           <small className={styles.availability}>{item.availabilityNote}</small>
         ) : null}
@@ -78,7 +86,7 @@ function MenuCategory({ category }: { category: GenericMenuCategoryData }) {
     >
       <header className={styles.categoryHeading}>
         <div>
-          <p className="menu-kicker">{category.displayType.replaceAll("_", " ")}</p>
+          <p className="menu-kicker">{category.group?.label ?? "Menü"}</p>
           <h2>{category.name}</h2>
         </div>
         {category.description ? <p>{category.description}</p> : null}
@@ -128,8 +136,12 @@ export default function GenericMenuPanel({
     >
       <div className="container">
         <header className={`${styles.intro} reveal`}>
-          <p className="menu-kicker">{branch.code} · {branch.name}</p>
-          <h2>{branch.name} menüsü<span>.</span></h2>
+          <p className="menu-kicker">
+            {branch.code} · {branch.name}
+          </p>
+          <h2>
+            {branch.name} menüsü<span>.</span>
+          </h2>
           <p>{branch.description}</p>
         </header>
         <GenericMenuCategoryList categories={branch.categories} />

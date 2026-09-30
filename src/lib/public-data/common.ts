@@ -18,7 +18,10 @@ import type {
 } from "./types";
 import type { Branch } from "@/types/domain";
 import type { FooterLink, NavigationItem } from "@/types/content";
-import { parseSectionVisibility, parseThemeSettings } from "@/lib/theme/settings";
+import {
+  parseSectionVisibility,
+  parseThemeSettings,
+} from "@/lib/theme/settings";
 
 export function parseOpeningHours(value: unknown): string[] {
   const record = asRecord(value);
@@ -52,14 +55,12 @@ function parseFooterNavigation(value: unknown): FooterNavigationGroup[] {
     .map((group) => ({
       title: stringValue(group.title),
       links: arrayOfRecords(group.links)
-        .map(
-          (link): FooterLink => ({
-            href: stringValue(link.href),
-            label: stringValue(link.label),
-            external:
-              typeof link.external === "boolean" ? link.external : undefined,
-          }),
-        )
+        .map((link): FooterLink => ({
+          href: stringValue(link.href),
+          label: stringValue(link.label),
+          external:
+            typeof link.external === "boolean" ? link.external : undefined,
+        }))
         .filter((link) => link.href && link.label),
     }))
     .filter((group) => group.title && group.links.length);
@@ -99,8 +100,9 @@ export function mapBranch(row: {
   };
 }
 
-
-async function loadCommonPublicData(): Promise<PublicDataEnvelope<CommonPublicData>> {
+async function loadCommonPublicData(): Promise<
+  PublicDataEnvelope<CommonPublicData>
+> {
   try {
     const client = createPublicClient();
     const [branchRows, settingsResult] = await Promise.all([
@@ -114,7 +116,10 @@ async function loadCommonPublicData(): Promise<PublicDataEnvelope<CommonPublicDa
     if (settingsResult.error) throw settingsResult.error;
 
     const settings = new Map(
-      (settingsResult.data ?? []).map((setting) => [setting.key, setting.value]),
+      (settingsResult.data ?? []).map((setting) => [
+        setting.key,
+        setting.value,
+      ]),
     );
 
     const identity = asRecord(settings.get("site.identity"));
@@ -135,53 +140,24 @@ async function loadCommonPublicData(): Promise<PublicDataEnvelope<CommonPublicDa
     const data: CommonPublicData = {
       branches: mappedBranches,
       siteIdentity: {
-        name: stringValue(identity.name, fallbackCommonData.siteIdentity.name),
-        slogan: stringValue(
-          identity.slogan,
-          fallbackCommonData.siteIdentity.slogan,
-        ),
-        sloganLines: stringArray(
-          identity.sloganLines,
-          fallbackCommonData.siteIdentity.sloganLines,
-        ),
-        instagramUrl: stringValue(
-          identity.instagramUrl,
-          fallbackCommonData.siteIdentity.instagramUrl,
-        ),
+        name: stringValue(identity.name, ""),
+        slogan: stringValue(identity.slogan, ""),
+        sloganLines: stringArray(identity.sloganLines, []),
+        instagramUrl: stringValue(identity.instagramUrl, ""),
       },
-      publicEmail: stringValue(
-        contact.publicEmail,
-        fallbackCommonData.publicEmail,
-      ),
-      primaryNavigation: primaryNavigation.length
-        ? primaryNavigation
-        : fallbackCommonData.primaryNavigation,
-      footerNavigation: footerNavigation.length
-        ? footerNavigation
-        : fallbackCommonData.footerNavigation,
+      publicEmail: stringValue(contact.publicEmail, ""),
+      primaryNavigation,
+      footerNavigation,
       footerContent: {
-        title: stringValue(
-          footerContent.title,
-          fallbackCommonData.footerContent.title,
-        ),
-        intro: stringValue(
-          footerContent.intro,
-          fallbackCommonData.footerContent.intro,
-        ),
-        workTitle: stringValue(
-          footerContent.workTitle,
-          fallbackCommonData.footerContent.workTitle,
-        ),
-        workDescription: stringValue(
-          footerContent.workDescription,
-          fallbackCommonData.footerContent.workDescription,
-        ),
-        bottomLine: stringValue(
-          footerContent.bottomLine,
-          fallbackCommonData.footerContent.bottomLine,
-        ),
+        title: stringValue(footerContent.title, ""),
+        intro: stringValue(footerContent.intro, ""),
+        workTitle: stringValue(footerContent.workTitle, ""),
+        workDescription: stringValue(footerContent.workDescription, ""),
+        bottomLine: stringValue(footerContent.bottomLine, ""),
       },
-      sectionVisibility: parseSectionVisibility(settings.get("sections.visibility")),
+      sectionVisibility: parseSectionVisibility(
+        settings.get("sections.visibility"),
+      ),
       themeSettings: parseThemeSettings(settings.get("theme.settings")),
     };
 

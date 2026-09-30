@@ -15,6 +15,15 @@ export const LOG_CODES = [
   "VALIDATION",
   "UNKNOWN",
 ] as const;
+export const EXPECTED_LOG_CODES = [
+  "40001",
+  "VALIDATION",
+  "22023",
+  "22P02",
+  "23514",
+  "23505",
+  "23503",
+];
 const messages: Record<string, string> = {
   "23505": "Unique constraint conflict",
   "23503": "Related record missing or referenced",
@@ -85,13 +94,22 @@ export function sanitizeSystemEvent(input: {
           code?: unknown;
           databaseCode?: unknown;
           name?: unknown;
+          message?: unknown;
         })
       : {};
   const code =
     LOG_CODES.find((c) => c === (error.databaseCode ?? error.code)) ??
     (["MenuValidationError", "AdminValidationError"].includes(
       String(error.name),
-    )
+    ) ||
+    [
+      "invalid_content_payload",
+      "media_not_available",
+      "invalid_content_url",
+      "visibility_confirmation_required",
+      "confirmation_required",
+      "invalid_direction",
+    ].includes(String(error.message))
       ? "VALIDATION"
       : "UNKNOWN");
   return {
@@ -100,9 +118,9 @@ export function sanitizeSystemEvent(input: {
     operation: LOG_OPERATIONS.find((o) => o === input.operation) ?? "save",
     entity_type: LOG_ENTITIES.find((e) => e === input.entityType) ?? "system",
     entity_id: isUuid(input.entityId) ? input.entityId : null,
-    level:
-      LOG_LEVELS.find((l) => l === input.level) ??
-      (code === "VALIDATION" ? "warning" : "error"),
+    level: EXPECTED_LOG_CODES.includes(code)
+      ? "warning"
+      : (LOG_LEVELS.find((l) => l === input.level) ?? "error"),
     error_code: code,
     technical_message: messages[code],
     request_id: isUuid(input.requestId)

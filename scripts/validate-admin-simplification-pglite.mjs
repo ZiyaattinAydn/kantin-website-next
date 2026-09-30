@@ -31,6 +31,7 @@ for (const name of [
   "20260930010000_unified_admin_menu.sql",
   "20260930020000_admin_system_logs.sql",
   "20260930030000_admin_category_and_prices.sql",
+  "20260930032800_admin_qa2_groups_baseline.sql",
 ]) {
   const sql = (
     await readFile(`${root}/supabase/migrations/${name}`, "utf8")
@@ -76,5 +77,13 @@ const unifiedResult = await db.exec(
   ),
 );
 for (const r of unifiedResult)
+  for (const row of r.rows ?? []) console.log(Object.values(row).join(" "));
+const qa2 = await db.exec(
+  await readFile(
+    `${root}/supabase/tests/admin_qa2_groups_baseline.test.sql`,
+    "utf8",
+  ),
+);
+for (const r of qa2)
   for (const row of r.rows ?? []) console.log(Object.values(row).join(" "));
 await db.close();

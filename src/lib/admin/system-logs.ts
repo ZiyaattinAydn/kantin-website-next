@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { sanitizeSystemEvent } from "./log-safety";
+import { sanitizeSystemEvent, EXPECTED_LOG_CODES } from "./log-safety";
 export async function recordSystemEvent(
   input: Parameters<typeof sanitizeSystemEvent>[0],
 ): Promise<void> {
@@ -30,7 +30,8 @@ export async function loadSystemHealth(): Promise<{ count: number | null }> {
       .from("admin_system_logs")
       .select("id", { head: true, count: "exact" })
       .gte("created_at", new Date(Date.now() - 86400000).toISOString())
-      .in("level", ["error", "critical"]);
+      .in("level", ["error", "critical"])
+      .not("error_code", "in", `(${EXPECTED_LOG_CODES.join(",")})`);
     return { count: error ? null : (count ?? 0) };
   } catch {
     return { count: null };

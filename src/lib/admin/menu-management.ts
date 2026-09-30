@@ -1,3 +1,4 @@
+import { MENU_DISPLAY_PRESETS } from "@/lib/menu/presentation";
 import { assertUuid, parseTryPrice } from "./pricing";
 import { MenuValidationError, menuSlug } from "./menu-model";
 export function parseCategoryInput(value: unknown) {
@@ -23,7 +24,31 @@ export function parseCategoryInput(value: unknown) {
   const branches = p.branches.map((id) => assertUuid(String(id), "Şube"));
   if (new Set(branches).size !== branches.length)
     throw new MenuValidationError("Şube seçimini kontrol edin.");
+  const groups = Array.isArray(p.branch_groups) ? p.branch_groups : [];
+  if (
+    groups.length > 20 ||
+    new Set(groups.map((g) => g?.branch_id)).size !== groups.length
+  )
+    throw new MenuValidationError("Menü yerleşimini kontrol edin.");
+  for (const group of groups) {
+    if (
+      !group ||
+      !branches.includes(group.branch_id) ||
+      typeof group.key !== "string" ||
+      !/^(main|coffee|custom:[a-z0-9-]{1,60})$/.test(group.key) ||
+      typeof group.label !== "string" ||
+      !group.label.trim() ||
+      group.label.length > 80 ||
+      (group.display_type &&
+        !MENU_DISPLAY_PRESETS.some(
+          (preset) => preset.key === group.display_type,
+        ) &&
+        group.display_type !== "preserve")
+    )
+      throw new MenuValidationError("Menü yerleşimini kontrol edin.");
+  }
   return {
+    branch_groups: groups,
     id: p.id ? assertUuid(String(p.id), "Kategori") : null,
     updated_at: p.updated_at ?? null,
     name: p.name.trim(),

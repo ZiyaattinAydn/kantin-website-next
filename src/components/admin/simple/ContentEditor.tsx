@@ -3,21 +3,37 @@ import { runAdminAction } from "@/lib/admin/client-action";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveContentRecord } from "@/lib/admin/content-actions";
-import type { ContentRecord } from "@/lib/admin/content-model";
+import {
+  applyContentSnapshot,
+  rebaseContentDraft,
+  type ContentSnapshot,
+  type ContentRecord,
+} from "@/lib/admin/content-model";
 import type { MediaChoice } from "@/lib/admin/media-choices";
+import DeliveryBaselineRestore from "./DeliveryBaselineRestore";
 import RecordHistory from "../ui/RecordHistory";
 import AdminDialog from "../ui/AdminDialog";
 import ContentImagePicker from "./ContentImagePicker";
 import styles from "./SimpleAdmin.module.css";
 export default function ContentEditor({
   record,
-  media,
+  media = [],
   initialOpen = false,
 }: {
   record: ContentRecord;
-  media: MediaChoice[];
+  media?: MediaChoice[];
   initialOpen?: boolean;
 }) {
+  const [savedRecord, setSavedRecord] = useState<{
+    sourceVersion: string;
+    record: ContentRecord;
+  } | null>(null);
+  const activeRecord =
+    savedRecord &&
+    (record.updated_at === savedRecord.sourceVersion ||
+      record.updated_at === savedRecord.record.updated_at)
+      ? savedRecord.record
+      : record;
   const [version, setVersion] = useState(0);
   return (
     <AdminDialog
@@ -31,9 +47,13 @@ export default function ContentEditor({
         <span>Düzenle →</span>
       </summary>
       <ContentEditorForm
-        record={record}
+        record={activeRecord}
         media={media}
-        onSaved={() => {
+        onSaved={(snapshot) => {
+          setSavedRecord({
+            sourceVersion: record.updated_at,
+            record: applyContentSnapshot(activeRecord, snapshot),
+          });
           const url = new URL(window.location.href);
           url.searchParams.delete("record");
           window.history.replaceState(null, "", url.pathname + url.search);
@@ -44,14 +64,16 @@ export default function ContentEditor({
   );
 }
 function ContentEditorForm({
-  record,
+  record: initialRecord,
   media,
   onSaved,
 }: {
   record: ContentRecord;
   media: MediaChoice[];
-  onSaved: () => void;
+  onSaved: (snapshot: ContentSnapshot) => void;
 }) {
+  const [record, setRecord] = useState(initialRecord);
+  const [review, setReview] = useState(false);
   const router = useRouter();
   const [pending, start] = useTransition();
   const [message, setMessage] = useState("");
@@ -59,6 +81,7 @@ function ContentEditorForm({
   const [visible, setVisible] = useState(record.visibility?.is_active);
   const [values, setValues] = useState(() => record.fields.map((f) => f.value));
   function update(i: number, value: string | number | boolean) {
+    setReview(false);
     setValues((v) => v.map((item, j) => (j === i ? value : item)));
   }
   return (
@@ -72,11 +95,10 @@ function ContentEditorForm({
             record.label === "Bölüm görünürlükleri" ||
             status !== record.visibility?.status ||
             visible !== record.visibility?.is_active;
-          if (
-            visibilityChanged &&
-            !window.confirm("Site bölümlerinin görünürlüğü değişsin mi?")
-          )
+          if (!review) {
+            setReview(true);
             return;
+          }
           start(async () => {
             const result = await runAdminAction(
               () =>
@@ -87,23 +109,40 @@ function ContentEditorForm({
                   confirmed: visibilityChanged ? "EVET" : "",
                   status,
                   is_active: visible,
-                  changes: record.fields.map((f, i) => ({
-                    path: f.path,
-                    value: values[i],
-                  })),
+                  changes: record.fields
+                    .map((f, i) => ({
+                      path: f.path,
+                      value: values[i],
+                    }))
+                    .filter((ch, i) => ch.value !== record.fields[i].value),
                 }),
               "Değişiklikler kaydedilemedi. Tekrar deneyin.",
             );
             setMessage(result.message);
             if (result.ok) {
-              onSaved();
+              if ("snapshot" in result) onSaved(result.snapshot);
               router.refresh();
+            } else if ("conflict" in result && result.conflict) {
+              const next = applyContentSnapshot(record, result.conflict);
+              setValues(rebaseContentDraft(record, values, next));
+              if (status === record.visibility?.status)
+                setStatus(next.visibility?.status);
+              if (visible === record.visibility?.is_active)
+                setVisible(next.visibility?.is_active);
+              setRecord(next);
+              setReview(false);
             }
           });
         }}
       >
+        {record.context ? <p>{record.context}</p> : null}
+        {record.publicHref ? (
+          <a href={record.publicHref} target="_blank" rel="noreferrer">
+            Sitede gör ↗
+          </a>
+        ) : null}
         <fieldset
-          disabled={pending}
+          disabled={pending || review}
           style={{ border: 0, padding: 0, minWidth: 0 }}
         >
           <div className={styles.grid}>
@@ -190,18 +229,60 @@ function ContentEditorForm({
               </label>
             </div>
           ) : null}
-          <div className={styles.actions}>
-            <button className={styles.primary} type="submit">
-              {pending ? "Kaydediliyor…" : "Değişiklikleri kaydet"}
+        </fieldset>
+        {review ? (
+          <div className={styles.notice} aria-label="Değişiklik özeti">
+            <h3>Değişiklikleri kontrol edin</h3>
+            {record.fields
+              .filter((f, i) => f.value !== values[i])
+              .map((f) => {
+                const i = record.fields.indexOf(f);
+                return (
+                  <p key={JSON.stringify(f.path)}>
+                    <strong>{f.label}</strong>
+                    <br />
+                    {f.kind === "image"
+                      ? "Görsel değişikliği · mevcut ve yeni önizleme yukarıda"
+                      : `${String(f.value) || "Boş"} → ${String(values[i]) || "Boş"}`}
+                  </p>
+                );
+              })}
+            {status !== record.visibility?.status ? (
+              <p>
+                Yayın durumu: {record.visibility?.status} → {status}
+              </p>
+            ) : null}
+            {visible !== record.visibility?.is_active ? (
+              <p>
+                Sitede göster: {record.visibility?.is_active ? "Evet" : "Hayır"}{" "}
+                → {visible ? "Evet" : "Hayır"}
+              </p>
+            ) : null}
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => setReview(false)}
+            >
+              Düzenlemeye dön
             </button>
           </div>
-        </fieldset>
+        ) : null}
+        <div className={styles.actions}>
+          <button className={styles.primary} disabled={pending} type="submit">
+            {pending
+              ? "Kaydediliyor…"
+              : review
+                ? "Onayla ve kaydet"
+                : "Değişiklikleri incele"}
+          </button>
+        </div>
         {message ? (
-          <p className={styles.notice} role="status">
+          <p className={styles.notice} role="alert">
             {message}
           </p>
         ) : null}
       </form>
+      <DeliveryBaselineRestore scope={{ table: record.table, id: record.id }} />
       <RecordHistory
         id={record.id}
         label={record.label}

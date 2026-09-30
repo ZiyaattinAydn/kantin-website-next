@@ -29,6 +29,22 @@ export function eventAvailability(
     state,
     label,
     visible,
+    reason:
+      state === "ended"
+        ? "Etkinlik tarihi geçtiği için ziyaretçilere gösterilmiyor."
+        : state === "publication_ended"
+          ? "Yayın bitiş tarihi geçtiği için ziyaretçilere gösterilmiyor."
+          : state === "scheduled"
+            ? "Belirlenen yayın başlangıcı bekleniyor."
+            : state === "draft"
+              ? "Yayın ayarı taslak olduğu için ziyaretçilere gösterilmiyor."
+              : state === "hidden"
+                ? "Görünürlük kapalı olduğu için ziyaretçilere gösterilmiyor."
+                : state === "archived"
+                  ? "Kayıt arşivde."
+                  : state === "invalid"
+                    ? "Geçerli etkinlik ve yayın tarihleri gerekli."
+                    : "Yayın ayarı ve tarih aralığı ziyaretçilere gösterilmeye uygun.",
   });
   if (input.status === "archived") return result("archived", "Arşivlendi");
   if (input.status !== "published") return result("draft", "Taslak");

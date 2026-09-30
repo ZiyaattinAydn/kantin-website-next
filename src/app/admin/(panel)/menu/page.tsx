@@ -1,7 +1,6 @@
 import Link from "next/link";
 import MenuManager from "@/components/admin/simple/MenuManager";
 import { loadMenuData } from "@/lib/admin/menu-data";
-import { loadMediaChoices } from "@/lib/admin/media-choices";
 import { recordSystemEvent } from "@/lib/admin/system-logs";
 import styles from "@/components/admin/simple/SimpleAdmin.module.css";
 export const dynamic = "force-dynamic";
@@ -11,14 +10,9 @@ export default async function MenuPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const query = await searchParams;
-  let loaded:
-    | [
-        Awaited<ReturnType<typeof loadMenuData>>,
-        Awaited<ReturnType<typeof loadMediaChoices>>,
-      ]
-    | null = null;
+  let loaded: Awaited<ReturnType<typeof loadMenuData>> | null = null;
   try {
-    loaded = await Promise.all([loadMenuData(), loadMediaChoices()]);
+    loaded = await loadMenuData();
   } catch (error) {
     await recordSystemEvent({
       route: "/admin/menu",
@@ -28,11 +22,11 @@ export default async function MenuPage({
     });
   }
   if (loaded) {
-    const [data, media] = loaded;
+    const data = loaded;
     return (
       <MenuManager
         data={data}
-        media={media}
+        media={[]}
         initialBranch={query.branch}
         initialSearch={query.q}
         initialEdit={query.edit}

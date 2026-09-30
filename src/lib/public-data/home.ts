@@ -35,13 +35,16 @@ import type {
 import type { MemoryPhoto, MemoryPhotoLayout } from "@/data/memories";
 import type { BranchId } from "@/types/domain";
 
-function parseHero(value: Record<string, unknown> | undefined, activeMediaReferences: ReadonlySet<string>): HomeHeroData {
-  if (!value) return fallbackHomeData.hero;
+function parseHero(
+  value: Record<string, unknown> | undefined,
+  activeMediaReferences: ReadonlySet<string>,
+): HomeHeroData {
+  value ??= {};
 
   const imageSrc = stringValue(asRecord(value.image).src);
   const primaryAction = asRecord(value.primaryAction);
   const secondaryAction = asRecord(value.secondaryAction);
-  const title = stringArray(value.title, fallbackHomeData.hero.title);
+  const title = stringArray(value.title, []);
   const features = arrayOfRecords(value.features)
     .map((feature) => ({
       label: stringValue(feature.label),
@@ -50,35 +53,25 @@ function parseHero(value: Record<string, unknown> | undefined, activeMediaRefere
     .filter((feature) => feature.label && feature.href);
 
   return {
-    image: imageSrc && !imageSrc.startsWith("//") && isAllowedPublicMediaReference(imageSrc, activeMediaReferences) ? { src: imageSrc } : undefined,
-    eyebrow: stringValue(value.eyebrow, fallbackHomeData.hero.eyebrow),
-    title: title.length >= 2 ? title : fallbackHomeData.hero.title,
-    description: stringValue(
-      value.description,
-      fallbackHomeData.hero.description,
-    ),
+    image:
+      imageSrc &&
+      !imageSrc.startsWith("//") &&
+      isAllowedPublicMediaReference(imageSrc, activeMediaReferences)
+        ? { src: imageSrc }
+        : undefined,
+    eyebrow: stringValue(value.eyebrow, ""),
+    title,
+    description: stringValue(value.description, ""),
     primaryAction: {
-      href: stringValue(
-        primaryAction.href,
-        fallbackHomeData.hero.primaryAction.href,
-      ),
-      label: stringValue(
-        primaryAction.label,
-        fallbackHomeData.hero.primaryAction.label,
-      ),
+      href: stringValue(primaryAction.href, ""),
+      label: stringValue(primaryAction.label, ""),
     },
     secondaryAction: {
-      href: stringValue(
-        secondaryAction.href,
-        fallbackHomeData.hero.secondaryAction.href,
-      ),
-      label: stringValue(
-        secondaryAction.label,
-        fallbackHomeData.hero.secondaryAction.label,
-      ),
+      href: stringValue(secondaryAction.href, ""),
+      label: stringValue(secondaryAction.label, ""),
     },
-    features: features.length ? features : fallbackHomeData.hero.features,
-    marquee: stringValue(value.marquee, fallbackHomeData.hero.marquee),
+    features,
+    marquee: stringValue(value.marquee, ""),
   };
 }
 
@@ -86,7 +79,7 @@ function parseMenuBranches(
   value: Record<string, unknown> | undefined,
   activeMediaReferences: ReadonlySet<string>,
 ): HomeMenuBranch[] {
-  if (!value) return fallbackHomeData.menuBranches;
+  if (!value) return [];
 
   return arrayOfRecords(value.items)
     .map((item): HomeMenuBranch | null => {
@@ -123,7 +116,7 @@ function parseLocations(
   value: Record<string, unknown> | undefined,
   activeMediaReferences: ReadonlySet<string>,
 ): LocationBranch[] {
-  if (!value) return fallbackHomeData.locationBranches;
+  if (!value) return [];
 
   return arrayOfRecords(value.items)
     .map((item): LocationBranch | null => {
@@ -163,7 +156,7 @@ function parseLocations(
 function parseMemoriesSection(
   value: Record<string, unknown> | undefined,
 ): MemoriesSectionData {
-  if (!value) return fallbackHomeData.memoriesSection;
+  value ??= {};
 
   const chapters = arrayOfRecords(value.chapters)
     .map((chapter) => ({
@@ -174,26 +167,12 @@ function parseMemoriesSection(
     .filter((chapter) => chapter.title && chapter.description);
 
   return {
-    eyebrow: stringValue(
-      value.eyebrow,
-      fallbackHomeData.memoriesSection.eyebrow,
-    ),
-    title: stringValue(value.title, fallbackHomeData.memoriesSection.title),
-    introduction: stringValue(
-      value.introduction,
-      fallbackHomeData.memoriesSection.introduction,
-    ),
-    statement: stringValue(
-      value.statement,
-      fallbackHomeData.memoriesSection.statement,
-    ),
-    chapters: chapters.length
-      ? chapters
-      : fallbackHomeData.memoriesSection.chapters,
-    closingLine: stringValue(
-      value.closingLine,
-      fallbackHomeData.memoriesSection.closingLine,
-    ),
+    eyebrow: stringValue(value.eyebrow, ""),
+    title: stringValue(value.title, ""),
+    introduction: stringValue(value.introduction, ""),
+    statement: stringValue(value.statement, ""),
+    chapters: chapters.length ? chapters : [],
+    closingLine: stringValue(value.closingLine, ""),
   };
 }
 
@@ -201,7 +180,7 @@ function parseMemoryPhotos(
   value: Record<string, unknown> | undefined,
   activeMediaReferences: ReadonlySet<string>,
 ): MemoryPhoto[] {
-  if (!value) return fallbackHomeData.memoryPhotos;
+  if (!value) return [];
 
   const allowedLayouts = new Set<MemoryPhotoLayout>([
     "feature",
@@ -213,7 +192,10 @@ function parseMemoryPhotos(
   return arrayOfRecords(value.items)
     .map((item): MemoryPhoto | null => {
       const layout = item.layout;
-      if (typeof layout !== "string" || !allowedLayouts.has(layout as MemoryPhotoLayout)) {
+      if (
+        typeof layout !== "string" ||
+        !allowedLayouts.has(layout as MemoryPhotoLayout)
+      ) {
         return null;
       }
 
@@ -225,9 +207,9 @@ function parseMemoryPhotos(
         layout: layout as MemoryPhotoLayout,
       };
 
-      return photo.src
-        && photo.alt
-        && isAllowedPublicMediaReference(photo.src, activeMediaReferences)
+      return photo.src &&
+        photo.alt &&
+        isAllowedPublicMediaReference(photo.src, activeMediaReferences)
         ? photo
         : null;
     })
@@ -238,28 +220,31 @@ function parseDoodles(
   value: Record<string, unknown> | undefined,
   activeMediaReferences: ReadonlySet<string>,
 ): MerchDoodle[] {
-  if (!value) return fallbackHomeData.merchDoodles;
+  if (!value) return [];
 
   return arrayOfRecords(value.items)
     .map((item) => ({
       src: stringValue(item.src),
       className: stringValue(item.className),
     }))
-    .filter((item) =>
-      item.src
-      && item.className
-      && isAllowedPublicMediaReference(item.src, activeMediaReferences),
+    .filter(
+      (item) =>
+        item.src &&
+        item.className &&
+        isAllowedPublicMediaReference(item.src, activeMediaReferences),
     );
 }
 
 export function mergeMenuBranchesWithAdmin(
   branches: HomeMenuBranch[],
-  rows: Array<Pick<
-    TableRow<"branches">,
-    "slug" | "code" | "name" | "short_description" | "features"
-  >>,
+  rows: Array<
+    Pick<
+      TableRow<"branches">,
+      "slug" | "code" | "name" | "short_description" | "features"
+    >
+  >,
 ): HomeMenuBranch[] {
-  if (!rows.length) return branches;
+  if (!rows.length || !branches.length) return [];
 
   const configuredBySlug = new Map(
     branches.map((branch) => [branch.slug, branch]),
@@ -278,9 +263,7 @@ export function mergeMenuBranchesWithAdmin(
         row.short_description ??
         configured?.description ??
         `${row.name} şubesine özel güncel menüyü incele.`,
-      tags: row.features.length
-        ? [...row.features]
-        : configured?.tags ?? [],
+      tags: row.features.length ? [...row.features] : (configured?.tags ?? []),
       delayClass:
         configured?.delayClass ?? (index > 0 ? "reveal-delay-1" : undefined),
     };
@@ -289,19 +272,21 @@ export function mergeMenuBranchesWithAdmin(
 
 export function mergeLocationsWithAdmin(
   branches: LocationBranch[],
-  rows: Array<Pick<
-    TableRow<"branches">,
-    | "slug"
-    | "code"
-    | "name"
-    | "address_line"
-    | "district"
-    | "city"
-    | "short_description"
-    | "maps_url"
-  >>,
+  rows: Array<
+    Pick<
+      TableRow<"branches">,
+      | "slug"
+      | "code"
+      | "name"
+      | "address_line"
+      | "district"
+      | "city"
+      | "short_description"
+      | "maps_url"
+    >
+  >,
 ): LocationBranch[] {
-  if (!rows.length) return branches;
+  if (!rows.length || !branches.length) return [];
 
   const configuredBySlug = new Map(
     branches.map((branch) => [branch.slug, branch]),
@@ -326,51 +311,61 @@ export function mergeLocationsWithAdmin(
   });
 }
 
-async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>> {
+async function loadHomePublicData(): Promise<
+  PublicDataEnvelope<HomePublicData>
+> {
   try {
     const client = createPublicClient();
     const [
-  blocks,
-  productsResult,
-  productLinksResult,
-  instagramResult,
-  branchRows,
-  eventEnvelope,
-  activeMediaReferences,
-  merchPresentationMedia,
-] = await Promise.all([
-        getPageBlocks(client, "home"),
-        client
-          .from("merch_products")
-          .select("id, slug, product_type, name, price_cents, description, detail, image_media_id, metadata, is_active, sort_order")
-          .order("sort_order"),
-        client
-          .from("merch_product_branches")
-          .select("merch_product_id, branch_id, is_available, sort_order")
-          .order("sort_order"),
-        client
-          .from("instagram_posts")
-          .select("id, external_id, image_media_id, branch_id, metadata, image_alt, caption, published_at, permalink")
-          .order("sort_order"),
-        getPublicBranchRows(),
-        getEventPublicData(),
-        getPublicMediaReferenceSet(client),
-        getPublicMediaRowsByMetadata(client, { product_slug: "oversize-tshirt" }),
-      ]);
+      blocks,
+      productsResult,
+      productLinksResult,
+      instagramResult,
+      branchRows,
+      eventEnvelope,
+      activeMediaReferences,
+      merchPresentationMedia,
+    ] = await Promise.all([
+      getPageBlocks(client, "home"),
+      client
+        .from("merch_products")
+        .select(
+          "id, slug, product_type, name, price_cents, description, detail, image_media_id, metadata, is_active, sort_order",
+        )
+        .order("sort_order"),
+      client
+        .from("merch_product_branches")
+        .select("merch_product_id, branch_id, is_available, sort_order")
+        .order("sort_order"),
+      client
+        .from("instagram_posts")
+        .select(
+          "id, external_id, image_media_id, branch_id, metadata, image_alt, caption, published_at, permalink",
+        )
+        .order("sort_order"),
+      getPublicBranchRows(),
+      getEventPublicData(),
+      getPublicMediaReferenceSet(client),
+      getPublicMediaRowsByMetadata(client, { product_slug: "oversize-tshirt" }),
+    ]);
 
     if (productsResult.error) throw productsResult.error;
     if (productLinksResult.error) throw productLinksResult.error;
     if (instagramResult.error) throw instagramResult.error;
 
-    const mediaIds = [...new Set([
-      ...(productsResult.data ?? []).map((product) => product.image_media_id),
-      ...(instagramResult.data ?? []).map((post) => post.image_media_id),
-    ].filter((id): id is string => Boolean(id)))];
+    const mediaIds = [
+      ...new Set(
+        [
+          ...(productsResult.data ?? []).map(
+            (product) => product.image_media_id,
+          ),
+          ...(instagramResult.data ?? []).map((post) => post.image_media_id),
+        ].filter((id): id is string => Boolean(id)),
+      ),
+    ];
     const mediaRows = await getPublicMediaRows(client, mediaIds);
 
-    const mediaByUuid = new Map(
-      mediaRows.map((media) => [media.id, media]),
-    );
+    const mediaByUuid = new Map(mediaRows.map((media) => [media.id, media]));
     const branchByUuid = new Map(
       branchRows.map((branch) => [branch.id, branch]),
     );
@@ -392,7 +387,9 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
 
     const merchProducts: MerchProductContent[] = (productsResult.data ?? [])
       .filter((product) => product.product_type === "item")
-      .filter((product) => (branchIdsByProduct.get(product.id) ?? []).length > 0)
+      .filter(
+        (product) => (branchIdsByProduct.get(product.id) ?? []).length > 0,
+      )
       .map((product) => {
         const metadata = asRecord(product.metadata);
         const media = product.image_media_id
@@ -418,11 +415,11 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
           ),
           backImage:
             product.slug === "oversize-tshirt"
-              ? resolveMediaUrl(client, oversizeBackMedia) ?? undefined
+              ? (resolveMediaUrl(client, oversizeBackMedia) ?? undefined)
               : undefined,
           backImageAlt:
             product.slug === "oversize-tshirt"
-              ? oversizeBackMedia?.alt_text ?? undefined
+              ? (oversizeBackMedia?.alt_text ?? undefined)
               : undefined,
           branchIds: branchIdsByProduct.get(product.id) ?? [],
           active: product.is_active,
@@ -442,27 +439,31 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
         : []),
       ...(productsResult.data ?? [])
         .filter((product) => product.product_type === "bundle")
-        .filter((product) => (branchIdsByProduct.get(product.id) ?? []).length > 0)
+        .filter(
+          (product) => (branchIdsByProduct.get(product.id) ?? []).length > 0,
+        )
         .map((product) => ({
           name: product.name,
           price: product.price_cents / 100,
         })),
     ];
 
-    const instagramPosts: InstagramPost[] = (instagramResult.data ?? []).flatMap(
-      (post) => {
-        const media = post.image_media_id
-          ? mediaByUuid.get(post.image_media_id)
-          : null;
-        const image = resolveMediaUrl(client, media);
-        if (!image) return [];
+    const instagramPosts: InstagramPost[] = (
+      instagramResult.data ?? []
+    ).flatMap((post) => {
+      const media = post.image_media_id
+        ? mediaByUuid.get(post.image_media_id)
+        : null;
+      const image = resolveMediaUrl(client, media);
+      if (!image) return [];
 
-        const branch = post.branch_id
-          ? branchByUuid.get(post.branch_id)?.name
-          : undefined;
-        const metadata = asRecord(post.metadata);
+      const branch = post.branch_id
+        ? branchByUuid.get(post.branch_id)?.name
+        : undefined;
+      const metadata = asRecord(post.metadata);
 
-        return [{
+      return [
+        {
           id: post.external_id ?? post.id,
           image,
           imageAlt: post.image_alt,
@@ -473,9 +474,9 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
             metadata.display_date,
           ),
           permalink: post.permalink,
-        }];
-      },
-    );
+        },
+      ];
+    });
 
     const menuBranches = mergeMenuBranchesWithAdmin(
       parseMenuBranches(blocks.get("menu-branches"), activeMediaReferences),
@@ -508,7 +509,9 @@ async function loadHomePublicData(): Promise<PublicDataEnvelope<HomePublicData>>
         eventData: eventEnvelope.data,
       },
       source:
-        blocks.size || productsResult.data?.length || instagramResult.data?.length
+        blocks.size ||
+        productsResult.data?.length ||
+        instagramResult.data?.length
           ? "supabase"
           : "empty",
       issues: eventEnvelope.issues,

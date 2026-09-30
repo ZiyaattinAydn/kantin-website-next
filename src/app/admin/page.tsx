@@ -80,9 +80,12 @@ export default async function AdminDashboardPage() {
         .select("id", { count: "exact", head: true })
         .eq("status", "new"),
       loadSystemHealth(),
-      loadAllAdminRows<Record<string, unknown>>(supabase, "events").catch(
-        () => null,
-      ),
+      loadAllAdminRows<Record<string, unknown>>(
+        supabase,
+        "events",
+        "id",
+        "id,content_type,start_at,end_at,publish_start_at,publish_end_at,published_at,status,is_active",
+      ).catch(() => null),
     ]);
 
   const actorIds = [
@@ -121,11 +124,13 @@ export default async function AdminDashboardPage() {
           </div>
         </header>
 
-        <div className={styles.alert}>
-          <strong>{newApplicationsResult.count ?? 0}</strong>
-          <span>yeni kariyer başvurusu inceleme bekliyor.</span>
-          <Link href="/admin/applications?status=new">Başvurulara git</Link>
-        </div>
+        {(newApplicationsResult.count ?? 0) > 0 ? (
+          <div className={styles.alert}>
+            <strong>{newApplicationsResult.count ?? 0}</strong>
+            <span>yeni kariyer başvurusu inceleme bekliyor.</span>
+            <Link href="/admin/applications?status=new">Başvurulara git</Link>
+          </div>
+        ) : null}
 
         <div className={styles.cards}>
           {adminTasks.map((task) => (
@@ -139,19 +144,23 @@ export default async function AdminDashboardPage() {
         <details className={styles.panel}>
           <summary>İşletmeye genel bakış</summary>
           <div className={styles.counts}>
-            {counts.map((card) => (
-              <Link className={styles.card} href={card.href} key={card.key}>
-                <span>{card.count ?? "—"}</span>
-                <strong>{card.label}</strong>
-                <small>
-                  Toplam kayıt
-                  {card.key === "events"
-                    ? ` · ${eventRows ? eventRows.filter((row) => eventAvailabilityFromRow(row).visible).length : "—"} güncel etkinlik / duyuru`
-                    : ""}
-                </small>
-                <small>Yönetimi aç →</small>
-              </Link>
-            ))}
+            {counts
+              .filter(
+                (card) => card.key !== "job_applications" || card.count !== 0,
+              )
+              .map((card) => (
+                <Link className={styles.card} href={card.href} key={card.key}>
+                  <span>{card.count ?? "—"}</span>
+                  <strong>{card.label}</strong>
+                  <small>
+                    Toplam kayıt
+                    {card.key === "events"
+                      ? ` · ${eventRows ? eventRows.filter((row) => eventAvailabilityFromRow(row).visible).length : "—"} güncel etkinlik / duyuru`
+                      : ""}
+                  </small>
+                  <small>Yönetimi aç →</small>
+                </Link>
+              ))}
           </div>
         </details>
 

@@ -1,3 +1,4 @@
+import EventEffectiveState from "../ui/EventEffectiveState";
 import RecordMediaField from "../ui/RecordMediaField";
 import { eventAvailabilityFromRow } from "@/lib/event-availability";
 import AdminDialog from "@/components/admin/ui/AdminDialog";
@@ -35,12 +36,7 @@ import {
 } from "@/lib/admin/format";
 
 type ListColumnKind =
-  | "identity"
-  | "detail"
-  | "type"
-  | "money"
-  | "date"
-  | "status";
+  "identity" | "detail" | "type" | "money" | "date" | "status";
 
 type ListColumn = {
   key: string;
@@ -1025,7 +1021,18 @@ function InlineEditor({
                       <FieldControl
                         error={error}
                         errorField={errorField}
-                        field={field}
+                        field={
+                          resource.key === "events" &&
+                          ["status", "is_active"].includes(field.name)
+                            ? {
+                                ...field,
+                                label:
+                                  field.name === "status"
+                                    ? "Yayın ayarı"
+                                    : "Görünürlük ayarı",
+                              }
+                            : field
+                        }
                         idPrefix={idPrefix}
                         key={field.name}
                         options={options}
@@ -1069,6 +1076,11 @@ function InlineEditor({
                   : "Yeni kayıt"}
               </span>
             </div>
+            {resource.key === "events" ? (
+              <EventEffectiveState
+                record={record ?? { status: "draft", is_active: true }}
+              />
+            ) : null}
             <p>{visibilityImpact}</p>
             <small>
               Yayına açan veya ziyaretçiden gizleyen bir değişiklikte

@@ -16,7 +16,7 @@ function refreshMenu() {
     "/admin/manage",
     "/",
     "/menu",
-  ].forEach((path) => revalidatePath(path, "layout"));
+  ].forEach((path) => revalidatePath(path));
 }
 export async function saveMenuProduct(
   input: unknown,
@@ -145,9 +145,14 @@ export async function saveMenuCategory(
   try {
     const payload = parseCategoryInput(input);
     const client: SupabaseClient = await createClient();
-    const { data, error } = await client.rpc("save_admin_menu_category", {
-      p_payload: payload,
-    });
+    const { data, error } = await client.rpc(
+      payload.branch_groups.length
+        ? "save_admin_menu_category_v2"
+        : "save_admin_menu_category",
+      {
+        p_payload: payload,
+      },
+    );
     if (error) throw error;
     refreshMenu();
     return {
@@ -199,6 +204,44 @@ export async function saveQuickMenuPrices(
         error instanceof MenuValidationError
           ? error.message
           : "Fiyatlar güncellenemedi. Sayfayı yenileyip tekrar deneyin.",
+    };
+  }
+}
+
+export async function moveMenuCategory(
+  id: string,
+  branchId: string,
+  direction: "up" | "down",
+  updatedAt: string,
+): Promise<MenuActionResult> {
+  const admin = await requireAdmin();
+  try {
+    assertUuid(id, "Kategori");
+    assertUuid(branchId, "Şube");
+    if (!["up", "down"].includes(direction))
+      throw new MenuValidationError("Yön seçimini kontrol edin.");
+    const client: SupabaseClient = await createClient();
+    const { error } = await client.rpc("move_admin_menu_category", {
+      p_id: id,
+      p_branch_id: branchId,
+      p_direction: direction,
+      p_updated_at: updatedAt,
+    });
+    if (error) throw error;
+    refreshMenu();
+    return { ok: true, message: "Kategori sırası güncellendi." };
+  } catch (error) {
+    await recordSystemEvent({
+      actorId: admin.userId,
+      route: "/admin/menu",
+      operation: "reorder",
+      entityType: "menu_categories",
+      entityId: id,
+      error,
+    });
+    return {
+      ok: false,
+      message: "Kategori sırası değiştirilemedi. Tekrar deneyin.",
     };
   }
 }

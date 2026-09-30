@@ -233,6 +233,7 @@ export type Database = {
           branch_id: string;
           display_name: string | null;
           description: string | null;
+          metadata: Json;
           is_active: boolean;
           sort_order: number;
           created_at: string;
@@ -244,6 +245,7 @@ export type Database = {
           branch_id: string;
           display_name?: string | null;
           description?: string | null;
+          metadata?: Json;
           is_active?: boolean;
           sort_order?: number;
           created_at?: string;
@@ -255,6 +257,7 @@ export type Database = {
           branch_id?: string;
           display_name?: string | null;
           description?: string | null;
+          metadata?: Json;
           is_active?: boolean;
           sort_order?: number;
           created_at?: string;
@@ -1471,10 +1474,20 @@ export type Database = {
       content_status: "draft" | "published" | "archived";
       media_source: "local" | "storage" | "external";
       media_kind: "image" | "document" | "video";
-      menu_category_display: "price_table" | "compact" | "cards" | "editorial" | "feature" | "coffee" | "custom";
-      inventory_status: "available" | "limited" | "out_of_stock" | "discontinued";
-      job_application_status: "new" | "reviewing" | "contacted" | "rejected" | "hired" | "archived";
-      job_application_privacy_status: "active" | "anonymization_pending" | "anonymized";
+      menu_category_display:
+        | "price_table"
+        | "compact"
+        | "cards"
+        | "editorial"
+        | "feature"
+        | "coffee"
+        | "custom";
+      inventory_status:
+        "available" | "limited" | "out_of_stock" | "discontinued";
+      job_application_status:
+        "new" | "reviewing" | "contacted" | "rejected" | "hired" | "archived";
+      job_application_privacy_status:
+        "active" | "anonymization_pending" | "anonymized";
       employment_type: "full_time" | "part_time";
       job_department: "service" | "kitchen" | "bar" | "cashier";
       shift_preference: "morning" | "evening" | "flexible";
@@ -1485,18 +1498,14 @@ export type Database = {
   };
 };
 
-export type Tables<
-  TableName extends keyof Database["public"]["Tables"],
-> = Database["public"]["Tables"][TableName]["Row"];
+export type Tables<TableName extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][TableName]["Row"];
 
-export type TablesInsert<
-  TableName extends keyof Database["public"]["Tables"],
-> = Database["public"]["Tables"][TableName]["Insert"];
+export type TablesInsert<TableName extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][TableName]["Insert"];
 
-export type TablesUpdate<
-  TableName extends keyof Database["public"]["Tables"],
-> = Database["public"]["Tables"][TableName]["Update"];
+export type TablesUpdate<TableName extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][TableName]["Update"];
 
-export type Enums<
-  EnumName extends keyof Database["public"]["Enums"],
-> = Database["public"]["Enums"][EnumName];
+export type Enums<EnumName extends keyof Database["public"]["Enums"]> =
+  Database["public"]["Enums"][EnumName];

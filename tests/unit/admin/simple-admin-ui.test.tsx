@@ -8,6 +8,7 @@ const m = vi.hoisted(() => ({
   category: vi.fn(),
   visibility: vi.fn(),
   move: vi.fn(),
+  moveCategory: vi.fn(),
   refresh: vi.fn(),
   content: vi.fn(),
 }));
@@ -21,6 +22,7 @@ vi.mock("@/lib/admin/menu-actions", () => ({
   saveMenuCategory: m.category,
   setMenuVisibility: m.visibility,
   moveMenuProduct: m.move,
+  moveMenuCategory: m.moveCategory,
 }));
 vi.mock("@/lib/admin/content-actions", () => ({
   saveContentRecord: m.content,
@@ -108,6 +110,17 @@ beforeEach(() => {
   m.content.mockResolvedValue({
     ok: true,
     message: "Site içeriği kaydedildi.",
+    snapshot: {
+      updated_at: "v2",
+      fields: [
+        {
+          path: ["description"],
+          label: "Alt açıklama",
+          value: "Yeni açıklama",
+          kind: "textarea",
+        },
+      ],
+    },
   });
 });
 describe("simple admin flows", () => {
@@ -218,8 +231,9 @@ describe("simple admin flows", () => {
     await user.clear(field);
     await user.type(field, "Yeni açıklama");
     await user.click(
-      screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
+      screen.getByRole("button", { name: "Değişiklikleri incele" }),
     );
+    await user.click(screen.getByRole("button", { name: "Onayla ve kaydet" }));
     await waitFor(() =>
       expect(m.content).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -228,6 +242,178 @@ describe("simple admin flows", () => {
         }),
       ),
     );
+  });
+  it("reopens immediately with normalized image and new version, then saves again without stale props", async () => {
+    const user = userEvent.setup();
+    m.content
+      .mockResolvedValueOnce({
+        ok: true,
+        message: "Kaydedildi",
+        snapshot: {
+          updated_at: "v2",
+          fields: [
+            {
+              path: ["description"],
+              label: "Alt açıklama",
+              value: "TEST_İlk",
+              kind: "textarea",
+            },
+            {
+              path: ["image", "src"],
+              label: "Görsel",
+              value: media[0].url,
+              kind: "image",
+            },
+          ],
+        },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        message: "Kaydedildi",
+        snapshot: {
+          updated_at: "v3",
+          fields: [
+            {
+              path: ["description"],
+              label: "Alt açıklama",
+              value: "TEST_İkinci",
+              kind: "textarea",
+            },
+            {
+              path: ["image", "src"],
+              label: "Görsel",
+              value: media[0].url,
+              kind: "image",
+            },
+          ],
+        },
+      });
+    render(
+      <ContentEditor
+        media={media}
+        record={{
+          id,
+          table: "content_blocks",
+          label: "TEST_Hero",
+          updated_at: "v1",
+          revisionHref: "/",
+          fields: [
+            {
+              path: ["description"],
+              label: "Alt açıklama",
+              value: "TEST_Eski",
+              kind: "textarea",
+            },
+            {
+              path: ["image", "src"],
+              label: "Görsel",
+              value: "/old.jpg",
+              kind: "image",
+            },
+          ],
+        }}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: /TEST_Hero/ }));
+    await user.clear(screen.getByLabelText("Alt açıklama"));
+    await user.type(screen.getByLabelText("Alt açıklama"), "TEST_İlk");
+    await user.click(screen.getByRole("button", { name: "Görsel değiştir" }));
+    await user.click(screen.getByRole("button", { name: media[0].label }));
+    await user.click(
+      screen.getByRole("button", { name: "Değişiklikleri incele" }),
+    );
+    expect(m.content).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Onayla ve kaydet" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    await user.click(screen.getByRole("button", { name: /TEST_Hero/ }));
+    expect(screen.getByLabelText("Alt açıklama")).toHaveValue("TEST_İlk");
+    expect(screen.getByAltText("Mevcut görsel")).toHaveAttribute(
+      "src",
+      media[0].url,
+    );
+    await user.clear(screen.getByLabelText("Alt açıklama"));
+    await user.type(screen.getByLabelText("Alt açıklama"), "TEST_İkinci");
+    await user.click(
+      screen.getByRole("button", { name: "Değişiklikleri incele" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Onayla ve kaydet" }));
+    await waitFor(() => expect(m.content).toHaveBeenCalledTimes(2));
+    expect(m.content.mock.calls[1][0]).toMatchObject({
+      updated_at: "v2",
+      changes: [{ path: ["description"], value: "TEST_İkinci" }],
+    });
+  });
+  it("rebases a real conflict without dropping the local changed field", async () => {
+    const user = userEvent.setup();
+    m.content.mockResolvedValueOnce({
+      ok: false,
+      message: "Güncel kayıt alındı",
+      conflict: {
+        updated_at: "v2",
+        fields: [
+          {
+            path: ["description"],
+            label: "Alt açıklama",
+            value: "TEST_Remote",
+            kind: "textarea",
+          },
+          {
+            path: ["title"],
+            label: "Başlık",
+            value: "TEST_RemoteTitle",
+            kind: "text",
+          },
+        ],
+      },
+    });
+    render(
+      <ContentEditor
+        media={[]}
+        initialOpen
+        record={{
+          id,
+          table: "content_blocks",
+          label: "TEST_Conflict",
+          updated_at: "v1",
+          revisionHref: "/",
+          fields: [
+            {
+              path: ["description"],
+              label: "Alt açıklama",
+              value: "TEST_Eski",
+              kind: "textarea",
+            },
+            {
+              path: ["title"],
+              label: "Başlık",
+              value: "TEST_EskiTitle",
+              kind: "text",
+            },
+          ],
+        }}
+      />,
+    );
+    await user.clear(screen.getByLabelText("Alt açıklama"));
+    await user.type(screen.getByLabelText("Alt açıklama"), "TEST_Local");
+    await user.click(
+      screen.getByRole("button", { name: "Değişiklikleri incele" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Onayla ve kaydet" }));
+    await screen.findByRole("alert");
+    expect(screen.getByLabelText("Alt açıklama")).toHaveValue("TEST_Local");
+    expect(screen.getByLabelText("Başlık")).toHaveValue("TEST_RemoteTitle");
+  });
+  it("explains parent visibility without changing the child's saved status", () => {
+    manager({
+      data: {
+        ...data,
+        categories: data.categories.map((c) => ({ ...c, is_active: false })),
+      },
+    });
+    expect(screen.getByText("Kategori nedeniyle gizli")).toBeInTheDocument();
+    expect(data.products[0].status).toBe("published");
   });
   it("keeps a failed content draft and clears it only after deliberate discard", async () => {
     const user = userEvent.setup();
@@ -256,8 +442,9 @@ describe("simple admin flows", () => {
     await user.clear(screen.getByLabelText("Alt açıklama"));
     await user.type(screen.getByLabelText("Alt açıklama"), "TEST_Taslak");
     await user.click(
-      screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
+      screen.getByRole("button", { name: "Değişiklikleri incele" }),
     );
+    await user.click(screen.getByRole("button", { name: "Onayla ve kaydet" }));
     await screen.findByText("Değişiklikler kaydedilemedi. Tekrar deneyin.");
     expect(screen.getByLabelText("Alt açıklama")).toHaveValue("TEST_Taslak");
     expect(screen.queryByText(/SECRET/)).not.toBeInTheDocument();

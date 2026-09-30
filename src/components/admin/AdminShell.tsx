@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import AdminNavLink from "./ui/AdminNavLink";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import AdminSignOutButton from "@/components/admin/AdminSignOutButton";
@@ -115,7 +116,7 @@ export default function AdminShell({
                       : pathname === link.href ||
                         pathname.startsWith(`${link.href}/`);
                   return (
-                    <Link
+                    <AdminNavLink
                       aria-current={active ? "page" : undefined}
                       className={active ? styles.active : undefined}
                       href={link.href}
@@ -123,7 +124,7 @@ export default function AdminShell({
                       onClick={() => setOpen(false)}
                     >
                       {link.label}
-                    </Link>
+                    </AdminNavLink>
                   );
                 })}
               </div>

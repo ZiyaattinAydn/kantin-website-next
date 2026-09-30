@@ -24,21 +24,24 @@ function parseMerchDoodles(
   value: Record<string, unknown> | undefined,
   activeMediaReferences: ReadonlySet<string>,
 ): MerchDoodle[] {
-  if (!value) return fallbackHomeData.merchDoodles;
+  if (!value) return [];
 
   return arrayOfRecords(value.items)
     .map((item) => ({
       src: stringValue(item.src),
       className: stringValue(item.className),
     }))
-    .filter((item) =>
-      item.src
-      && item.className
-      && isAllowedPublicMediaReference(item.src, activeMediaReferences),
+    .filter(
+      (item) =>
+        item.src &&
+        item.className &&
+        isAllowedPublicMediaReference(item.src, activeMediaReferences),
     );
 }
 
-async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublicData>> {
+async function loadMenuMerchPublicData(): Promise<
+  PublicDataEnvelope<MerchPublicData>
+> {
   try {
     const client = createPublicClient();
     const [
@@ -52,7 +55,9 @@ async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublic
       getPageBlocks(client, "home"),
       client
         .from("merch_products")
-        .select("id, slug, product_type, name, price_cents, description, detail, image_media_id, metadata, is_active, sort_order")
+        .select(
+          "id, slug, product_type, name, price_cents, description, detail, image_media_id, metadata, is_active, sort_order",
+        )
         .order("sort_order"),
       client
         .from("merch_product_branches")
@@ -67,11 +72,13 @@ async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublic
       if (result.error) throw result.error;
     }
 
-    const mediaIds = [...new Set(
-      (productsResult.data ?? [])
-        .map((product) => product.image_media_id)
-        .filter((id): id is string => Boolean(id)),
-    )];
+    const mediaIds = [
+      ...new Set(
+        (productsResult.data ?? [])
+          .map((product) => product.image_media_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
     const mediaRows = await getPublicMediaRows(client, mediaIds);
 
     const mediaById = new Map(mediaRows.map((media) => [media.id, media]));
@@ -94,7 +101,9 @@ async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublic
 
     const merchProducts: MerchProductContent[] = (productsResult.data ?? [])
       .filter((product) => product.product_type === "item")
-      .filter((product) => (branchIdsByProduct.get(product.id) ?? []).length > 0)
+      .filter(
+        (product) => (branchIdsByProduct.get(product.id) ?? []).length > 0,
+      )
       .map((product) => {
         const metadata = asRecord(product.metadata);
         const media = product.image_media_id
@@ -103,21 +112,27 @@ async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublic
         return {
           id: product.slug,
           slug: product.slug,
-          index: stringValue(metadata.index, String(product.sort_order).padStart(2, "0")),
+          index: stringValue(
+            metadata.index,
+            String(product.sort_order).padStart(2, "0"),
+          ),
           name: product.name,
           price: product.price_cents / 100,
           currency: "TRY",
           description: product.description,
           detail: product.detail ?? "",
           image: resolveMediaUrl(client, media) ?? "",
-          imageAlt: stringValue(metadata.image_alt, media?.alt_text ?? product.name),
+          imageAlt: stringValue(
+            metadata.image_alt,
+            media?.alt_text ?? product.name,
+          ),
           backImage:
             product.slug === "oversize-tshirt"
-              ? resolveMediaUrl(client, oversizeBackMedia) ?? undefined
+              ? (resolveMediaUrl(client, oversizeBackMedia) ?? undefined)
               : undefined,
           backImageAlt:
             product.slug === "oversize-tshirt"
-              ? oversizeBackMedia?.alt_text ?? undefined
+              ? (oversizeBackMedia?.alt_text ?? undefined)
               : undefined,
           branchIds: branchIdsByProduct.get(product.id) ?? [],
           active: product.is_active,
@@ -126,9 +141,18 @@ async function loadMenuMerchPublicData(): Promise<PublicDataEnvelope<MerchPublic
       });
 
     const bundles = (productsResult.data ?? [])
-      .filter((product) => (branchIdsByProduct.get(product.id) ?? []).length > 0)
-      .filter((product) => product.product_type === "bundle" || product.slug === "oversize-tshirt")
-      .map((product) => ({ name: product.name, price: product.price_cents / 100 }));
+      .filter(
+        (product) => (branchIdsByProduct.get(product.id) ?? []).length > 0,
+      )
+      .filter(
+        (product) =>
+          product.product_type === "bundle" ||
+          product.slug === "oversize-tshirt",
+      )
+      .map((product) => ({
+        name: product.name,
+        price: product.price_cents / 100,
+      }));
 
     return {
       data: {
