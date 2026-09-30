@@ -177,6 +177,13 @@ export default function SiteHeader({
   }, [isMobile, isOpen]);
 
   useEffect(() => {
+    const headerHidden = isHidden && !isOpen;
+    document.body.classList.toggle("header-hidden", headerHidden);
+
+    return () => document.body.classList.remove("header-hidden");
+  }, [isHidden, isOpen]);
+
+  useEffect(() => {
     if (isOpen) setIsHidden(false);
     document.body.classList.toggle("nav-open", isOpen);
 
