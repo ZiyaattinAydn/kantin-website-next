@@ -65,9 +65,11 @@ const presetIds: Record<AmbientDoodlePreset, readonly AmbientDoodle["id"][]> = {
 export default function AmbientDoodles({
   preset = "all",
   className = "",
+  parallax = true,
 }: {
   preset?: AmbientDoodlePreset;
   className?: string;
+  parallax?: boolean;
 }) {
   const selectedIds = new Set(presetIds[preset]);
   const selectedDoodles = ambientDoodles.filter((doodle) =>
@@ -76,6 +78,7 @@ export default function AmbientDoodles({
 
   return (
     <DoodleParallaxStage
+      disabled={!parallax}
       className={`merch-doodle-stage ambient-doodle-stage${
         className ? ` ${className}` : ""
       }`}
