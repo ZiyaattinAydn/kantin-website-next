@@ -4781,7 +4781,6 @@ body {
 
 .ambient-doodle-stage {
   contain: paint;
-  will-change: transform;
 }
 
 .ambient-doodle-table {
