@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
 import { assertUuid } from "./pricing";
 import { recordSystemEvent } from "./system-logs";
+import { preserveAdminListPath } from "./result-path";
 export async function resolveSystemLog(form: FormData): Promise<never> {
   await requireAdmin();
   let destination = "/admin/logs?notice=Kayıt+güncellendi.";
@@ -26,5 +27,5 @@ export async function resolveSystemLog(form: FormData): Promise<never> {
     destination = "/admin/logs?error=Kayıt+güncellenemedi.";
   }
   revalidatePath("/admin/logs");
-  redirect(destination);
+  redirect(preserveAdminListPath(destination, form.get("_return_to")));
 }

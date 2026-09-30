@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
 import { MenuValidationError, parseMenuPayload } from "./menu-model";
+import { parseCategoryInput, parseQuickPrices } from "./menu-management";
 import { assertUuid } from "./pricing";
 import { recordSystemEvent } from "./system-logs";
 export type MenuActionResult = { ok: boolean; message: string; id?: string };
@@ -133,6 +134,71 @@ export async function moveMenuProduct(
     return {
       ok: false,
       message: "Sıra değiştirilemedi. Sayfayı yenileyip tekrar deneyin.",
+    };
+  }
+}
+
+export async function saveMenuCategory(
+  input: unknown,
+): Promise<MenuActionResult> {
+  const admin = await requireAdmin();
+  try {
+    const payload = parseCategoryInput(input);
+    const client: SupabaseClient = await createClient();
+    const { data, error } = await client.rpc("save_admin_menu_category", {
+      p_payload: payload,
+    });
+    if (error) throw error;
+    refreshMenu();
+    return {
+      ok: true,
+      message: "Kategori ve şube seçimleri kaydedildi.",
+      id: String(data),
+    };
+  } catch (error) {
+    await recordSystemEvent({
+      actorId: admin.userId,
+      route: "/admin/menu",
+      operation: "save",
+      entityType: "menu_categories",
+      error,
+    });
+    return {
+      ok: false,
+      message:
+        error instanceof MenuValidationError
+          ? error.message
+          : "Kategori kaydedilemedi. Sayfayı yenileyip tekrar deneyin.",
+    };
+  }
+}
+export async function saveQuickMenuPrices(
+  input: unknown,
+): Promise<MenuActionResult> {
+  const admin = await requireAdmin();
+  try {
+    const payload = parseQuickPrices(input);
+    const client: SupabaseClient = await createClient();
+    const { error } = await client.rpc("save_admin_menu_prices", {
+      p_payload: payload,
+    });
+    if (error) throw error;
+    refreshMenu();
+    return { ok: true, message: "Fiyatlar güncellendi." };
+  } catch (error) {
+    await recordSystemEvent({
+      actorId: admin.userId,
+      route: "/admin/menu",
+      operation: "update",
+      entityType: "menu_items",
+      error,
+    });
+    return {
+      ok: false,
+      message:
+        error instanceof MenuValidationError
+          ? error.message
+          : "Fiyatlar güncellenemedi. Sayfayı yenileyip tekrar deneyin.",
     };
   }
 }

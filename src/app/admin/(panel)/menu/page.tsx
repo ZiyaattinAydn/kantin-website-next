@@ -38,13 +38,15 @@ export default async function MenuPage({
         initialEdit={query.edit}
         initialCategory={query.category}
         showNew={query.new === "1"}
-        pricesOnly={query.mode === "prices"}
+        initialPrices={query.priceEdit}
+        initialCategoryEdit={query.categoryEdit}
+        initialVisibility={query.visibility}
       />
     );
   }
   return (
     <section className={styles.page}>
-      <h1>Menüyü Düzenle</h1>
+      <h1>Menü</h1>
       <p role="alert">Menü yüklenemedi. Tekrar deneyin.</p>
       <Link href="/admin/menu">Tekrar dene</Link>
     </section>

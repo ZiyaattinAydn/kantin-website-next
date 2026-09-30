@@ -1,5 +1,8 @@
 "use server";
+import { preserveAdminListPath } from "./result-path";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { assertUuid } from "./pricing";
 import { recordSystemEvent } from "./system-logs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -50,7 +53,6 @@ function resourcePath(resourceKey: string, params?: Record<string, string>) {
   return `/admin/manage/${resourceKey}${search.size ? `?${search.toString()}` : ""}`;
 }
 
-
 function immutableUpdateFields(resource: AdminResource) {
   return resource.fields.filter((field) => field.immutableOnUpdate);
 }
@@ -58,7 +60,8 @@ function immutableUpdateFields(resource: AdminResource) {
 function serializeAdminFieldValue(value: unknown): string | null {
   if (value === null || value === undefined) return "";
   if (typeof value === "boolean") return value ? "on" : null;
-  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (typeof value === "string" || typeof value === "number")
+    return String(value);
   return JSON.stringify(value);
 }
 
@@ -81,7 +84,9 @@ function withImmutableUpdateValues(
 
 function assertDatabaseAudit(resource: AdminResource): void {
   if (!DATABASE_AUDITED_TABLES.has(resource.table)) {
-    throw new Error("Bu yönetim alanı için güvenli kayıt yapılandırması eksik.");
+    throw new Error(
+      "Bu yönetim alanı için güvenli kayıt yapılandırması eksik.",
+    );
   }
 }
 
@@ -90,10 +95,24 @@ function adminVisibilityState(
   values: Record<string, unknown>,
 ) {
   return {
+    ...(resource.key === "events"
+      ? {
+          event: {
+            contentType: values.content_type,
+            startAt: values.start_at,
+            endAt: values.end_at,
+            publishStartAt: values.publish_start_at,
+            publishEndAt: values.publish_end_at,
+            publishedAt: values.published_at,
+          },
+        }
+      : {}),
     hasActiveField: Boolean(resource.activeField),
     hasStatusField: Boolean(resource.statusField),
     active: resource.activeField ? values[resource.activeField] === true : true,
-    status: resource.statusField ? String(values[resource.statusField] ?? "") : "",
+    status: resource.statusField
+      ? String(values[resource.statusField] ?? "")
+      : "",
   };
 }
 
@@ -105,21 +124,23 @@ function assertVisibilityConfirmation(
 ): void {
   const requiredPhrase = requiredAdminVisibilityConfirmation({
     isCreate: currentValues === null,
-    current: currentValues ? adminVisibilityState(resource, currentValues) : null,
+    current: currentValues
+      ? adminVisibilityState(resource, currentValues)
+      : null,
     next: adminVisibilityState(resource, nextValues),
   });
 
   if (!requiredPhrase) return;
   if (textValue(formData, "_visibility_confirm") === requiredPhrase) return;
 
-  const action = requiredPhrase === ADMIN_VISIBILITY_CONFIRMATIONS.publish
-    ? "yayına alma"
-    : "ziyaretçiden gizleme";
+  const action =
+    requiredPhrase === ADMIN_VISIBILITY_CONFIRMATIONS.publish
+      ? "yayına alma"
+      : "ziyaretçiden gizleme";
   throw new Error(
     `${action} onayı doğrulanamadı. İşlemi panelden yeniden başlatıp “${requiredPhrase}” yazarak onayla.`,
   );
 }
-
 
 export async function saveAdminResource(formData: FormData): Promise<never> {
   const resourceKey = textValue(formData, "_resource");
@@ -136,9 +157,9 @@ export async function saveAdminResource(formData: FormData): Promise<never> {
     if (id) {
       const needsCurrent = Boolean(
         resource.orderScopeFields?.length ||
-        immutableUpdateFields(resource).length ||
-        resource.activeField ||
-        resource.statusField,
+          immutableUpdateFields(resource).length ||
+          resource.activeField ||
+          resource.statusField,
       );
       const supabase = await createClient();
       const current = needsCurrent
@@ -160,25 +181,75 @@ export async function saveAdminResource(formData: FormData): Promise<never> {
         }
       }
 
-      await updateAdminRow(supabase, resource.table, id, payload);
-      destination = resourcePath(resource.key, { notice: "Kayıt güncellendi." });
+      if (
+        resource.key === "events" &&
+        formData.has("_event_branches_present")
+      ) {
+        const client: SupabaseClient = supabase;
+        const branches = formData
+          .getAll("_event_branch")
+          .map((value) => assertUuid(String(value), "Şube"));
+        const { error } = await client.rpc("save_admin_event_with_branches", {
+          p_id: id,
+          p_updated_at: textValue(formData, "_updated_at"),
+          p_payload: payload,
+          p_branches: branches,
+          p_branch_snapshot: JSON.parse(
+            textValue(formData, "_event_branch_snapshot") || "[]",
+          ),
+          p_confirmed: textValue(formData, "_visibility_confirm"),
+        });
+        if (error) throw error;
+      } else await updateAdminRow(supabase, resource.table, id, payload);
+      destination = resourcePath(resource.key, {
+        notice: "Kayıt güncellendi.",
+      });
     } else {
-      if (!resource.allowCreate) throw new Error("Bu modülde yeni kayıt oluşturma kapalı.");
+      if (!resource.allowCreate)
+        throw new Error("Bu modülde yeni kayıt oluşturma kapalı.");
       const payload = parseAdminResourcePayload(resource, formData);
       assertVisibilityConfirmation(resource, formData, payload, null);
       const supabase = await createClient();
       // Sıra kullanıcıdan alınmaz. DB trigger'ı aynı kapsam için advisory lock altında
       // son sırayı hesaplar; böylece eşzamanlı eklemeler aynı değeri alamaz.
       payload[resource.orderField] = -1;
-      await insertAdminRow(supabase, resource.table, payload);
-      destination = resourcePath(resource.key, { notice: "Yeni kayıt oluşturuldu." });
+      if (
+        resource.key === "events" &&
+        formData.has("_event_branches_present")
+      ) {
+        const client: SupabaseClient = supabase;
+        const branches = formData
+          .getAll("_event_branch")
+          .map((value) => assertUuid(String(value), "Şube"));
+        const { error } = await client.rpc("save_admin_event_with_branches", {
+          p_id: null,
+          p_updated_at: null,
+          p_payload: payload,
+          p_branches: branches,
+          p_branch_snapshot: [],
+          p_confirmed: textValue(formData, "_visibility_confirm"),
+        });
+        if (error) throw error;
+      } else await insertAdminRow(supabase, resource.table, payload);
+      destination = resourcePath(resource.key, {
+        notice: "Yeni kayıt oluşturuldu.",
+      });
     }
   } catch (error) {
-    await recordSystemEvent({ actorId: admin?.userId, route: `/admin/manage/${resource.key}`, operation: "save", entityType: resource.table, entityId: id, error });
+    await recordSystemEvent({
+      actorId: admin?.userId,
+      route: `/admin/manage/${resource.key}`,
+      operation: "save",
+      entityType: resource.table,
+      entityId: id,
+      error,
+    });
     const actionError = adminActionError(error);
     destination = resourcePath(resource.key, {
       error: actionError.message,
-      ...(actionError.kind === "validation" ? { field: actionError.field } : {}),
+      ...(actionError.kind === "validation"
+        ? { field: actionError.field }
+        : {}),
       ...(id ? { edit: id } : { new: "1" }),
     });
   }
@@ -188,7 +259,7 @@ export async function saveAdminResource(formData: FormData): Promise<never> {
   revalidatePath("/");
   revalidatePath("/menu");
   revalidatePath("/events");
-  redirect(destination);
+  redirect(preserveAdminListPath(destination, formData.get("_return_to")));
 }
 
 export async function archiveAdminResource(formData: FormData): Promise<never> {
@@ -203,7 +274,9 @@ export async function archiveAdminResource(formData: FormData): Promise<never> {
   let destination: string;
 
   try {
-    if (textValue(formData, "_confirm") !== ADMIN_VISIBILITY_CONFIRMATIONS.hide) {
+    if (
+      textValue(formData, "_confirm") !== ADMIN_VISIBILITY_CONFIRMATIONS.hide
+    ) {
       throw new Error(
         `Pasife alma onayı doğrulanamadı. İşlemi panelden yeniden başlatıp “${ADMIN_VISIBILITY_CONFIRMATIONS.hide}” yazarak onayla.`,
       );
@@ -213,14 +286,27 @@ export async function archiveAdminResource(formData: FormData): Promise<never> {
     const patch: AdminMutationPayload = {};
     if (resource.activeField) patch[resource.activeField] = false;
     if (resource.statusField) patch[resource.statusField] = "archived";
-    if (!Object.keys(patch).length) throw new Error("Bu kayıt pasife alınamıyor.");
+    if (!Object.keys(patch).length)
+      throw new Error("Bu kayıt pasife alınamıyor.");
 
     const supabase = await createClient();
     await updateAdminRow(supabase, resource.table, id, patch);
-    destination = resourcePath(resource.key, { notice: "Kayıt pasife alındı / arşivlendi." });
+    destination = resourcePath(resource.key, {
+      notice: "Kayıt pasife alındı / arşivlendi.",
+    });
   } catch (error) {
-    await recordSystemEvent({ actorId: admin?.userId, route: `/admin/manage/${resource.key}`, operation: "archive", entityType: resource.table, entityId: id, error });
-    destination = resourcePath(resource.key, { error: adminActionError(error).message, edit: id });
+    await recordSystemEvent({
+      actorId: admin?.userId,
+      route: `/admin/manage/${resource.key}`,
+      operation: "archive",
+      entityType: resource.table,
+      entityId: id,
+      error,
+    });
+    destination = resourcePath(resource.key, {
+      error: adminActionError(error).message,
+      edit: id,
+    });
   }
 
   revalidatePath("/admin");
@@ -228,7 +314,7 @@ export async function archiveAdminResource(formData: FormData): Promise<never> {
   revalidatePath("/");
   revalidatePath("/menu");
   revalidatePath("/events");
-  redirect(destination);
+  redirect(preserveAdminListPath(destination, formData.get("_return_to")));
 }
 
 function isAdminResourceInactive(
@@ -257,22 +343,38 @@ export async function deleteAdminResource(formData: FormData): Promise<never> {
 
   try {
     if (textValue(formData, "_confirm") !== "KALICI SİL") {
-      throw new Error("Kalıcı silme onayı doğrulanamadı. İşlemi ekrandaki kalıcı silme düğmesinden yeniden başlat.");
+      throw new Error(
+        "Kalıcı silme onayı doğrulanamadı. İşlemi ekrandaki kalıcı silme düğmesinden yeniden başlat.",
+      );
     }
 
     assertDatabaseAudit(resource);
     const supabase = await createClient();
     const row = await readAdminRow(supabase, resource.table, id);
     if (!isAdminResourceInactive(resource, row)) {
-      throw new Error("Kalıcı silmeden önce kaydı pasife almalı veya arşivlemelisin.");
+      throw new Error(
+        "Kalıcı silmeden önce kaydı pasife almalı veya arşivlemelisin.",
+      );
     }
 
     await assertAdminDeleteNotBlocked(supabase, resource, id);
     await deleteAdminRow(supabase, resource.table, id);
-    destination = resourcePath(resource.key, { notice: "Kayıt ve ona ait alt bağlantılar kalıcı olarak silindi." });
+    destination = resourcePath(resource.key, {
+      notice: "Kayıt ve ona ait alt bağlantılar kalıcı olarak silindi.",
+    });
   } catch (error) {
-    await recordSystemEvent({ actorId: admin?.userId, route: `/admin/manage/${resource.key}`, operation: "delete", entityType: resource.table, entityId: id, error });
-    destination = resourcePath(resource.key, { error: adminActionError(error).message, edit: id });
+    await recordSystemEvent({
+      actorId: admin?.userId,
+      route: `/admin/manage/${resource.key}`,
+      operation: "delete",
+      entityType: resource.table,
+      entityId: id,
+      error,
+    });
+    destination = resourcePath(resource.key, {
+      error: adminActionError(error).message,
+      edit: id,
+    });
   }
 
   revalidatePath("/admin");
@@ -281,5 +383,5 @@ export async function deleteAdminResource(formData: FormData): Promise<never> {
   revalidatePath("/");
   revalidatePath("/menu");
   revalidatePath("/events");
-  redirect(destination);
+  redirect(preserveAdminListPath(destination, formData.get("_return_to")));
 }

@@ -1,4 +1,5 @@
 "use server";
+import { preserveAdminListPath } from "./result-path";
 
 import { recordSystemEvent } from "./system-logs";
 import { revalidatePath } from "next/cache";
@@ -20,31 +21,49 @@ function resourcePath(resourceKey: string, params?: Record<string, string>) {
 }
 
 function restoreErrorMessage(error: unknown): string {
-  const message = error && typeof error === "object" && "message" in error
-    ? String(error.message)
-    : "";
+  const message =
+    error && typeof error === "object" && "message" in error
+      ? String(error.message)
+      : "";
 
-  if (message.includes("Sürüm geri yükleme onayı doğrulanamadı")) return message;
-  if (message.includes("revision_not_found")) return "Seçilen sürüm artık bulunamıyor.";
-  if (message.includes("revision_target_mismatch")) return "Seçilen sürüm bu kayda ait değil.";
-  if (message.includes("revision_not_restorable")) return "Bu geçmiş kaydı geri yüklenebilir bir sürüm değil.";
-  if (message.includes("revision_restore_not_supported")) return "Bu kayıt türünde sürüm geri yükleme desteklenmiyor.";
-  if (message.includes("revision_target_not_found")) return "Geri yüklenecek ana kayıt artık bulunamıyor.";
-  if (message.includes("revision_already_current")) return "Kayıt zaten seçilen sürümdeki değerlerle aynı.";
-  if (message.includes("admin_required") || message.includes("permission denied")) {
+  if (message.includes("Sürüm geri yükleme onayı doğrulanamadı"))
+    return message;
+  if (message.includes("revision_not_found"))
+    return "Seçilen sürüm artık bulunamıyor.";
+  if (message.includes("revision_target_mismatch"))
+    return "Seçilen sürüm bu kayda ait değil.";
+  if (message.includes("revision_not_restorable"))
+    return "Bu geçmiş kaydı geri yüklenebilir bir sürüm değil.";
+  if (message.includes("revision_restore_not_supported"))
+    return "Bu kayıt türünde sürüm geri yükleme desteklenmiyor.";
+  if (message.includes("revision_target_not_found"))
+    return "Geri yüklenecek ana kayıt artık bulunamıyor.";
+  if (message.includes("revision_already_current"))
+    return "Kayıt zaten seçilen sürümdeki değerlerle aynı.";
+  if (
+    message.includes("admin_required") ||
+    message.includes("permission denied")
+  ) {
     return "Bu işlem için aktif yönetici yetkisi gerekiyor.";
   }
 
   return "Seçilen sürüm geri yüklenemedi. Kayıt değiştirilmedi.";
 }
 
-export async function restoreAdminResourceRevision(formData: FormData): Promise<never> {
+export async function restoreAdminResourceRevision(
+  formData: FormData,
+): Promise<never> {
   const resourceKey = textValue(formData, "_resource");
   const entityId = textValue(formData, "_id");
   const revisionId = textValue(formData, "_revision_id");
   const resource = getAdminResource(resourceKey);
 
-  if (!resource || !supportsAdminRevisionHistory(resource) || !entityId || !revisionId) {
+  if (
+    !resource ||
+    !supportsAdminRevisionHistory(resource) ||
+    !entityId ||
+    !revisionId
+  ) {
     redirect("/admin?error=Geçersiz sürüm geri yükleme isteği.");
   }
 
@@ -52,7 +71,9 @@ export async function restoreAdminResourceRevision(formData: FormData): Promise<
   let destination: string;
 
   try {
-    if (textValue(formData, "_confirm") !== ADMIN_REVISION_RESTORE_CONFIRMATION) {
+    if (
+      textValue(formData, "_confirm") !== ADMIN_REVISION_RESTORE_CONFIRMATION
+    ) {
       throw new Error(
         `Sürüm geri yükleme onayı doğrulanamadı. İşlemi panelden yeniden başlatıp “${ADMIN_REVISION_RESTORE_CONFIRMATION}” yazarak onayla.`,
       );
@@ -68,11 +89,19 @@ export async function restoreAdminResourceRevision(formData: FormData): Promise<
     if (error) throw error;
 
     destination = resourcePath(resource.key, {
-      notice: "Önceki sürüm geri yüklendi. İşlem yeni bir sürüm olarak kaydedildi.",
+      notice:
+        "Önceki sürüm geri yüklendi. İşlem yeni bir sürüm olarak kaydedildi.",
       edit: entityId,
     });
   } catch (error) {
-    await recordSystemEvent({ actorId: admin?.userId, route: `/admin/manage/${resource.key}`, operation: "restore", entityType: resource.table, entityId: entityId, error });
+    await recordSystemEvent({
+      actorId: admin?.userId,
+      route: `/admin/manage/${resource.key}`,
+      operation: "restore",
+      entityType: resource.table,
+      entityId: entityId,
+      error,
+    });
     destination = resourcePath(resource.key, {
       error: restoreErrorMessage(error),
       edit: entityId,
@@ -84,5 +113,5 @@ export async function restoreAdminResourceRevision(formData: FormData): Promise<
   revalidatePath("/");
   revalidatePath("/menu");
   revalidatePath("/events");
-  redirect(destination);
+  redirect(preserveAdminListPath(destination, formData.get("_return_to")));
 }

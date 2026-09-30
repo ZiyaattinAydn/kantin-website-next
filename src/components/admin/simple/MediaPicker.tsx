@@ -17,6 +17,7 @@ export default function MediaPicker({
   const selected = choices.find((m) => m.id === value);
   return (
     <div>
+      <input type="hidden" name="selected_image" value={value} />
       <p>
         {selected ? `Seçili görsel: ${selected.label}` : "Görsel seçilmedi."}
       </p>

@@ -1,10 +1,12 @@
 "use client";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { runAdminAction } from "@/lib/admin/client-action";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { MenuData, MenuProduct } from "@/lib/admin/menu-model";
 import type { MediaChoice } from "@/lib/admin/media-choices";
 import { formatTryPriceInput } from "@/lib/admin/pricing";
 import { saveMenuProduct } from "@/lib/admin/menu-actions";
+import RecordHistory from "../ui/RecordHistory";
 import MediaPicker from "./MediaPicker";
 import styles from "./SimpleAdmin.module.css";
 type Option = { id: string; label: string; price: string; is_active: boolean };
@@ -14,7 +16,6 @@ export default function MenuProductForm({
   product,
   branchId,
   categoryId,
-  onClose,
   onSaved,
 }: {
   data: MenuData;
@@ -25,13 +26,11 @@ export default function MenuProductForm({
   onClose: () => void;
   onSaved: (message: string) => void;
 }) {
-  const panelRef = useRef<HTMLElement>(null);
   const router = useRouter();
   const [pending, start] = useTransition();
   const [message, setMessage] = useState("");
   const [dirty, setDirty] = useState(false);
   const [step, setStep] = useState(1);
-  useEffect(() => { panelRef.current?.scrollIntoView?.({block: "start", behavior: "smooth"}); }, [step]);
   const links = data.placements.filter((b) => b.menu_item_id === product?.id);
   const variants = data.variants.filter((v) =>
     links.some((b) => b.id === v.menu_item_branch_id),
@@ -113,26 +112,19 @@ export default function MenuProductForm({
   }
   return (
     <section
-      ref={panelRef}
       className={styles.panel}
       aria-label={product ? "Ürünü düzenle" : "Yeni ürün ekle"}
     >
       <div className={styles.head}>
         <h2>{product ? `${product.name} — Düzenle` : "Yeni ürün ekle"}</h2>
-        <button
-          type="button"
-          disabled={pending}
-          onClick={() => {
-            if (
-              !dirty ||
-              window.confirm("Kaydedilmemiş değişiklikler silinsin mi?")
-            )
-              onClose();
-          }}
-        >
-          Kapat
-        </button>
       </div>
+      {product ? (
+        <RecordHistory
+          resourceKey="menu-items"
+          id={product.id}
+          label={product.name}
+        />
+      ) : null}
       {!product ? (
         <ol className={styles.steps}>
           {[
@@ -153,6 +145,7 @@ export default function MenuProductForm({
         </p>
       ) : null}
       <form
+        aria-busy={pending}
         onChange={() => setDirty(true)}
         onSubmit={(e) => {
           e.preventDefault();
@@ -182,26 +175,30 @@ export default function MenuProductForm({
           )
             return;
           start(async () => {
-            const result = await saveMenuProduct({
-              id: product?.id,
-              updated_at: product?.updated_at,
-              name,
-              category_id: category,
-              description,
-              image_media_id: image,
-              status,
-              is_active: active,
-              confirmed: visibilityChanged ? "EVET" : "",
-              branches: selected,
-              branch_snapshot: links.map((b) => ({
-                id: b.id,
-                updated_at: b.updated_at,
-              })),
-              variant_snapshot: variants.map((v) => ({
-                id: v.id,
-                updated_at: v.updated_at,
-              })),
-            });
+            const result = await runAdminAction(
+              () =>
+                saveMenuProduct({
+                  id: product?.id,
+                  updated_at: product?.updated_at,
+                  name,
+                  category_id: category,
+                  description,
+                  image_media_id: image,
+                  status,
+                  is_active: active,
+                  confirmed: visibilityChanged ? "EVET" : "",
+                  branches: selected,
+                  branch_snapshot: links.map((b) => ({
+                    id: b.id,
+                    updated_at: b.updated_at,
+                  })),
+                  variant_snapshot: variants.map((v) => ({
+                    id: v.id,
+                    updated_at: v.updated_at,
+                  })),
+                }),
+              "Ürün kaydedilemedi. Tekrar deneyin.",
+            );
             if (result.ok) {
               setDirty(false);
               onSaved(result.message);

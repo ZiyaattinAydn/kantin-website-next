@@ -31,7 +31,7 @@ export const adminTasks = [
   },
   {
     label: "Site içeriğini düzenle",
-    href: "/admin/content",
+    href: "/admin/site",
     description: "Ana sayfa, şubeler, Instagram ve footer.",
     keywords: "içerik instagram footer iletişim",
   },
@@ -45,20 +45,13 @@ export const adminTasks = [
 
 export const adminNavigation = [
   { label: "Ana Sayfa", links: [{ href: "/admin", label: "Ana Sayfa" }] },
-  {
-    label: "Menü",
-    links: [
-      { href: "/admin/menu", label: "Menüyü Düzenle" },
-      { href: "/admin/menu?new=1", label: "Yeni Ürün Ekle" },
-      { href: "/admin/menu?mode=prices", label: "Fiyatları Düzenle" },
-    ],
-  },
+  { label: "Menü", links: [{ href: "/admin/menu", label: "Menü" }] },
   {
     label: "İçerik",
     links: [
-      { href: "/admin/manage/events", label: "Etkinlik / Duyuru" },
+      { href: "/admin/manage/events", label: "Etkinlikler / Duyurular" },
       { href: "/admin/media", label: "Görseller" },
-      { href: "/admin/content", label: "Site İçeriği" },
+      { href: "/admin/site", label: "Site" },
     ],
   },
   {
@@ -69,33 +62,7 @@ export const adminNavigation = [
     ],
   },
   {
-    label: "Site",
-    links: [
-      { href: "/admin/theme", label: "Tasarım" },
-      { href: "/admin/content?section=settings", label: "Site Ayarları" },
-    ],
+    label: "Teknik",
+    links: [{ href: "/admin/logs", label: "Sistem Kayıtları / Teknik Loglar" }],
   },
-];
-
-export const advancedNavigation = [
-  { href: "/admin/logs", label: "Sistem Kayıtları / Teknik Loglar" },
-  { href: "/admin/manage/menu-categories", label: "Kategoriler" },
-  {
-    href: "/admin/manage/menu-category-branches",
-    label: "Kategori - şube ilişkileri",
-  },
-  { href: "/admin/manage/menu-items", label: "Ürün kayıtları" },
-  { href: "/admin/manage/menu-item-branches", label: "Ürün - şube ilişkileri" },
-  { href: "/admin/manage/menu-item-variants", label: "Varyant kayıtları" },
-  { href: "/admin/pricing", label: "Teknik fiyat yönetimi" },
-  { href: "/admin/manage/event-branches", label: "Etkinlik - şube ilişkileri" },
-  { href: "/admin/manage/merch-products", label: "Merch ürünleri" },
-  {
-    href: "/admin/manage/merch-product-branches",
-    label: "Merch - şube ilişkileri",
-  },
-  { href: "/admin/manage/instagram-posts", label: "Instagram kayıtları" },
-  { href: "/admin/manage/site-pages", label: "Site Pages" },
-  { href: "/admin/manage/content-blocks", label: "Content Blocks" },
-  { href: "/admin/manage/site-settings", label: "Gelişmiş Site Settings" },
 ];

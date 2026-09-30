@@ -62,7 +62,7 @@ export async function loadContentRecords(
     >(c, "site_settings");
     for (const s of rows.filter((s) =>
       section === "home"
-        ? s.key === "sections.visibility"
+        ? false
         : !!settingLabels[s.key] && s.key !== "sections.visibility",
     ))
       records.push({
@@ -72,7 +72,7 @@ export async function loadContentRecords(
         updated_at: s.updated_at,
         fields: editableContentFields(s.value),
         revisionHref: `/admin/manage/site-settings?edit=${s.id}`,
-          visibility: { status: s.status, is_active: s.is_active },
+        visibility: { status: s.status, is_active: s.is_active },
       });
   }
   const { data: pages, error: pageError } = await c
@@ -134,7 +134,10 @@ export async function loadContentRecords(
         updated_at: b.updated_at,
         fields,
         revisionHref: `/admin/manage/content-blocks?edit=${b.id}`,
-        visibility: section === "alsancak" || section === "atakent" ? undefined : { status: b.status, is_active: b.is_active },
+        visibility:
+          section === "alsancak" || section === "atakent"
+            ? undefined
+            : { status: b.status, is_active: b.is_active },
       });
     }
   }

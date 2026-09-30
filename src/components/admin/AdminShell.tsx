@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import AdminSignOutButton from "@/components/admin/AdminSignOutButton";
-import { adminNavigation, advancedNavigation } from "@/lib/admin/navigation";
+import { adminNavigation } from "@/lib/admin/navigation";
+import AdminListState from "./ui/AdminListState";
 import styles from "./AdminShell.module.css";
 
 export default function AdminShell({
@@ -128,24 +129,6 @@ export default function AdminShell({
               </div>
             </section>
           ))}
-          <details
-            className={styles.advancedNav}
-            open={advancedNavigation.some((link) => pathname === link.href)}
-          >
-            <summary>Gelişmiş Yönetim</summary>
-            <div>
-              {advancedNavigation.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  aria-current={pathname === link.href ? "page" : undefined}
-                  onClick={() => setOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </details>
         </nav>
 
         <div className={styles.sidebarFooter}>
@@ -166,6 +149,7 @@ export default function AdminShell({
       ) : null}
 
       <main className={styles.main}>
+        <AdminListState />
         <form action="/admin/search" className={styles.search} role="search">
           <label htmlFor="admin-task-search">Panelde ara</label>
           <div>

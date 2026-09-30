@@ -98,7 +98,11 @@ export function editableContentFields(
 ): ContentField[] {
   if (Array.isArray(value))
     return value.flatMap((v, i) =>
-      editableContentFields(v, [...path, i], `${context} · ${i + 1}`),
+      editableContentFields(
+        v,
+        [...path, i],
+        `${context} · ${v && typeof v === "object" && (v.name || v.eyebrow || v.slug) ? String(v.name || v.eyebrow || v.slug) : i + 1}`,
+      ),
     );
   if (value && typeof value === "object") {
     return Object.entries(value).flatMap(([key, v]) => {

@@ -1,4 +1,5 @@
 "use server";
+import { preserveAdminListPath } from "./result-path";
 
 import { recordSystemEvent } from "./system-logs";
 import { friendlyAdminError } from "./user-error";
@@ -51,7 +52,10 @@ function parseOrder(formData: FormData): HomeSectionKey[] {
 }
 
 function safeMessage(error: unknown): string {
-  return friendlyAdminError(error, "Tasarım ayarları kaydedilemedi. Tekrar deneyin.");
+  return friendlyAdminError(
+    error,
+    "Tasarım ayarları kaydedilemedi. Tekrar deneyin.",
+  );
 }
 
 export async function saveThemeSettings(formData: FormData): Promise<never> {
@@ -128,7 +132,9 @@ export async function saveThemeSettings(formData: FormData): Promise<never> {
     });
 
     if (error || data !== true) {
-      throw error ?? new Error("Tasarım ayarları güvenli biçimde kaydedilemedi.");
+      throw (
+        error ?? new Error("Tasarım ayarları güvenli biçimde kaydedilemedi.")
+      );
     }
 
     destination = `/admin/theme?notice=${encodeURIComponent(
@@ -137,7 +143,14 @@ export async function saveThemeSettings(formData: FormData): Promise<never> {
         : "Tasarım ayarları kaydedildi.",
     )}`;
   } catch (error) {
-    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/theme", operation: "save", entityType: "site_settings", entityId: null, error });
+    await recordSystemEvent({
+      actorId: admin?.userId,
+      route: "/admin/theme",
+      operation: "save",
+      entityType: "site_settings",
+      entityId: null,
+      error,
+    });
     destination = `/admin/theme?error=${encodeURIComponent(safeMessage(error))}`;
   }
 
@@ -147,5 +160,5 @@ export async function saveThemeSettings(formData: FormData): Promise<never> {
   revalidatePath("/menu");
   revalidatePath("/events");
   revalidatePath("/careers");
-  redirect(destination);
+  redirect(preserveAdminListPath(destination, formData.get("_return_to")));
 }

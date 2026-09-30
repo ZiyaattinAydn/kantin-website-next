@@ -1,3 +1,7 @@
+import {
+  eventAvailability,
+  parseEventDate as parseDate,
+} from "./event-availability";
 import type { Event as EventRecord, EventBranchId } from "@/types/domain";
 
 export type EventBranch = EventBranchId;
@@ -14,13 +18,21 @@ export type RawEvent = Partial<
   ctaLabel?: unknown;
   publishStartAt?: unknown;
   publishEndAt?: unknown;
+  publishedAt?: unknown;
   createdAt?: string | null;
   sortOrder?: unknown;
 };
 
 export type KantinEvent = Omit<
   EventRecord,
-  "id" | "contentType" | "startAt" | "endAt" | "branchId" | "status" | "publishStartAt" | "publishEndAt"
+  | "id"
+  | "contentType"
+  | "startAt"
+  | "endAt"
+  | "branchId"
+  | "status"
+  | "publishStartAt"
+  | "publishEndAt"
 > & {
   id?: string;
   contentType: EventContentType;
@@ -34,40 +46,6 @@ export type KantinEvent = Omit<
   publishEndAt: Date | null;
   sortOrder: number;
 };
-
-type TimestampLike = {
-  seconds?: number;
-  toDate?: () => Date;
-};
-
-function parseDate(value: unknown): Date | null {
-  if (!value) return null;
-
-  if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? null : value;
-  }
-
-  if (typeof value === "object") {
-    const timestamp = value as TimestampLike;
-
-    if (typeof timestamp.toDate === "function") {
-      const date = timestamp.toDate();
-      return Number.isNaN(date.getTime()) ? null : date;
-    }
-
-    if (typeof timestamp.seconds === "number") {
-      const date = new Date(timestamp.seconds * 1000);
-      return Number.isNaN(date.getTime()) ? null : date;
-    }
-  }
-
-  if (typeof value === "string" || typeof value === "number") {
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? null : date;
-  }
-
-  return null;
-}
 
 function normaliseBranch(value?: string): EventBranch {
   const normalized = value?.trim().toLowerCase();
@@ -88,19 +66,21 @@ function numberOrZero(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
-function isVisibleAnnouncement(item: KantinEvent, now: Date): boolean {
-  return (!item.publishStartAt || item.publishStartAt <= now)
-    && (!item.publishEndAt || item.publishEndAt >= now);
-}
-
 function eventSortDate(item: KantinEvent): number {
-  return (item.startAt ?? item.publishStartAt ?? item.publishEndAt ?? new Date(0)).getTime();
+  return (
+    item.startAt ??
+    item.publishStartAt ??
+    item.publishEndAt ??
+    new Date(0)
+  ).getTime();
 }
 
-export function normalisePublishedEvents(items: RawEvent[]): KantinEvent[] {
-  const now = new Date();
-
+export function normalisePublishedEvents(
+  items: RawEvent[],
+  now = new Date(),
+): KantinEvent[] {
   return items
+    .filter((item) => eventAvailability(item, now).visible)
     .map((item): KantinEvent | null => {
       const contentType = normaliseContentType(item.contentType);
       const startAt = parseDate(item.startAt);
@@ -115,7 +95,9 @@ export function normalisePublishedEvents(items: RawEvent[]): KantinEvent[] {
         id: item.id,
         contentType,
         title: item.title?.trim() || "Kantin etkinliği",
-        description: item.description?.trim() || (contentType === "announcement" ? "" : "Detaylar yakında."),
+        description:
+          item.description?.trim() ||
+          (contentType === "announcement" ? "" : "Detaylar yakında."),
         startAt,
         endAt,
         branch: normaliseBranch(item.branchId ?? item.branch),
@@ -130,16 +112,16 @@ export function normalisePublishedEvents(items: RawEvent[]): KantinEvent[] {
       };
     })
     .filter((item): item is KantinEvent => Boolean(item))
-    .filter((item) => {
-      if (item.contentType === "announcement") return isVisibleAnnouncement(item, now);
-      return ((item.endAt || item.startAt) as Date) >= now;
-    })
+    .filter((item) => eventAvailability(item, now).visible)
     .sort((first, second) => {
       if (first.contentType !== second.contentType) {
         return first.contentType === "announcement" ? -1 : 1;
       }
       if (first.contentType === "announcement") {
-        return second.sortOrder - first.sortOrder || eventSortDate(second) - eventSortDate(first);
+        return (
+          second.sortOrder - first.sortOrder ||
+          eventSortDate(second) - eventSortDate(first)
+        );
       }
       return eventSortDate(first) - eventSortDate(second);
     });
@@ -150,7 +132,9 @@ export function safeExternalUrl(value?: string): string | null {
 
   try {
     const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url.href
+      : null;
   } catch {
     return null;
   }

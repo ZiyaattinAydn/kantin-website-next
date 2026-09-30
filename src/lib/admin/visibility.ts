@@ -1,3 +1,7 @@
+import {
+  eventAvailability,
+  type EventAvailabilityInput,
+} from "@/lib/event-availability";
 export const ADMIN_VISIBILITY_CONFIRMATIONS = {
   publish: "YAYINLA",
   hide: "PASİFE AL",
@@ -11,6 +15,7 @@ type VisibilityState = {
   hasStatusField: boolean;
   active?: boolean;
   status?: string;
+  event?: EventAvailabilityInput;
 };
 
 type VisibilityTransition = {
@@ -50,10 +55,21 @@ const IMPACTS: Record<string, string> = {
     "Bu içerik bölümü bağlı olduğu sayfada görünmez. İçerik verisi ve sayfa kaydı silinmez.",
 };
 
-export function isAdminResourcePubliclyVisible(state: VisibilityState): boolean {
+export function isAdminResourcePubliclyVisible(
+  state: VisibilityState,
+): boolean {
   const active = state.hasActiveField ? state.active === true : true;
   const published = state.hasStatusField ? state.status === "published" : true;
-  return active && published;
+  return (
+    active &&
+    published &&
+    (!state.event ||
+      eventAvailability({
+        ...state.event,
+        status: state.status,
+        active: state.active,
+      }).visible)
+  );
 }
 
 export function requiredAdminVisibilityConfirmation({
@@ -68,7 +84,9 @@ export function requiredAdminVisibilityConfirmation({
   if (isCreate) {
     // Aktif-only ilişki kayıtları oluşturulurken ek onay gerektirmez. Yayın durumu olan
     // içerikler doğrudan ziyaretçiye açılıyorsa bilinçli yayın onayı ister.
-    return next.hasStatusField && nextVisible
+    return next.hasStatusField &&
+      next.status === "published" &&
+      (!next.hasActiveField || next.active === true)
       ? ADMIN_VISIBILITY_CONFIRMATIONS.publish
       : null;
   }
@@ -76,7 +94,9 @@ export function requiredAdminVisibilityConfirmation({
   if (!current) return null;
 
   const becomesArchived =
-    next.hasStatusField && current.status !== "archived" && next.status === "archived";
+    next.hasStatusField &&
+    current.status !== "archived" &&
+    next.status === "archived";
   const becomesInactive =
     next.hasActiveField && current.active === true && next.active === false;
   if (becomesArchived || becomesInactive) {
@@ -94,7 +114,10 @@ export function requiredAdminVisibilityConfirmation({
   return null;
 }
 
-export function adminVisibilityImpact(resourceKey: string, singular: string): string {
+export function adminVisibilityImpact(
+  resourceKey: string,
+  singular: string,
+): string {
   return (
     IMPACTS[resourceKey] ??
     `${singular} ziyaretçi görünümünden kaldırılır; kayıt silinmez ve daha sonra yeniden yayınlanabilir.`

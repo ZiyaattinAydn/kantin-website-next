@@ -1,4 +1,5 @@
 "use server";
+import { preserveAdminListPath } from "./result-path";
 
 import { recordSystemEvent } from "./system-logs";
 import { friendlyAdminError } from "./user-error";
@@ -47,7 +48,9 @@ async function previewApplicationAnonymization(
   }
 
   if (application.status !== "archived") {
-    throw new Error("Dry-run: Anonimleştirme için başvuru önce Arşiv durumuna alınmalı.");
+    throw new Error(
+      "Dry-run: Anonimleştirme için başvuru önce Arşiv durumuna alınmalı.",
+    );
   }
 
   if (application.cv_media_id) {
@@ -65,7 +68,9 @@ async function previewApplicationAnonymization(
       media.bucket_name !== "career-cvs" ||
       !media.object_path
     ) {
-      throw new Error("Dry-run: CV Storage bağlantısı güvenli değil; gerçek işlem durdurulmalı.");
+      throw new Error(
+        "Dry-run: CV Storage bağlantısı güvenli değil; gerçek işlem durdurulmalı.",
+      );
     }
   }
 
@@ -78,7 +83,9 @@ async function previewApplicationAnonymization(
     : "Dry-run başarılı: Arşivli başvuruda CV bağlantısı yok; yalnız DB anonimleştirme adımı çalışacak. Gerçek işlem yapılmadı.";
 }
 
-export async function updateApplicationAction(formData: FormData): Promise<never> {
+export async function updateApplicationAction(
+  formData: FormData,
+): Promise<never> {
   const admin = await requireAdmin();
   const id = text(formData, "id");
   const status = text(formData, "status") as Status;
@@ -86,8 +93,10 @@ export async function updateApplicationAction(formData: FormData): Promise<never
   let destination: string;
 
   try {
-    if (!id || !allowedStatuses.has(status)) throw new Error("Geçersiz başvuru güncellemesi.");
-    if (adminNotes.length > 5000) throw new Error("Admin notu en fazla 5000 karakter olabilir.");
+    if (!id || !allowedStatuses.has(status))
+      throw new Error("Geçersiz başvuru güncellemesi.");
+    if (adminNotes.length > 5000)
+      throw new Error("Admin notu en fazla 5000 karakter olabilir.");
 
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -103,17 +112,29 @@ export async function updateApplicationAction(formData: FormData): Promise<never
     }
     destination = `/admin/applications?edit=${id}&notice=${encodeURIComponent("Başvuru güncellendi.")}#application-${id}`;
   } catch (error) {
-    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/applications", operation: "update", entityType: "job_applications", entityId: text(formData, "id"), error });
-    const message = friendlyAdminError(error, "Başvuru güncellenemedi. Tekrar deneyin.");
+    await recordSystemEvent({
+      actorId: admin?.userId,
+      route: "/admin/applications",
+      operation: "update",
+      entityType: "job_applications",
+      entityId: text(formData, "id"),
+      error,
+    });
+    const message = friendlyAdminError(
+      error,
+      "Başvuru güncellenemedi. Tekrar deneyin.",
+    );
     destination = `/admin/applications?edit=${id}&error=${encodeURIComponent(message)}#application-${id}`;
   }
 
   revalidatePath("/admin");
   revalidatePath("/admin/applications");
-  redirect(destination);
+  redirect(preserveAdminListPath(destination, formData.get("_return_to")));
 }
 
-export async function anonymizeApplicationAction(formData: FormData): Promise<never> {
+export async function anonymizeApplicationAction(
+  formData: FormData,
+): Promise<never> {
   const admin = await requireAdmin();
   const id = text(formData, "id");
   const intent = text(formData, "_intent");
@@ -140,14 +161,18 @@ export async function anonymizeApplicationAction(formData: FormData): Promise<ne
         throw beginError ?? new Error("Anonimleştirme başlatılamadı.");
       }
 
-      const hasStorageReference = Boolean(beginRow.bucket_name || beginRow.object_path);
+      const hasStorageReference = Boolean(
+        beginRow.bucket_name || beginRow.object_path,
+      );
       if (hasStorageReference) {
         if (beginRow.bucket_name !== "career-cvs" || !beginRow.object_path) {
           await supabase.rpc("cancel_job_application_anonymization", {
             p_application_id: id,
             p_reason: "invalid_cv_storage_reference",
           });
-          throw new Error("CV Storage bağlantısı güvenli değil; işlem durduruldu.");
+          throw new Error(
+            "CV Storage bağlantısı güvenli değil; işlem durduruldu.",
+          );
         }
 
         const { error: removeError } = await supabase.storage
@@ -162,9 +187,13 @@ export async function anonymizeApplicationAction(formData: FormData): Promise<ne
             },
           );
           if (cancelError) {
-            throw new Error("CV silinemedi ve anonimleştirme kilidi geri alınamadı; işlemi tekrar dene.");
+            throw new Error(
+              "CV silinemedi ve anonimleştirme kilidi geri alınamadı; işlemi tekrar dene.",
+            );
           }
-          throw new Error("CV Storage dosyası silinemedi; başvuru değiştirilmedi.");
+          throw new Error(
+            "CV Storage dosyası silinemedi; başvuru değiştirilmedi.",
+          );
         }
       }
 
@@ -178,17 +207,29 @@ export async function anonymizeApplicationAction(formData: FormData): Promise<ne
         );
       }
 
-      destination = "/admin/applications?notice=" + encodeURIComponent(
-        "CV silindi ve başvuru geri döndürülemez biçimde anonimleştirildi.",
-      );
+      destination =
+        "/admin/applications?notice=" +
+        encodeURIComponent(
+          "CV silindi ve başvuru geri döndürülemez biçimde anonimleştirildi.",
+        );
     }
   } catch (error) {
-    await recordSystemEvent({ actorId: admin?.userId, route: "/admin/applications", operation: "anonymize", entityType: "job_applications", entityId: text(formData, "id"), error });
-    const message = friendlyAdminError(error, "Başvuru anonimleştirilemedi. Tekrar deneyin.");
+    await recordSystemEvent({
+      actorId: admin?.userId,
+      route: "/admin/applications",
+      operation: "anonymize",
+      entityType: "job_applications",
+      entityId: text(formData, "id"),
+      error,
+    });
+    const message = friendlyAdminError(
+      error,
+      "Başvuru anonimleştirilemedi. Tekrar deneyin.",
+    );
     destination = `/admin/applications?edit=${id}&error=${encodeURIComponent(message)}#application-${id}`;
   }
 
   revalidatePath("/admin");
   revalidatePath("/admin/applications");
-  redirect(destination);
+  redirect(preserveAdminListPath(destination, formData.get("_return_to")));
 }

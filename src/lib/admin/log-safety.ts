@@ -63,7 +63,7 @@ export const LOG_ENTITIES = [
 ] as const;
 export function safeLogRoute(value: string): string {
   const path = value.split(/[?#]/)[0];
-  return /^\/admin(?:\/(?:menu|content|pricing|theme|media|applications|logs|search|manage\/(?:menu-categories|menu-category-branches|menu-items|menu-item-branches|menu-item-variants|events|event-branches|merch-products|merch-product-branches|instagram-posts|site-pages|content-blocks|site-settings|branches)))?$/.test(
+  return /^\/admin(?:\/(?:menu|site|content|pricing|theme|media|applications|logs|search|manage\/(?:menu-categories|menu-category-branches|menu-items|menu-item-branches|menu-item-variants|events|event-branches|merch-products|merch-product-branches|instagram-posts|site-pages|content-blocks|site-settings|branches)))?$/.test(
     path,
   )
     ? path
@@ -89,14 +89,20 @@ export function sanitizeSystemEvent(input: {
       : {};
   const code =
     LOG_CODES.find((c) => c === (error.databaseCode ?? error.code)) ??
-    (["MenuValidationError", "AdminValidationError"].includes(String(error.name)) ? "VALIDATION" : "UNKNOWN");
+    (["MenuValidationError", "AdminValidationError"].includes(
+      String(error.name),
+    )
+      ? "VALIDATION"
+      : "UNKNOWN");
   return {
     actor_id: isUuid(input.actorId) ? input.actorId : null,
     route: safeLogRoute(input.route),
     operation: LOG_OPERATIONS.find((o) => o === input.operation) ?? "save",
     entity_type: LOG_ENTITIES.find((e) => e === input.entityType) ?? "system",
     entity_id: isUuid(input.entityId) ? input.entityId : null,
-    level: LOG_LEVELS.find((l) => l === input.level) ?? (code === "VALIDATION" ? "warning" : "error"),
+    level:
+      LOG_LEVELS.find((l) => l === input.level) ??
+      (code === "VALIDATION" ? "warning" : "error"),
     error_code: code,
     technical_message: messages[code],
     request_id: isUuid(input.requestId)
@@ -107,4 +113,40 @@ export function sanitizeSystemEvent(input: {
       source: "admin",
     },
   };
+}
+
+export function safeSystemLogView(row: Record<string, unknown>) {
+  const safe = sanitizeSystemEvent({
+    actorId: typeof row.actor_id === "string" ? row.actor_id : null,
+    route: String(row.route ?? ""),
+    operation: String(row.operation ?? ""),
+    entityType: String(row.entity_type ?? ""),
+    entityId: typeof row.entity_id === "string" ? row.entity_id : null,
+    level: row.level as LogLevel,
+    error: { code: row.error_code },
+    requestId: typeof row.request_id === "string" ? row.request_id : undefined,
+  });
+  return {
+    ...safe,
+    id: typeof row.id === "string" && isUuid(row.id) ? row.id : "",
+    created_at:
+      typeof row.created_at === "string" &&
+      Number.isFinite(Date.parse(row.created_at))
+        ? row.created_at
+        : "",
+    resolved_at:
+      typeof row.resolved_at === "string" &&
+      Number.isFinite(Date.parse(row.resolved_at))
+        ? row.resolved_at
+        : null,
+    request_id:
+      typeof row.request_id === "string" && isUuid(row.request_id)
+        ? row.request_id
+        : "",
+  };
+}
+export function systemLogSearch(value: unknown): string {
+  return typeof value === "string" && /^[a-zA-Z0-9_ /:-]{1,100}$/.test(value)
+    ? value.trim()
+    : "";
 }

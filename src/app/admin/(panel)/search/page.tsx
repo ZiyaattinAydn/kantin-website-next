@@ -57,7 +57,7 @@ export default async function AdminSearchPage({
             results.push({
               label: r.label,
               description: section.label,
-              href: `/admin/content?section=${section.key}`,
+              href: `/admin/site?section=${section.key}`,
             });
           }
     } catch (error) {

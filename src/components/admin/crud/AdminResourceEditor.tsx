@@ -1,3 +1,6 @@
+import RecordMediaField from "../ui/RecordMediaField";
+import { eventAvailabilityFromRow } from "@/lib/event-availability";
+import AdminDialog from "@/components/admin/ui/AdminDialog";
 import Link from "next/link";
 import AdminInteractionGuard from "@/components/admin/AdminInteractionGuard";
 import type { CSSProperties, ReactNode } from "react";
@@ -14,7 +17,10 @@ import {
 import type { AdminOptionsMap } from "@/lib/admin/options";
 import type { AdminPagination as PaginationData } from "@/lib/admin/pagination";
 import type { AdminRecordRevision } from "@/lib/admin/revisions";
-import { deleteImpactDefinition, type AdminDeleteImpact } from "@/lib/admin/resource-delete";
+import {
+  deleteImpactDefinition,
+  type AdminDeleteImpact,
+} from "@/lib/admin/resource-delete";
 import type { AdminField, AdminResource } from "@/lib/admin/resources";
 import {
   ADMIN_VISIBILITY_CONFIRMATIONS,
@@ -46,94 +52,269 @@ type ListColumn = {
 const resourceColumns: Record<string, ListColumn[]> = {
   "menu-categories": [
     { key: "identity", label: "Kategori", fields: ["name"], kind: "identity" },
-    { key: "display", label: "Görünüm", fields: ["display_type"], kind: "type" },
-    { key: "status", label: "Durum", fields: ["status", "is_active"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "display",
+      label: "Görünüm",
+      fields: ["display_type"],
+      kind: "type",
+    },
+    {
+      key: "status",
+      label: "Durum",
+      fields: ["status", "is_active"],
+      kind: "status",
+    },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
   "menu-category-branches": [
-    { key: "category", label: "Kategori", fields: ["category_id", "display_name"], kind: "identity" },
+    {
+      key: "category",
+      label: "Kategori",
+      fields: ["category_id", "display_name"],
+      kind: "identity",
+    },
     { key: "branch", label: "Şube", fields: ["branch_id"], kind: "detail" },
     { key: "status", label: "Durum", fields: ["is_active"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
   "menu-items": [
     { key: "identity", label: "Ürün", fields: ["name"], kind: "identity" },
-    { key: "category", label: "Kategori", fields: ["category_id"], kind: "detail" },
-    { key: "status", label: "Durum", fields: ["status", "is_active"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "category",
+      label: "Kategori",
+      fields: ["category_id"],
+      kind: "detail",
+    },
+    {
+      key: "status",
+      label: "Durum",
+      fields: ["status", "is_active"],
+      kind: "status",
+    },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
   "menu-item-branches": [
     { key: "item", label: "Ürün", fields: ["menu_item_id"], kind: "identity" },
     { key: "branch", label: "Şube", fields: ["branch_id"], kind: "detail" },
-    { key: "price", label: "Fiyat", fields: ["price_cents", "price_label"], kind: "money" },
+    {
+      key: "price",
+      label: "Fiyat",
+      fields: ["price_cents", "price_label"],
+      kind: "money",
+    },
     { key: "status", label: "Durum", fields: ["is_active"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
   "menu-item-variants": [
     { key: "identity", label: "Varyant", fields: ["label"], kind: "identity" },
-    { key: "item", label: "Ürün ve şube", fields: ["menu_item_branch_id"], kind: "detail" },
+    {
+      key: "item",
+      label: "Ürün ve şube",
+      fields: ["menu_item_branch_id"],
+      kind: "detail",
+    },
     { key: "price", label: "Fiyat", fields: ["price_cents"], kind: "money" },
     { key: "status", label: "Durum", fields: ["is_active"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
   events: [
     { key: "identity", label: "İçerik", fields: ["title"], kind: "identity" },
     { key: "type", label: "Tür", fields: ["content_type"], kind: "type" },
     { key: "date", label: "Başlangıç", fields: ["start_at"], kind: "date" },
-    { key: "status", label: "Durum", fields: ["status", "is_active", "is_featured"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "status",
+      label: "Durum",
+      fields: ["status", "is_active", "is_featured"],
+      kind: "status",
+    },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
   "event-branches": [
     { key: "event", label: "Etkinlik", fields: ["event_id"], kind: "identity" },
     { key: "branch", label: "Şube", fields: ["branch_id"], kind: "detail" },
     { key: "status", label: "Durum", fields: ["is_active"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
   "merch-products": [
     { key: "identity", label: "Ürün", fields: ["name"], kind: "identity" },
     { key: "type", label: "Tür", fields: ["product_type"], kind: "type" },
     { key: "price", label: "Fiyat", fields: ["price_cents"], kind: "money" },
-    { key: "inventory", label: "Stok", fields: ["inventory_status"], kind: "status" },
-    { key: "status", label: "Durum", fields: ["status", "is_active"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "inventory",
+      label: "Stok",
+      fields: ["inventory_status"],
+      kind: "status",
+    },
+    {
+      key: "status",
+      label: "Durum",
+      fields: ["status", "is_active"],
+      kind: "status",
+    },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
   "merch-product-branches": [
-    { key: "product", label: "Merch ürünü", fields: ["merch_product_id"], kind: "identity" },
+    {
+      key: "product",
+      label: "Merch ürünü",
+      fields: ["merch_product_id"],
+      kind: "identity",
+    },
     { key: "branch", label: "Şube", fields: ["branch_id"], kind: "detail" },
     { key: "status", label: "Durum", fields: ["is_available"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
   "instagram-posts": [
-    { key: "identity", label: "Gönderi", fields: ["caption"], kind: "identity" },
+    {
+      key: "identity",
+      label: "Gönderi",
+      fields: ["caption"],
+      kind: "identity",
+    },
     { key: "branch", label: "Şube", fields: ["branch_id"], kind: "detail" },
-    { key: "published", label: "Gönderi tarihi", fields: ["published_at"], kind: "date" },
-    { key: "status", label: "Durum", fields: ["status", "is_active"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "published",
+      label: "Gönderi tarihi",
+      fields: ["published_at"],
+      kind: "date",
+    },
+    {
+      key: "status",
+      label: "Durum",
+      fields: ["status", "is_active"],
+      kind: "status",
+    },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
   branches: [
     { key: "identity", label: "Şube", fields: ["name"], kind: "identity" },
-    { key: "location", label: "Konum", fields: ["district", "city"], kind: "detail" },
-    { key: "status", label: "Durum", fields: ["status", "is_active"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "location",
+      label: "Konum",
+      fields: ["district", "city"],
+      kind: "detail",
+    },
+    {
+      key: "status",
+      label: "Durum",
+      fields: ["status", "is_active"],
+      kind: "status",
+    },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
   "site-settings": [
     { key: "identity", label: "Ayar", fields: ["key"], kind: "identity" },
-    { key: "description", label: "Açıklama", fields: ["description"], kind: "detail" },
+    {
+      key: "description",
+      label: "Açıklama",
+      fields: ["description"],
+      kind: "detail",
+    },
     { key: "public", label: "Erişim", fields: ["is_public"], kind: "status" },
-    { key: "status", label: "Durum", fields: ["status", "is_active"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "status",
+      label: "Durum",
+      fields: ["status", "is_active"],
+      kind: "status",
+    },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
   "site-pages": [
     { key: "identity", label: "Sayfa", fields: ["title"], kind: "identity" },
-    { key: "status", label: "Durum", fields: ["status", "is_active"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "status",
+      label: "Durum",
+      fields: ["status", "is_active"],
+      kind: "status",
+    },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
   "content-blocks": [
-    { key: "identity", label: "İçerik bloğu", fields: ["key"], kind: "identity" },
+    {
+      key: "identity",
+      label: "İçerik bloğu",
+      fields: ["key"],
+      kind: "identity",
+    },
     { key: "page", label: "Sayfa", fields: ["page_id"], kind: "detail" },
     { key: "type", label: "Tür", fields: ["block_type"], kind: "type" },
-    { key: "status", label: "Durum", fields: ["status", "is_active"], kind: "status" },
-    { key: "updated", label: "Son güncelleme", fields: ["updated_at"], kind: "date" },
+    {
+      key: "status",
+      label: "Durum",
+      fields: ["status", "is_active"],
+      kind: "status",
+    },
+    {
+      key: "updated",
+      label: "Son güncelleme",
+      fields: ["updated_at"],
+      kind: "date",
+    },
   ],
 };
 
@@ -213,7 +394,11 @@ function FieldControl({
           type="checkbox"
         />
         <span>{field.label}</span>
-        {invalid && error ? <small className={styles.fieldError} id={errorId}>{error}</small> : null}
+        {invalid && error ? (
+          <small className={styles.fieldError} id={errorId}>
+            {error}
+          </small>
+        ) : null}
       </label>
     );
   }
@@ -232,7 +417,25 @@ function FieldControl({
       htmlFor={controlId}
     >
       <span>{field.label}</span>
-      {field.type === "json" ? (
+      {field.optionSource === "media" ? (
+        <RecordMediaField
+          name={field.name}
+          value={String(value)}
+          media={(options.media ?? []).flatMap((m) =>
+            m.url
+              ? [
+                  {
+                    id: m.value,
+                    label: m.label,
+                    url: m.url,
+                    width: null,
+                    height: null,
+                  },
+                ]
+              : [],
+          )}
+        />
+      ) : field.type === "json" ? (
         <AdminJsonField
           defaultValue={String(value)}
           describedBy={errorId}
@@ -257,7 +460,9 @@ function FieldControl({
         />
       ) : field.type === "select" || field.type === "foreign" ? (
         <>
-          {locked ? <input name={field.name} type="hidden" value={String(value)} /> : null}
+          {locked ? (
+            <input name={field.name} type="hidden" value={String(value)} />
+          ) : null}
           <select
             {...common}
             aria-readonly={locked || undefined}
@@ -265,7 +470,9 @@ function FieldControl({
             disabled={locked}
           >
             {field.nullable ? <option value="">Seçilmedi</option> : null}
-            {!field.required && !field.nullable ? <option value="">Seç</option> : null}
+            {!field.required && !field.nullable ? (
+              <option value="">Seç</option>
+            ) : null}
             {fieldOptions(field, options).map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -277,13 +484,33 @@ function FieldControl({
         <input
           {...common}
           defaultValue={String(value)}
-          inputMode={field.type === "money" || field.type === "number" ? "decimal" : undefined}
-          maxLength={field.type === "string-array" ? 6_000 : field.type === "text" ? 500 : undefined}
-          min={field.type === "money" || field.type === "number" ? 0 : undefined}
+          inputMode={
+            field.type === "money" || field.type === "number"
+              ? "decimal"
+              : undefined
+          }
+          maxLength={
+            field.type === "string-array"
+              ? 6_000
+              : field.type === "text"
+                ? 500
+                : undefined
+          }
+          min={
+            field.type === "money" || field.type === "number" ? 0 : undefined
+          }
           readOnly={locked}
-          pattern={field.name === "slug" ? "[a-z0-9]+(?:-[a-z0-9]+)*" : undefined}
+          pattern={
+            field.name === "slug" ? "[a-z0-9]+(?:-[a-z0-9]+)*" : undefined
+          }
           placeholder={field.placeholder}
-          step={field.type === "money" ? "0.01" : field.type === "number" ? "1" : undefined}
+          step={
+            field.type === "money"
+              ? "0.01"
+              : field.type === "number"
+                ? "1"
+                : undefined
+          }
           type={
             field.type === "datetime"
               ? "datetime-local"
@@ -297,16 +524,30 @@ function FieldControl({
           }
         />
       )}
-      {locked ? <small className={styles.lockedNote}>Sistem alanı · Bu kayıtta değiştirilemez.</small> : null}
+      {locked ? (
+        <small className={styles.lockedNote}>
+          Sistem alanı · Bu kayıtta değiştirilemez.
+        </small>
+      ) : null}
       {field.help ? <small>{field.help}</small> : null}
-      {invalid && error ? <small className={styles.fieldError} id={errorId}>{error}</small> : null}
+      {invalid && error ? (
+        <small className={styles.fieldError} id={errorId}>
+          {error}
+        </small>
+      ) : null}
     </label>
   );
 }
 
-function optionLabel(field: AdminField | undefined, value: unknown, options: AdminOptionsMap) {
+function optionLabel(
+  field: AdminField | undefined,
+  value: unknown,
+  options: AdminOptionsMap,
+) {
   if (!field || typeof value !== "string") return null;
-  const option = fieldOptions(field, options).find((entry) => entry.value === value);
+  const option = fieldOptions(field, options).find(
+    (entry) => entry.value === value,
+  );
   return option?.label ?? null;
 }
 
@@ -320,24 +561,36 @@ function listDisplay(
   const related = optionLabel(field, value, options);
   if (related) return related;
   if (field?.type === "money") return formatMoneyCents(value);
-  if (field?.type === "datetime" || fieldName === "updated_at") return formatAdminDate(value);
+  if (field?.type === "datetime" || fieldName === "updated_at")
+    return formatAdminDate(value);
   return displayValue(value);
 }
 
 function badgeClass(value: unknown, fieldName: string) {
-  if (typeof value === "boolean") return value ? styles.badgeSuccess : styles.badgeMuted;
+  if (typeof value === "boolean")
+    return value ? styles.badgeSuccess : styles.badgeMuted;
   const normalized = String(value ?? "").toLowerCase();
-  if (["published", "active", "available", "hired"].includes(normalized)) return styles.badgeSuccess;
-  if (["draft", "limited", "reviewing", "announcement"].includes(normalized)) return styles.badgeWarning;
-  if (["out_of_stock", "discontinued", "rejected"].includes(normalized)) return styles.badgeDanger;
+  if (["published", "active", "available", "hired"].includes(normalized))
+    return styles.badgeSuccess;
+  if (["draft", "limited", "reviewing", "announcement"].includes(normalized))
+    return styles.badgeWarning;
+  if (["out_of_stock", "discontinued", "rejected"].includes(normalized))
+    return styles.badgeDanger;
   if (["archived", "passive"].includes(normalized)) return styles.badgeMuted;
-  if (fieldName === "content_type" || fieldName === "product_type" || fieldName === "display_type" || fieldName === "block_type") return styles.badgeBlue;
+  if (
+    fieldName === "content_type" ||
+    fieldName === "product_type" ||
+    fieldName === "display_type" ||
+    fieldName === "block_type"
+  )
+    return styles.badgeBlue;
   return styles.badge;
 }
 
 function booleanLabel(fieldName: string, value: boolean) {
   if (fieldName === "is_featured") return value ? "Öne çıkan" : null;
-  if (fieldName === "is_public") return value ? "Ziyaretçi sitesinde" : "Yalnız yönetim panelinde";
+  if (fieldName === "is_public")
+    return value ? "Ziyaretçi sitesinde" : "Yalnız yönetim panelinde";
   if (fieldName === "is_available") return value ? "Mevcut" : "Mevcut değil";
   return value ? "Aktif" : "Pasif";
 }
@@ -360,14 +613,64 @@ function renderColumn(
     const [primary, ...secondary] = entries;
     return (
       <div className={styles.identity}>
-        <strong>{primary ? listDisplay(resource, primary.fieldName, primary.value, options) : "—"}</strong>
+        <strong>
+          {primary
+            ? listDisplay(resource, primary.fieldName, primary.value, options)
+            : "—"}
+        </strong>
         {secondary.map((entry) => {
-          const rendered = listDisplay(resource, entry.fieldName, entry.value, options);
-          const codeLike = ["slug", "code", "key", "external_id"].includes(entry.fieldName);
-          return codeLike
-            ? <code className={styles.code} key={entry.fieldName}>{rendered}</code>
-            : <small key={entry.fieldName}>{rendered}</small>;
+          const rendered = listDisplay(
+            resource,
+            entry.fieldName,
+            entry.value,
+            options,
+          );
+          const codeLike = ["slug", "code", "key", "external_id"].includes(
+            entry.fieldName,
+          );
+          return codeLike ? (
+            <code className={styles.code} key={entry.fieldName}>
+              {rendered}
+            </code>
+          ) : (
+            <small key={entry.fieldName}>{rendered}</small>
+          );
         })}
+      </div>
+    );
+  }
+
+  if (resource.key === "events" && column.kind === "type")
+    return (
+      <div className={styles.cellStack}>
+        <strong>
+          {row.content_type === "announcement" ? "Duyuru" : "Etkinlik"}
+        </strong>
+        <small>
+          {Array.isArray(row._branch_ids) && row._branch_ids.length
+            ? row._branch_ids
+                .map(
+                  (id) => options.branches?.find((b) => b.value === id)?.label,
+                )
+                .filter(Boolean)
+                .join(", ")
+            : "Tüm şubeler"}
+        </small>
+      </div>
+    );
+  if (resource.key === "events" && column.kind === "status") {
+    const state = eventAvailabilityFromRow(row);
+    return (
+      <div className={styles.statusStack}>
+        <span className={badgeClass(state.visible, "is_active")}>
+          {state.label}
+        </span>
+        {row.is_featured === true && state.visible ? (
+          <span className={badgeClass(true, "is_featured")}>Öne çıkan</span>
+        ) : null}
+        <small>
+          {state.visible ? "Sitede gösteriliyor" : "Sitede gösterilmiyor"}
+        </small>
       </div>
     );
   }
@@ -378,10 +681,20 @@ function renderColumn(
         {entries.map((entry) => {
           if (typeof entry.value === "boolean") {
             const label = booleanLabel(entry.fieldName, entry.value);
-            return label ? <span className={badgeClass(entry.value, entry.fieldName)} key={entry.fieldName}>{label}</span> : null;
+            return label ? (
+              <span
+                className={badgeClass(entry.value, entry.fieldName)}
+                key={entry.fieldName}
+              >
+                {label}
+              </span>
+            ) : null;
           }
           return (
-            <span className={badgeClass(entry.value, entry.fieldName)} key={entry.fieldName}>
+            <span
+              className={badgeClass(entry.value, entry.fieldName)}
+              key={entry.fieldName}
+            >
               {listDisplay(resource, entry.fieldName, entry.value, options)}
             </span>
           );
@@ -394,26 +707,45 @@ function renderColumn(
     const [primary, ...secondary] = entries;
     return (
       <div className={styles.cellStack}>
-        <span className={styles.money}>{primary ? listDisplay(resource, primary.fieldName, primary.value, options) : "—"}</span>
-        {secondary.map((entry) => <small key={entry.fieldName}>{listDisplay(resource, entry.fieldName, entry.value, options)}</small>)}
+        <span className={styles.money}>
+          {primary
+            ? listDisplay(resource, primary.fieldName, primary.value, options)
+            : "—"}
+        </span>
+        {secondary.map((entry) => (
+          <small key={entry.fieldName}>
+            {listDisplay(resource, entry.fieldName, entry.value, options)}
+          </small>
+        ))}
       </div>
     );
   }
 
-
   if (column.kind === "date") {
     return (
       <div className={styles.cellStack}>
-        {entries.map((entry) => <small key={entry.fieldName}>{listDisplay(resource, entry.fieldName, entry.value, options)}</small>)}
+        {entries.map((entry) => (
+          <small key={entry.fieldName}>
+            {listDisplay(resource, entry.fieldName, entry.value, options)}
+          </small>
+        ))}
       </div>
     );
   }
 
   return (
     <div className={styles.cellStack}>
-      {entries.map((entry, index) => index === 0
-        ? <strong key={entry.fieldName}>{listDisplay(resource, entry.fieldName, entry.value, options)}</strong>
-        : <small key={entry.fieldName}>{listDisplay(resource, entry.fieldName, entry.value, options)}</small>)}
+      {entries.map((entry, index) =>
+        index === 0 ? (
+          <strong key={entry.fieldName}>
+            {listDisplay(resource, entry.fieldName, entry.value, options)}
+          </strong>
+        ) : (
+          <small key={entry.fieldName}>
+            {listDisplay(resource, entry.fieldName, entry.value, options)}
+          </small>
+        ),
+      )}
     </div>
   );
 }
@@ -421,7 +753,9 @@ function renderColumn(
 function defaultColumns(resource: AdminResource): ListColumn[] {
   return resource.listFields.map((fieldName, index) => ({
     key: fieldName,
-    label: resource.fields.find((field) => field.name === fieldName)?.label ?? fieldName,
+    label:
+      resource.fields.find((field) => field.name === fieldName)?.label ??
+      fieldName,
     fields: [fieldName],
     kind: index === 0 ? "identity" : "detail",
   }));
@@ -469,44 +803,68 @@ function InlineEditor({
   const recordId = record && typeof record.id === "string" ? record.id : "";
   const existing = Boolean(recordId);
   const inactive = existing && isRecordInactive(resource, record);
-  const hardDeleteProtectionReason = (resource as AdminResource & {
-    hardDeleteProtectionReason?: string;
-  }).hardDeleteProtectionReason;
+  const hardDeleteProtectionReason = (
+    resource as AdminResource & {
+      hardDeleteProtectionReason?: string;
+    }
+  ).hardDeleteProtectionReason;
   const canArchive = existing && !inactive && resource.allowArchive;
-  const hasVisibilityControls = Boolean(resource.activeField || resource.statusField);
+  const hasVisibilityControls = Boolean(
+    resource.activeField || resource.statusField,
+  );
   const currentActive = resource.activeField
     ? record?.[resource.activeField] === true
     : true;
   const currentStatus = resource.statusField
     ? String(record?.[resource.statusField] ?? "draft")
     : "";
-  const currentlyVisible = existing
-    ? isAdminResourcePubliclyVisible({
-        hasActiveField: Boolean(resource.activeField),
-        hasStatusField: Boolean(resource.statusField),
-        active: currentActive,
-        status: currentStatus,
-      })
-    : false;
+  const currentlyVisible =
+    resource.key === "events" && existing
+      ? eventAvailabilityFromRow(record!).visible
+      : existing
+        ? isAdminResourcePubliclyVisible({
+            hasActiveField: Boolean(resource.activeField),
+            hasStatusField: Boolean(resource.statusField),
+            active: currentActive,
+            status: currentStatus,
+          })
+        : false;
   const recordLabel = existing
     ? displayValue(record?.[resource.labelField])
     : `Yeni ${resource.singular}`;
-  const visibilityImpact = adminVisibilityImpact(resource.key, resource.singular);
+  const visibilityImpact = adminVisibilityImpact(
+    resource.key,
+    resource.singular,
+  );
   const canHardDelete =
-    existing && inactive && resource.allowHardDelete && !hardDeleteProtectionReason;
+    existing &&
+    inactive &&
+    resource.allowHardDelete &&
+    !hardDeleteProtectionReason;
   const deleteBlocked = Boolean(
-    deleteImpact?.items.some((item) => item.behavior === "block" && item.count > 0),
+    deleteImpact?.items.some(
+      (item) => item.behavior === "block" && item.count > 0,
+    ),
   );
   const primaryFields = resource.fields.filter((field) => !field.advanced);
   const advancedFields = resource.fields.filter((field) => field.advanced);
-  const advancedHasError = Boolean(errorField && advancedFields.some((field) => field.name === errorField));
+  const advancedHasError = Boolean(
+    errorField && advancedFields.some((field) => field.name === errorField),
+  );
 
   return (
     <div className={styles.inlineEditor}>
       <div className={styles.editorIntro}>
         <div>
-          <strong>{existing ? `${resource.singular} bilgilerini düzenle` : `Yeni ${resource.singular} oluştur`}</strong>
-          <p>Değişiklikler yalnız kaydettiğinde uygulanır. Gerekli yetki ve güvenlik kontrolleri otomatik yapılır.</p>
+          <strong>
+            {existing
+              ? `${resource.singular} bilgilerini düzenle`
+              : `Yeni ${resource.singular} oluştur`}
+          </strong>
+          <p>
+            Değişiklikler yalnız kaydettiğinde uygulanır. Gerekli yetki ve
+            güvenlik kontrolleri otomatik yapılır.
+          </p>
         </div>
       </div>
 
@@ -518,6 +876,23 @@ function InlineEditor({
         data-admin-visibility-guard={hasVisibilityControls ? "true" : undefined}
         data-current-active={String(currentActive)}
         data-current-status={currentStatus}
+        data-event-state={
+          resource.key === "events"
+            ? JSON.stringify({
+                contentType: record?.content_type,
+                startAt: record?.start_at,
+                endAt: record?.end_at,
+                publishStartAt: record?.publish_start_at,
+                publishEndAt: record?.publish_end_at,
+                publishedAt: record?.published_at,
+              })
+            : undefined
+        }
+        data-current-event-branches={
+          resource.key === "events"
+            ? JSON.stringify(record?._branch_ids ?? [])
+            : undefined
+        }
         data-is-new={String(!existing)}
         data-record-label={recordLabel}
         data-status-field={resource.statusField ?? ""}
@@ -525,32 +900,180 @@ function InlineEditor({
       >
         <input name="_resource" type="hidden" value={resource.key} />
         <input name="_id" type="hidden" value={recordId} />
+        <input
+          name="_updated_at"
+          type="hidden"
+          value={String(record?.updated_at ?? "")}
+        />
+        {resource.key === "events" ? (
+          <section>
+            <input type="hidden" name="_event_branches_present" value="true" />
+            <input
+              type="hidden"
+              name="_event_branch_snapshot"
+              value={JSON.stringify(record?._branch_snapshot ?? [])}
+            />
+            <h3>Şubeler</h3>
+            <p>Şube seçilmezse içerik tüm şubeler için gösterilir.</p>
+            {(options.branches ?? []).map((branch) => (
+              <label className={styles.checkbox} key={branch.value}>
+                <input
+                  type="checkbox"
+                  name="_event_branch"
+                  value={branch.value}
+                  defaultChecked={
+                    Array.isArray(record?._branch_ids) &&
+                    record._branch_ids.includes(branch.value)
+                  }
+                />
+                {branch.label}
+              </label>
+            ))}
+          </section>
+        ) : null}
         {hasVisibilityControls ? (
           <input defaultValue="" name="_visibility_confirm" type="hidden" />
         ) : null}
-        <div className={styles.formGrid}>
-          {primaryFields.map((field) => (
-            <FieldControl
-              error={error}
-              errorField={errorField}
-              field={field}
-              idPrefix={idPrefix}
-              key={field.name}
-              options={options}
-              record={record}
-            />
-          ))}
-        </div>
+        {resource.key === "branches" || resource.key === "events" ? (
+          (() => {
+            const definitions =
+              resource.key === "branches"
+                ? [
+                    {
+                      label: "Şube bilgileri",
+                      names: ["name", "code", "short_description"],
+                    },
+                    {
+                      label: "Adres ve konum",
+                      names: [
+                        "address_line",
+                        "district",
+                        "city",
+                        "maps_url",
+                        "latitude",
+                        "longitude",
+                      ],
+                    },
+                    {
+                      label: "İletişim",
+                      names: [
+                        "phone",
+                        "public_email",
+                        "instagram_url",
+                        "website_url",
+                      ],
+                    },
+                    {
+                      label: "Çalışma bilgileri",
+                      names: ["features", "opening_hours"],
+                    },
+                    { label: "Görünürlük", names: ["status", "is_active"] },
+                  ]
+                : [
+                    {
+                      label: "İçerik",
+                      names: [
+                        "content_type",
+                        "title",
+                        "summary",
+                        "description",
+                      ],
+                    },
+                    {
+                      label: "Etkinlik tarihi ve yayın",
+                      names: [
+                        "start_at",
+                        "end_at",
+                        "published_at",
+                        "publish_start_at",
+                        "publish_end_at",
+                        "status",
+                        "is_active",
+                        "is_featured",
+                      ],
+                    },
+                    {
+                      label: "Konum ve bağlantı",
+                      names: [
+                        "venue_name",
+                        "location_text",
+                        "external_url",
+                        "cta_label",
+                      ],
+                    },
+                    { label: "Görsel", names: ["image_media_id"] },
+                  ];
+            const used = new Set(definitions.flatMap((group) => group.names));
+            const groups = [
+              ...definitions,
+              {
+                label: "Diğer bilgiler",
+                names: primaryFields
+                  .filter((field) => !used.has(field.name))
+                  .map((field) => field.name),
+              },
+            ];
+            return groups.map((group) => {
+              const fields = primaryFields.filter((field) =>
+                group.names.includes(field.name),
+              );
+              return fields.length ? (
+                <section className={styles.fieldPanel} key={group.label}>
+                  <h3>{group.label}</h3>
+                  <div className={styles.formGrid}>
+                    {fields.map((field) => (
+                      <FieldControl
+                        error={error}
+                        errorField={errorField}
+                        field={field}
+                        idPrefix={idPrefix}
+                        key={field.name}
+                        options={options}
+                        record={record}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ) : null;
+            });
+          })()
+        ) : (
+          <div className={styles.formGrid}>
+            {primaryFields.map((field) => (
+              <FieldControl
+                error={error}
+                errorField={errorField}
+                field={field}
+                idPrefix={idPrefix}
+                key={field.name}
+                options={options}
+                record={record}
+              />
+            ))}
+          </div>
+        )}
         {hasVisibilityControls ? (
-          <aside className={styles.visibilityNotice} data-visible={currentlyVisible}>
+          <aside
+            className={styles.visibilityNotice}
+            data-visible={currentlyVisible}
+          >
             <div>
               <strong>Ziyaretçi görünürlüğü</strong>
-              <span>{existing ? (currentlyVisible ? "Şu anda yayında" : "Şu anda gizli") : "Yeni kayıt"}</span>
+              <span>
+                {existing
+                  ? resource.key === "events"
+                    ? eventAvailabilityFromRow(record!).label
+                    : currentlyVisible
+                      ? "Şu anda yayında"
+                      : "Şu anda gizli"
+                  : "Yeni kayıt"}
+              </span>
             </div>
             <p>{visibilityImpact}</p>
             <small>
-              Yayına açan veya ziyaretçiden gizleyen bir değişiklikte kaydetmeden önce
-              {" "}<b>YAYINLA</b> ya da <b>PASİFE AL</b> onayı istenir.
+              Yayına açan veya ziyaretçiden gizleyen bir değişiklikte
+              kaydetmeden önce <b>YAYINLA</b> ya da <b>PASİFE AL</b> onayı
+              istenir.
             </small>
           </aside>
         ) : null}
@@ -597,7 +1120,8 @@ function InlineEditor({
             <input name="_resource" type="hidden" value={resource.key} />
             <input name="_id" type="hidden" value={recordId} />
             <p className={styles.warning}>
-              Bu işlem kaydı ziyaretçi sitesinden kaldırır; veriyi kalıcı olarak silmez.
+              Bu işlem kaydı ziyaretçi sitesinden kaldırır; veriyi kalıcı olarak
+              silmez.
             </p>
             <TypedConfirmSubmitButton
               className={styles.danger}
@@ -637,7 +1161,8 @@ function InlineEditor({
             <input name="_resource" type="hidden" value={resource.key} />
             <input name="_id" type="hidden" value={recordId} />
             <p className={styles.warning}>
-              Bu kayıt ve yalnızca ona bağlı alt kayıtlar kalıcı olarak silinir; üst kayıtlar korunur.
+              Bu kayıt ve yalnızca ona bağlı alt kayıtlar kalıcı olarak silinir;
+              üst kayıtlar korunur.
             </p>
             {deleteImpact ? (
               <div className={styles.deleteImpact}>
@@ -647,7 +1172,11 @@ function InlineEditor({
                     <li data-behavior={item.behavior} key={item.key}>
                       <span>{item.label}</span>
                       <b>{item.count}</b>
-                      <small>{item.behavior === "block" ? "Silmeyi engeller" : "Birlikte silinir"}</small>
+                      <small>
+                        {item.behavior === "block"
+                          ? "Silmeyi engeller"
+                          : "Birlikte silinir"}
+                      </small>
                     </li>
                   ))}
                 </ul>
@@ -656,7 +1185,8 @@ function InlineEditor({
             ) : null}
             {deleteBlocked ? (
               <p className={styles.blockedWarning}>
-                Bağlı ana kayıtlar bulunduğu için kalıcı silme kapalı. Önce yukarıda belirtilen kayıtları taşı veya sil.
+                Bağlı ana kayıtlar bulunduğu için kalıcı silme kapalı. Önce
+                yukarıda belirtilen kayıtları taşı veya sil.
               </p>
             ) : (
               <TypedConfirmSubmitButton
@@ -714,11 +1244,16 @@ export default function AdminResourceEditor({
       <header className={styles.header}>
         <div className={styles.headerCopy}>
           <p className="eyebrow">{groupEyebrows[resource.group]}</p>
-          <h1>{resource.title}<span>.</span></h1>
+          <h1>
+            {resource.title}
+            <span>.</span>
+          </h1>
           <p>{resource.description}</p>
         </div>
         <div className={styles.actions}>
-          <Link className={styles.secondary} href="/admin">Ana ekran</Link>
+          <Link className={styles.secondary} href="/admin">
+            Ana ekran
+          </Link>
         </div>
       </header>
 
@@ -733,7 +1268,12 @@ export default function AdminResourceEditor({
       ) : null}
 
       {resource.allowCreate ? (
-        <details className={styles.createRecord} data-admin-accordion-item="true" id="new-record" open={showNew}>
+        <AdminDialog
+          className={styles.createRecord}
+          title={`Yeni ${resource.singular}`}
+          id="new-record"
+          open={showNew}
+        >
           <summary>
             <span>＋ Yeni {resource.singular}</span>
             <span className={styles.chevron}>⌄</span>
@@ -747,32 +1287,52 @@ export default function AdminResourceEditor({
             resource={resource}
             requiresDeleteReview={requiresDeleteReview}
           />
-        </details>
+        </AdminDialog>
       ) : null}
 
       <section className={styles.filterPanel} aria-label="Liste filtreleri">
         <form className={styles.search} method="get">
           <label className={styles.searchLabel}>
             <span>Kayıtlarda ara</span>
-            <input defaultValue={search} name="q" placeholder={`${resource.singular} adı veya anahtar kelime`} type="search" />
+            <input
+              defaultValue={search}
+              name="q"
+              placeholder={`${resource.singular} adı veya anahtar kelime`}
+              type="search"
+            />
           </label>
           <div className={styles.filterActions}>
-            <button className={styles.primary} type="submit">Filtrele</button>
-            <Link className={styles.secondary} href={`/admin/manage/${resource.key}`}>Temizle</Link>
+            <button className={styles.primary} type="submit">
+              Filtrele
+            </button>
+            <Link
+              className={styles.secondary}
+              href={`/admin/manage/${resource.key}`}
+            >
+              Temizle
+            </Link>
           </div>
         </form>
         <p className={styles.resultSummary}>
-          {pagination.total} kayıt · Sayfa {pagination.page}/{pagination.pageCount || 1}
+          {pagination.total} kayıt · Sayfa {pagination.page}/
+          {pagination.pageCount || 1}
         </p>
       </section>
 
-      <section className={styles.resourceTable} aria-label={`${resource.title} tablosu`}>
+      <section
+        className={styles.resourceTable}
+        aria-label={`${resource.title} tablosu`}
+      >
         <div
           className={styles.tableHeader}
-          style={{ "--admin-column-count": columns.length + 1 } as CSSProperties}
+          style={
+            { "--admin-column-count": columns.length + 1 } as CSSProperties
+          }
           aria-hidden="true"
         >
-          {columns.map((column) => <span key={column.key}>{column.label}</span>)}
+          {columns.map((column) => (
+            <span key={column.key}>{column.label}</span>
+          ))}
           <span>İşlem</span>
         </div>
 
@@ -783,18 +1343,33 @@ export default function AdminResourceEditor({
             const rowRecord = selected && record ? record : row;
             const reviewParams = new URLSearchParams();
             if (search) reviewParams.set("q", search);
-            if (pagination.page > 1) reviewParams.set("page", String(pagination.page));
+            if (pagination.page > 1)
+              reviewParams.set("page", String(pagination.page));
             reviewParams.set("edit", rowId);
             const deleteReviewHref = `/admin/manage/${resource.key}?${reviewParams.toString()}#record-${rowId}`;
 
             return (
-              <details className={styles.recordCard} data-admin-accordion-item="true" id={`record-${rowId}`} key={rowId} open={selected}>
+              <AdminDialog
+                className={styles.recordCard}
+                title={String(row[resource.labelField] ?? resource.singular)}
+                id={`record-${rowId}`}
+                key={`${rowId}-${notice ?? ""}`}
+                open={selected && !notice}
+              >
                 <summary
                   className={styles.recordSummary}
-                  style={{ "--admin-column-count": columns.length + 1 } as CSSProperties}
+                  style={
+                    {
+                      "--admin-column-count": columns.length + 1,
+                    } as CSSProperties
+                  }
                 >
                   {columns.map((column) => (
-                    <span className={styles.summaryCell} data-label={column.label} key={column.key}>
+                    <span
+                      className={styles.summaryCell}
+                      data-label={column.label}
+                      key={column.key}
+                    >
                       {renderColumn(resource, row, column, options)}
                     </span>
                   ))}
@@ -816,10 +1391,14 @@ export default function AdminResourceEditor({
                   requiresDeleteReview={requiresDeleteReview}
                   revisions={selected ? revisions : undefined}
                 />
-              </details>
+              </AdminDialog>
             );
           })}
-          {!rows.length ? <p className={styles.empty}>Bu filtreyle eşleşen kayıt bulunamadı.</p> : null}
+          {!rows.length ? (
+            <p className={styles.empty}>
+              Bu filtreyle eşleşen kayıt bulunamadı.
+            </p>
+          ) : null}
         </div>
       </section>
 

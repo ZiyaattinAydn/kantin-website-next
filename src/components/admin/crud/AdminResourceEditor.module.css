@@ -811,3 +811,100 @@
     width: 100%;
   }
 }
+
+/* Unified daily management cards */
+.resourceTable {
+  background: transparent;
+  border: 0;
+  overflow: visible;
+}
+.tableHeader {
+  display: none;
+}
+.recordList {
+  display: grid;
+  gap: 14px;
+}
+.recordCard,
+.recordCard:last-child {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: white;
+  overflow: hidden;
+  box-shadow: 0 6px 24px #071d5906;
+}
+.recordSummary {
+  border: 0;
+  background: transparent;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 22px;
+  gap: 16px;
+}
+.recordSummary:hover {
+  background: #f5f8ff;
+}
+.recordSummary:focus-visible {
+  outline: 3px solid #8bb5ff;
+  outline-offset: -3px;
+}
+.summaryCell::before {
+  content: attr(data-label);
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.summaryCell:first-child::before {
+  display: none;
+}
+@media (max-width: 900px) {
+  .recordSummary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.header h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.12;
+}
+.inlineEditor {
+  padding: 0;
+}
+.editorIntro {
+  display: none;
+}
+.createRecord {
+  border-radius: 16px;
+}
+.createRecord > button {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: white;
+  padding: 18px;
+  color: var(--blue);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: left;
+}
+
+.fieldPanel {
+  margin: 18px 0;
+  padding: 20px;
+  border: 1px solid #d7dfed;
+  border-radius: 18px;
+  background: white;
+}
+.fieldPanel h3,
+.inlineEditor form > section h3 {
+  font-size: 1.1rem;
+  line-height: 1.35;
+  margin: 0 0 18px;
+  color: var(--blue);
+}

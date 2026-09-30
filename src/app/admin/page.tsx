@@ -1,3 +1,5 @@
+import { eventAvailabilityFromRow } from "@/lib/event-availability";
+import { loadAllAdminRows } from "@/lib/admin/menu-data";
 import { loadSystemHealth } from "@/lib/admin/system-logs";
 import { adminTasks } from "@/lib/admin/navigation";
 import Link from "next/link";
@@ -58,8 +60,8 @@ export default async function AdminDashboardPage() {
   const admin = await requireAdmin();
   const identity = admin.displayName || admin.email || "Yetkili kullanıcı";
   const supabase = await createClient();
-  const [counts, logsResult, newApplicationsResult, health] = await Promise.all(
-    [
+  const [counts, logsResult, newApplicationsResult, health, eventRows] =
+    await Promise.all([
       Promise.all(
         cards.map(async (card) => {
           const { count, error } = await supabase
@@ -78,12 +80,26 @@ export default async function AdminDashboardPage() {
         .select("id", { count: "exact", head: true })
         .eq("status", "new"),
       loadSystemHealth(),
-    ],
-  );
+      loadAllAdminRows<Record<string, unknown>>(supabase, "events").catch(
+        () => null,
+      ),
+    ]);
 
-  const actorIds = [...new Set((logsResult.data ?? []).map(log => log.actor_id))];
-  const { data: actors } = actorIds.length ? await supabase.from("profiles").select("id, display_name").in("id", actorIds) : { data: [] };
-  const actorNames = new Map((actors ?? []).map(actor => [actor.id, actor.display_name || "Yetkili kullanıcı"]));
+  const actorIds = [
+    ...new Set((logsResult.data ?? []).map((log) => log.actor_id)),
+  ];
+  const { data: actors } = actorIds.length
+    ? await supabase
+        .from("profiles")
+        .select("id, display_name")
+        .in("id", actorIds)
+    : { data: [] };
+  const actorNames = new Map(
+    (actors ?? []).map((actor) => [
+      actor.id,
+      actor.display_name || "Yetkili kullanıcı",
+    ]),
+  );
 
   return (
     <AdminShell identity={identity}>
@@ -127,6 +143,12 @@ export default async function AdminDashboardPage() {
               <Link className={styles.card} href={card.href} key={card.key}>
                 <span>{card.count ?? "—"}</span>
                 <strong>{card.label}</strong>
+                <small>
+                  Toplam kayıt
+                  {card.key === "events"
+                    ? ` · ${eventRows ? eventRows.filter((row) => eventAvailabilityFromRow(row).visible).length : "—"} güncel etkinlik / duyuru`
+                    : ""}
+                </small>
                 <small>Yönetimi aç →</small>
               </Link>
             ))}
@@ -157,7 +179,8 @@ export default async function AdminDashboardPage() {
                   <div key={log.id}>
                     <strong>{log.entity_label || "Yönetim kaydı"}</strong>
                     <span>
-                      {actorNames.get(log.actor_id) || "Yetkili kullanıcı"} · {activityLabel(log.action)} ·{" "}
+                      {actorNames.get(log.actor_id) || "Yetkili kullanıcı"} ·{" "}
+                      {activityLabel(log.action)} ·{" "}
                       {formatAdminDate(log.created_at)}
                     </span>
                   </div>

@@ -17,7 +17,10 @@
   color: var(--blue);
   font-size: 0.72rem;
   font-weight: 900;
-  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
 }
 
 .shortcuts a:hover,
@@ -162,7 +165,9 @@
 .tableHeader,
 .mediaSummary {
   display: grid;
-  grid-template-columns: 96px minmax(230px, 1.45fr) minmax(118px, 0.68fr) minmax(118px, 0.68fr) minmax(130px, 0.72fr) 84px;
+  grid-template-columns:
+    96px minmax(230px, 1.45fr) minmax(118px, 0.68fr)
+    minmax(118px, 0.68fr) minmax(130px, 0.72fr) 84px;
   align-items: center;
   gap: 14px;
 }
@@ -581,7 +586,10 @@
   }
 
   .mediaSearch {
-    grid-template-columns: minmax(0, 1.35fr) minmax(190px, 0.65fr) minmax(190px, 0.55fr);
+    grid-template-columns: minmax(0, 1.35fr) minmax(190px, 0.65fr) minmax(
+        190px,
+        0.55fr
+      );
     align-items: end;
   }
 
@@ -705,4 +713,67 @@
   .openAction {
     grid-column: auto;
   }
+}
+
+/* Unified daily management cards */
+.mediaTable {
+  background: transparent;
+  border: 0;
+  overflow: visible;
+}
+.tableHeader {
+  display: none;
+}
+.mediaList {
+  display: grid;
+  gap: 14px;
+}
+.mediaCard,
+.mediaCard:last-child {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: white;
+  overflow: hidden;
+  box-shadow: 0 6px 24px #071d5906;
+}
+.mediaSummary {
+  border: 0;
+  background: transparent;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 22px;
+  gap: 16px;
+}
+.mediaSummary:hover {
+  background: #f5f8ff;
+}
+.mediaSummary:focus-visible {
+  outline: 3px solid #8bb5ff;
+  outline-offset: -3px;
+}
+.summaryCell::before {
+  content: attr(data-label);
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.summaryCell:first-child::before {
+  display: none;
+}
+@media (max-width: 900px) {
+  .mediaSummary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.page h1,
+.head h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.12;
 }

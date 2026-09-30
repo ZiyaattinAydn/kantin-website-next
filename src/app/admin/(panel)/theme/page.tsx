@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import ThemeSettingsForm from "./ThemeSettingsForm";
 import styles from "./ThemeSettings.module.css";
 import { createClient } from "@/lib/supabase/server";
@@ -12,9 +13,16 @@ export const dynamic = "force-dynamic";
 
 type ThemePageProps = {
   searchParams: Promise<{ notice?: string; error?: string }>;
+  embedded?: boolean;
+  view?: "sections" | "design";
 };
 
-export default async function ThemeSettingsPage({ searchParams }: ThemePageProps) {
+export default async function ThemeSettingsPage({
+  searchParams,
+  embedded = false,
+  view,
+}: ThemePageProps) {
+  if (!embedded) redirect("/admin/site?tab=design");
   const [params, supabase] = await Promise.all([searchParams, createClient()]);
   const { data, error } = await supabase
     .from("site_settings")
@@ -31,30 +39,39 @@ export default async function ThemeSettingsPage({ searchParams }: ThemePageProps
 
   return (
     <section className={styles.page}>
-      <header className={styles.head}>
-        <div>
-          <p className="eyebrow">Kontrollü tasarım yönetimi</p>
-          <h1>
-            Tema ayarları<span>.</span>
-          </h1>
-          <p>
-            Marka dilini bozmadan renk, tipografi, kart yoğunluğu, bölüm görünürlüğü
-            ve ana sayfa sıralamasını yönet.
-          </p>
-        </div>
-        <a href="/" rel="noreferrer" target="_blank">
-          Ziyaretçi sitesini aç ↗
-        </a>
-      </header>
+      {!embedded && (
+        <header className={styles.head}>
+          <div>
+            <p className="eyebrow">Kontrollü tasarım yönetimi</p>
+            <h1>
+              Tema ayarları<span>.</span>
+            </h1>
+            <p>
+              Marka dilini bozmadan renk, tipografi, kart yoğunluğu, bölüm
+              görünürlüğü ve ana sayfa sıralamasını yönet.
+            </p>
+          </div>
+          <a href="/" rel="noreferrer" target="_blank">
+            Ziyaretçi sitesini aç ↗
+          </a>
+        </header>
+      )}
 
-      {params.notice ? <div className={styles.notice}>{params.notice}</div> : null}
+      {params.notice ? (
+        <div className={styles.notice}>{params.notice}</div>
+      ) : null}
       {params.error || error ? (
         <div className={styles.error} role="alert">
-          {params.error || "Tasarım ayarları okunamadı; güvenli varsayılanlar gösteriliyor."}
+          {params.error ||
+            "Tasarım ayarları okunamadı; güvenli varsayılanlar gösteriliyor."}
         </div>
       ) : null}
 
-      <ThemeSettingsForm initialTheme={theme} initialVisibility={visibility} />
+      <ThemeSettingsForm
+        initialTheme={theme}
+        initialVisibility={visibility}
+        view={view}
+      />
     </section>
   );
 }

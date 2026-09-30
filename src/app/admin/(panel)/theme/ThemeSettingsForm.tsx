@@ -19,14 +19,46 @@ const visibilityOptions: Array<{
   label: string;
   description: string;
 }> = [
-  { key: "homeHero", label: "Ana hero", description: "Ana sayfanın üst marka alanı." },
-  { key: "menu", label: "Şube menüleri", description: "Ana sayfadaki menü seçim kartları." },
-  { key: "merch", label: "Merch Drop", description: "Ürün ve paket tanıtım alanı." },
-  { key: "memories", label: "Anılarımız", description: "Marka hikâyesi ve fotoğraf galerisi." },
-  { key: "events", label: "Etkinlikler", description: "Yaklaşan etkinlik kartları." },
-  { key: "branches", label: "Şubeler", description: "Konumlar ve şube kartları." },
-  { key: "instagram", label: "Instagram", description: "Şubeler alanındaki gönderi şeridi." },
-  { key: "careers", label: "Kariyer bağlantıları", description: "Ekibe Katıl çağrıları ve bağlantıları." },
+  {
+    key: "homeHero",
+    label: "Ana hero",
+    description: "Ana sayfanın üst marka alanı.",
+  },
+  {
+    key: "menu",
+    label: "Şube menüleri",
+    description: "Ana sayfadaki menü seçim kartları.",
+  },
+  {
+    key: "merch",
+    label: "Merch Drop",
+    description: "Ürün ve paket tanıtım alanı.",
+  },
+  {
+    key: "memories",
+    label: "Anılarımız",
+    description: "Marka hikâyesi ve fotoğraf galerisi.",
+  },
+  {
+    key: "events",
+    label: "Etkinlikler",
+    description: "Yaklaşan etkinlik kartları.",
+  },
+  {
+    key: "branches",
+    label: "Şubeler",
+    description: "Konumlar ve şube kartları.",
+  },
+  {
+    key: "instagram",
+    label: "Instagram",
+    description: "Şubeler alanındaki gönderi şeridi.",
+  },
+  {
+    key: "careers",
+    label: "Kariyer bağlantıları",
+    description: "Ekibe Katıl çağrıları ve bağlantıları.",
+  },
 ];
 
 type OptionCardProps = {
@@ -46,7 +78,12 @@ function OptionCard({
 }: OptionCardProps) {
   return (
     <label className={styles.optionCard}>
-      <input defaultChecked={defaultChecked} name={name} type="radio" value={value} />
+      <input
+        defaultChecked={defaultChecked}
+        name={name}
+        type="radio"
+        value={value}
+      />
       <span>
         <strong>{label}</strong>
         <small>{description}</small>
@@ -70,25 +107,35 @@ function moveItem(
 export default function ThemeSettingsForm({
   initialTheme,
   initialVisibility,
+  view,
 }: {
   initialTheme: ThemeSettings;
   initialVisibility: SectionVisibility;
+  view?: "sections" | "design";
 }) {
-  const [order, setOrder] = useState<HomeSectionKey[]>(initialTheme.homeSectionOrder);
+  const [order, setOrder] = useState<HomeSectionKey[]>(
+    initialTheme.homeSectionOrder,
+  );
   const previewClasses = useMemo(
     () =>
-      [
-        styles.preview,
-        styles[`previewColor_${initialTheme.colorPreset}`],
-      ]
+      [styles.preview, styles[`previewColor_${initialTheme.colorPreset}`]]
         .filter(Boolean)
         .join(" "),
     [initialTheme.colorPreset],
   );
 
   return (
-    <form action={saveThemeSettings} className={styles.form}>
-      <section className={styles.panel}>
+    <form
+      action={saveThemeSettings}
+      className={styles.form}
+      data-admin-dirty-guard="true"
+    >
+      <input
+        type="hidden"
+        name="_return_to"
+        value={`/admin/site?tab=${view ?? "design"}`}
+      />
+      <section className={styles.panel} hidden={view === "sections"}>
         <div className={styles.panelHead}>
           <div>
             <span>01</span>
@@ -116,7 +163,7 @@ export default function ThemeSettingsForm({
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={view === "sections"}>
         <div className={styles.panelHead}>
           <div>
             <span>02</span>
@@ -191,13 +238,16 @@ export default function ThemeSettingsForm({
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={view === "sections"}>
         <div className={styles.panelHead}>
           <div>
             <span>03</span>
             <h2>Kart yoğunluğu</h2>
           </div>
-          <p>Bölüm boşluklarını ve kart aralıklarını güvenli sınırlar içinde değiştirir.</p>
+          <p>
+            Bölüm boşluklarını ve kart aralıklarını güvenli sınırlar içinde
+            değiştirir.
+          </p>
         </div>
         <div className={styles.optionGrid}>
           {CARD_DENSITIES.map((value) => (
@@ -219,7 +269,7 @@ export default function ThemeSettingsForm({
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={view === "design"}>
         <div className={styles.panelHead}>
           <div>
             <span>04</span>
@@ -245,25 +295,32 @@ export default function ThemeSettingsForm({
         </div>
       </section>
 
-      <section className={styles.panel}>
+      <section className={styles.panel} hidden={view === "design"}>
         <div className={styles.panelHead}>
           <div>
             <span>05</span>
             <h2>Ana sayfa sıralaması</h2>
           </div>
-          <p>Hero üstte sabit kalır; diğer ana bölümler aşağıdaki sırayla gösterilir.</p>
+          <p>
+            Hero üstte sabit kalır; diğer ana bölümler aşağıdaki sırayla
+            gösterilir.
+          </p>
         </div>
         <ol className={styles.orderList}>
           {order.map((section, index) => (
             <li key={section}>
               <input name="homeSectionOrder" type="hidden" value={section} />
-              <span className={styles.orderIndex}>{String(index + 1).padStart(2, "0")}</span>
+              <span className={styles.orderIndex}>
+                {String(index + 1).padStart(2, "0")}
+              </span>
               <strong>{THEME_OPTION_LABELS.homeSectionOrder[section]}</strong>
               <div>
                 <button
                   aria-label={`${THEME_OPTION_LABELS.homeSectionOrder[section]} bölümünü yukarı taşı`}
                   disabled={index === 0}
-                  onClick={() => setOrder((items) => moveItem(items, index, -1))}
+                  onClick={() =>
+                    setOrder((items) => moveItem(items, index, -1))
+                  }
                   type="button"
                 >
                   ↑
@@ -282,21 +339,28 @@ export default function ThemeSettingsForm({
         </ol>
       </section>
 
-      <aside className={previewClasses}>
-        <span>Güvenli tema yönetimi</span>
-        <h2>Mevcut tasarım sistemi korunur.</h2>
+      <aside className={previewClasses} hidden={view === "sections"}>
+        <span>Site görünümü</span>
+        <h2>Markanıza uygun bir görünüm seçin.</h2>
         <p>
-          Bu panel serbest CSS kabul etmez. Yalnız önceden tanımlanmış font, renk,
-          ölçü, yoğunluk, görünürlük ve sıra seçenekleri kaydedilebilir.
+          Renkler, yazı tipleri ve kart yoğunluğu için hazır seçenekleri
+          kullanabilirsiniz.
         </p>
       </aside>
 
       <div className={styles.actions}>
         <button className={styles.primary} type="submit">
-          Tasarım ayarlarını kaydet
+          {view === "sections"
+            ? "Bölüm ayarlarını kaydet"
+            : "Tasarım ayarlarını kaydet"}
         </button>
-        <button className={styles.secondary} name="_intent" type="submit" value="reset">
-          Güvenli varsayılanlara dön
+        <button
+          className={styles.secondary}
+          name="_intent"
+          type="submit"
+          value="reset"
+        >
+          Tüm site ayarlarını varsayılana döndür
         </button>
       </div>
     </form>

@@ -1,0 +1,82 @@
+.dialog {
+  width: min(1000px, calc(100vw - 32px));
+  max-height: 90dvh;
+  padding: 0;
+  border: 1px solid #ccd7ec;
+  border-radius: 24px;
+  background: #f7f5ef;
+  color: var(--ink);
+  box-shadow: 0 24px 100px #071d5940;
+}
+.dialog::backdrop {
+  background: #07163899;
+  backdrop-filter: blur(4px);
+}
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 28px;
+  background: white;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.head p {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+  color: var(--blue);
+  margin: 0 0 6px;
+}
+.head h2 {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  margin: 0;
+}
+.head button,
+.confirm button,
+.trigger {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: white;
+  color: var(--blue);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.trigger {
+  width: 100%;
+  text-align: left;
+}
+.body {
+  padding: 24px;
+}
+.confirm {
+  background: #fff5df;
+  padding: 20px 24px;
+  position: sticky;
+  top: 100px;
+  z-index: 3;
+  border-bottom: 1px solid #dcc58e;
+}
+.confirm div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+  .dialog {
+    width: calc(100vw - 16px);
+    max-height: 94dvh;
+    border-radius: 18px;
+  }
+  .body {
+    padding: 12px;
+  }
+  .head {
+    padding: 18px;
+  }
+}

@@ -6,44 +6,14 @@ import {
   type AdminVisibilityConfirmation,
 } from "@/lib/admin/visibility";
 import styles from "./AdminInteractionGuard.module.css";
+import AdminDialog from "./ui/AdminDialog";
+import { snapshotAdminForm } from "@/lib/admin/form-state";
+export { snapshotAdminForm } from "@/lib/admin/form-state";
 
 const GUARDED_FORM_SELECTOR = 'form[data-admin-dirty-guard="true"]';
 const ACCORDION_ITEM_SELECTOR = 'details[data-admin-accordion-item="true"]';
 const DEFAULT_MESSAGE =
-  "Kaydedilmemiş değişikliklerin var. Bu değişiklikleri silip devam etmek istediğine emin misin?";
-
-function controlValue(control: Element): string | null {
-  if (control instanceof HTMLButtonElement) return null;
-  if (control instanceof HTMLInputElement) {
-    if (["button", "submit", "reset", "image"].includes(control.type)) return null;
-    if (control.type === "checkbox" || control.type === "radio") {
-      return `${control.name}:${control.type}:${control.checked ? "1" : "0"}:${control.value}`;
-    }
-    if (control.type === "file") {
-      const files = Array.from(control.files ?? []).map(
-        (file) => `${file.name}:${file.size}:${file.lastModified}`,
-      );
-      return `${control.name}:file:${files.join("|")}`;
-    }
-    return `${control.name}:${control.type}:${control.value}`;
-  }
-  if (control instanceof HTMLSelectElement) {
-    const values = Array.from(control.selectedOptions).map((option) => option.value);
-    return `${control.name}:select:${values.join("|")}`;
-  }
-  if (control instanceof HTMLTextAreaElement) {
-    return `${control.name}:textarea:${control.value}`;
-  }
-  return null;
-}
-
-export function snapshotAdminForm(form: HTMLFormElement): string {
-  return Array.from(form.elements)
-    .map((control) => controlValue(control))
-    .filter((value): value is string => value !== null)
-    .join("\u001f");
-}
-
+  "Kaydedilmemiş değişiklikleriniz var. Kaydedebilir, kaydetmeden çıkabilir veya düzenlemeye devam edebilirsiniz.";
 
 function booleanDataset(value: string | undefined, fallback: boolean): boolean {
   if (value === "true") return true;
@@ -57,16 +27,25 @@ function namedControl(form: HTMLFormElement, name: string): Element | null {
   return control instanceof Element ? control : null;
 }
 
-function nextActiveValue(form: HTMLFormElement, field: string, fallback: boolean): boolean {
+function nextActiveValue(
+  form: HTMLFormElement,
+  field: string,
+  fallback: boolean,
+): boolean {
   const control = namedControl(form, field);
   return control instanceof HTMLInputElement && control.type === "checkbox"
     ? control.checked
     : fallback;
 }
 
-function nextStatusValue(form: HTMLFormElement, field: string, fallback: string): string {
+function nextStatusValue(
+  form: HTMLFormElement,
+  field: string,
+  fallback: string,
+): string {
   const control = namedControl(form, field);
-  return control instanceof HTMLSelectElement || control instanceof HTMLInputElement
+  return control instanceof HTMLSelectElement ||
+    control instanceof HTMLInputElement
     ? control.value
     : fallback;
 }
@@ -83,38 +62,86 @@ export function visibilityConfirmationForForm(
   const currentActive = booleanDataset(form.dataset.currentActive, true);
   const currentStatus = form.dataset.currentStatus ?? "";
 
-  return requiredAdminVisibilityConfirmation({
+  const eventDate = (name: string) => {
+    const raw = nextStatusValue(form, name, "");
+    return raw ? `${raw.length === 16 ? raw + ":00" : raw}+03:00` : null;
+  };
+  const event = (current: boolean) =>
+    form.dataset.eventState
+      ? current
+        ? JSON.parse(form.dataset.eventState)
+        : {
+            contentType: nextStatusValue(form, "content_type", "event"),
+            startAt: eventDate("start_at"),
+            endAt: eventDate("end_at"),
+            publishStartAt: eventDate("publish_start_at"),
+            publishEndAt: eventDate("publish_end_at"),
+            publishedAt: eventDate("published_at"),
+          }
+      : undefined;
+  const base = requiredAdminVisibilityConfirmation({
     isCreate: form.dataset.isNew === "true",
     current: {
       hasActiveField,
       hasStatusField,
       active: currentActive,
       status: currentStatus,
+      event: event(true),
     },
     next: {
       hasActiveField,
       hasStatusField,
       active: nextActiveValue(form, activeField, currentActive),
       status: nextStatusValue(form, statusField, currentStatus),
+      event: event(false),
     },
   });
+  if (base) return base;
+  if (
+    form.dataset.currentEventBranches &&
+    form.dataset.isNew !== "true" &&
+    nextStatusValue(form, statusField, currentStatus) === "published" &&
+    nextActiveValue(form, activeField, currentActive)
+  ) {
+    const current = JSON.parse(form.dataset.currentEventBranches) as string[];
+    const next = Array.from(
+      form.querySelectorAll<HTMLInputElement>(
+        'input[name="_event_branch"]:checked',
+      ),
+    ).map((input) => input.value);
+    if (next.some((id) => !current.includes(id))) return "YAYINLA";
+    if (current.some((id) => !next.includes(id))) return "PASİFE AL";
+  }
+  return null;
 }
 
-function visibilityPrompt(form: HTMLFormElement, phrase: AdminVisibilityConfirmation): string {
+function visibilityPrompt(
+  form: HTMLFormElement,
+  phrase: AdminVisibilityConfirmation,
+): string {
   const recordLabel = form.dataset.recordLabel || "Bu kayıt";
-  const impact = form.dataset.visibilityImpact || "Bu değişiklik ziyaretçi görünürlüğünü etkiler.";
-  const action = phrase === "YAYINLA" ? "ziyaretçilere açılacak" : "ziyaretçilerden gizlenecek";
+  const impact =
+    form.dataset.visibilityImpact ||
+    "Bu değişiklik ziyaretçi görünürlüğünü etkiler.";
+  const action =
+    phrase === "YAYINLA"
+      ? "ziyaretçilere açılacak"
+      : "ziyaretçilerden gizlenecek";
 
   return `${recordLabel} ${action}.\n\n${impact}\n\nDevam etmek için tam olarak “${phrase}” yaz.`;
 }
 
-function visibilityConfirmationInput(form: HTMLFormElement): HTMLInputElement | null {
+function visibilityConfirmationInput(
+  form: HTMLFormElement,
+): HTMLInputElement | null {
   const control = form.elements.namedItem("_visibility_confirm");
   return control instanceof HTMLInputElement ? control : null;
 }
 
 function guardedForms(root: HTMLElement): HTMLFormElement[] {
-  return Array.from(root.querySelectorAll<HTMLFormElement>(GUARDED_FORM_SELECTOR));
+  return Array.from(
+    root.querySelectorAll<HTMLFormElement>(GUARDED_FORM_SELECTOR),
+  );
 }
 
 export default function AdminInteractionGuard({
@@ -125,6 +152,10 @@ export default function AdminInteractionGuard({
   confirmMessage?: string;
 }) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [leavePrompt, setLeavePrompt] = useState<{
+    save: () => void;
+    discard: () => void;
+  } | null>(null);
 
   useEffect(() => {
     const root = document.getElementById(rootId);
@@ -137,15 +168,20 @@ export default function AdminInteractionGuard({
     for (const form of forms) baselines.set(form, snapshotAdminForm(form));
 
     const initiallyOpen = Array.from(
-      root.querySelectorAll<HTMLDetailsElement>(`${ACCORDION_ITEM_SELECTOR}[open]`),
+      root.querySelectorAll<HTMLDetailsElement>(
+        `${ACCORDION_ITEM_SELECTOR}[open]`,
+      ),
     );
     for (const item of initiallyOpen.slice(0, -1)) item.open = false;
 
     const isDirty = (form: HTMLFormElement) =>
-      snapshotAdminForm(form) !== (baselines.get(form) ?? snapshotAdminForm(form));
+      snapshotAdminForm(form) !==
+      (baselines.get(form) ?? snapshotAdminForm(form));
 
     const dirtyForms = (scope: ParentNode = root) =>
-      Array.from(scope.querySelectorAll<HTMLFormElement>(GUARDED_FORM_SELECTOR)).filter(isDirty);
+      Array.from(
+        scope.querySelectorAll<HTMLFormElement>(GUARDED_FORM_SELECTOR),
+      ).filter(isDirty);
 
     const refreshDirtyState = () => {
       const dirty = dirtyForms().length > 0;
@@ -164,11 +200,20 @@ export default function AdminInteractionGuard({
       }, 0);
     };
 
-    const confirmDiscard = (items: HTMLFormElement[]) => {
+    const confirmDiscard = (items: HTMLFormElement[], proceed: () => void) => {
       if (!items.length) return true;
-      if (!window.confirm(confirmMessage)) return false;
-      discardForms(items);
-      return true;
+      setLeavePrompt({
+        save: () => {
+          setLeavePrompt(null);
+          items[0]?.requestSubmit();
+        },
+        discard: () => {
+          discardForms(items);
+          setLeavePrompt(null);
+          proceed();
+        },
+      });
+      return false;
     };
 
     const handleInput = (event: Event) => {
@@ -183,7 +228,11 @@ export default function AdminInteractionGuard({
 
     const handleReset = (event: Event) => {
       const form = event.target;
-      if (!(form instanceof HTMLFormElement) || !form.matches(GUARDED_FORM_SELECTOR)) return;
+      if (
+        !(form instanceof HTMLFormElement) ||
+        !form.matches(GUARDED_FORM_SELECTOR)
+      )
+        return;
       window.setTimeout(() => {
         baselines.set(form, snapshotAdminForm(form));
         refreshDirtyState();
@@ -218,7 +267,16 @@ export default function AdminInteractionGuard({
       }
 
       const pending = dirtyForms();
-      if (!confirmDiscard(pending)) {
+      if (
+        !confirmDiscard(pending, () => {
+          submitting = true;
+          form.requestSubmit(
+            event.submitter instanceof HTMLButtonElement
+              ? event.submitter
+              : undefined,
+          );
+        })
+      ) {
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -232,21 +290,38 @@ export default function AdminInteractionGuard({
 
       const summary = target.closest("summary");
       const details = summary?.parentElement;
-      if (summary && details instanceof HTMLDetailsElement && details.matches(ACCORDION_ITEM_SELECTOR)) {
+      if (
+        summary &&
+        details instanceof HTMLDetailsElement &&
+        details.matches(ACCORDION_ITEM_SELECTOR)
+      ) {
         event.preventDefault();
         const currentDirty = dirtyForms(details);
 
         if (details.open) {
-          if (!confirmDiscard(currentDirty)) return;
+          if (
+            !confirmDiscard(currentDirty, () => {
+              details.open = false;
+            })
+          )
+            return;
           details.open = false;
           return;
         }
 
         const openedSiblings = Array.from(
-          root.querySelectorAll<HTMLDetailsElement>(`${ACCORDION_ITEM_SELECTOR}[open]`),
+          root.querySelectorAll<HTMLDetailsElement>(
+            `${ACCORDION_ITEM_SELECTOR}[open]`,
+          ),
         ).filter((item) => item !== details);
         const siblingDirty = openedSiblings.flatMap((item) => dirtyForms(item));
-        if (!confirmDiscard(siblingDirty)) return;
+        if (
+          !confirmDiscard(siblingDirty, () => {
+            for (const item of openedSiblings) item.open = false;
+            details.open = true;
+          })
+        )
+          return;
         for (const item of openedSiblings) item.open = false;
         details.open = true;
         return;
@@ -258,7 +333,12 @@ export default function AdminInteractionGuard({
       const href = anchor.getAttribute("href") ?? "";
       if (!href || href.startsWith("#")) return;
 
-      if (!confirmDiscard(dirtyForms())) {
+      if (
+        !confirmDiscard(dirtyForms(), () => {
+          submitting = true;
+          window.location.assign(anchor.href);
+        })
+      ) {
         event.preventDefault();
         event.stopPropagation();
       } else {
@@ -282,6 +362,11 @@ export default function AdminInteractionGuard({
       window.history.forward();
     };
 
+    const observer = new MutationObserver(() => {
+      for (const form of guardedForms(root))
+        if (!baselines.has(form)) baselines.set(form, snapshotAdminForm(form));
+    });
+    observer.observe(root, { childList: true, subtree: true });
     root.addEventListener("input", handleInput);
     root.addEventListener("change", handleInput);
     root.addEventListener("reset", handleReset);
@@ -292,6 +377,7 @@ export default function AdminInteractionGuard({
     refreshDirtyState();
 
     return () => {
+      observer.disconnect();
       root.removeEventListener("input", handleInput);
       root.removeEventListener("change", handleInput);
       root.removeEventListener("reset", handleReset);
@@ -303,12 +389,40 @@ export default function AdminInteractionGuard({
     };
   }, [confirmMessage, rootId]);
 
-  if (!hasUnsavedChanges) return null;
-
   return (
-    <aside aria-live="polite" className={styles.unsavedNotice} role="status">
-      <strong>Kaydedilmemiş değişiklikler var</strong>
-      <span>Başka bir kayda veya sayfaya geçmeden önce değişikliklerini kaydet.</span>
-    </aside>
+    <>
+      {leavePrompt ? (
+        <AdminDialog
+          title="Kaydedilmemiş değişiklikler"
+          open
+          onClose={() => setLeavePrompt(null)}
+        >
+          <p>{confirmMessage}</p>
+          <div className={styles.choices}>
+            <button type="button" onClick={leavePrompt.save}>
+              Değişiklikleri kaydet
+            </button>
+            <button type="button" onClick={leavePrompt.discard}>
+              Kaydetmeden çık
+            </button>
+            <button type="button" onClick={() => setLeavePrompt(null)}>
+              Düzenlemeye devam et
+            </button>
+          </div>
+        </AdminDialog>
+      ) : null}
+      {hasUnsavedChanges ? (
+        <aside
+          aria-live="polite"
+          className={styles.unsavedNotice}
+          role="status"
+        >
+          <strong>Kaydedilmemiş değişiklikler var</strong>
+          <span>
+            Başka bir kayda veya sayfaya geçmeden önce değişikliklerini kaydet.
+          </span>
+        </aside>
+      ) : null}
+    </>
   );
 }

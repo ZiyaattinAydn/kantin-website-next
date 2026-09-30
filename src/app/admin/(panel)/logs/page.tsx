@@ -1,3 +1,5 @@
+import AdminDialog from "@/components/admin/ui/AdminDialog";
+import CopyRequestId from "@/components/admin/ui/CopyRequestId";
 import Link from "next/link";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/auth/admin";
@@ -7,6 +9,8 @@ import {
   LOG_LEVELS,
   LOG_OPERATIONS,
   safeLogRoute,
+  safeSystemLogView,
+  systemLogSearch,
 } from "@/lib/admin/log-safety";
 import { isUuid } from "@/lib/admin/pricing";
 import { resolveSystemLog } from "@/lib/admin/log-actions";
@@ -91,6 +95,14 @@ export default async function LogsPage({
     query = query.eq("error_code", p.code!);
   if (p.resolved === "yes") query = query.not("resolved_at", "is", null);
   if (p.resolved === "no") query = query.is("resolved_at", null);
+  const search = systemLogSearch(p.q);
+  if (isUuid(search)) query = query.eq("request_id", search);
+  else if (search)
+    query = query.or(
+      ["error_code", "operation", "route", "technical_message"]
+        .map((field) => `${field}.ilike.%${search}%`)
+        .join(","),
+    );
   const { data, error, count } = await query
     .order("created_at", { ascending: false })
     .range(start, start + 49);
@@ -106,7 +118,7 @@ export default async function LogsPage({
   return (
     <section className={styles.page}>
       <header>
-        <p className="eyebrow">Gelişmiş Yönetim</p>
+        <p className="eyebrow">Teknik</p>
         <h1>Sistem Kayıtları / Teknik Loglar</h1>
         <p>
           Sistem hataları ve teknik olaylar. Kullanıcı işlemleri ana sayfadaki
@@ -116,6 +128,15 @@ export default async function LogsPage({
       {p.notice ? <p role="status">Kayıt güncellendi.</p> : null}
       {p.error ? <p role="alert">Kayıt güncellenemedi.</p> : null}
       <form className={styles.panel} action="/admin/logs">
+        <label className={styles.field}>
+          Loglarda ara
+          <input
+            name="q"
+            maxLength={100}
+            placeholder="Hata kodu, işlem veya request ID"
+            defaultValue={p.q}
+          />
+        </label>
         <div className={styles.grid}>
           <label className={styles.field}>
             Başlangıç tarihi
@@ -201,61 +222,68 @@ export default async function LogsPage({
                 </tr>
               </thead>
               <tbody>
-                {((data as LogRow[]) ?? []).map((log) => {
-                  const href = entityLink(log.entity_type, log.entity_id);
-                  return (
-                    <tr key={log.id}>
-                      <td>{formatAdminDate(log.created_at)}</td>
-                      <td>
-                        {log.level}
-                        <br />
-                        <code>{log.error_code}</code>
-                      </td>
-                      <td>
-                        <code>{log.route}</code>
-                        <br />
-                        {log.operation}
-                      </td>
-                      <td>
-                        <details>
-                          <summary>{log.technical_message}</summary>
-                          <p>
-                            Kullanıcı: <code>{log.actor_id ?? "—"}</code>
-                          </p>
-                          <p>
-                            Entity: {log.entity_type} ·{" "}
-                            <code>{log.entity_id ?? "—"}</code>
-                          </p>
-                          <p>
-                            Request ID: <code>{log.request_id}</code>
-                          </p>
-                          <pre>{JSON.stringify(log.safe_detail, null, 2)}</pre>
-                          {href ? (
-                            <Link href={href}>İlgili kaydı aç</Link>
+                {((data as LogRow[]) ?? [])
+                  .map(safeSystemLogView)
+                  .map((log) => {
+                    const href = entityLink(log.entity_type, log.entity_id);
+                    return (
+                      <tr key={log.id}>
+                        <td>{formatAdminDate(log.created_at)}</td>
+                        <td>
+                          <span className={styles.badge} data-level={log.level}>
+                            {log.level.toUpperCase()}
+                          </span>
+                          <br />
+                          <code>{log.error_code}</code>
+                        </td>
+                        <td>
+                          <code>{log.route}</code>
+                          <br />
+                          {log.operation}
+                        </td>
+                        <td>
+                          <AdminDialog title="Teknik kayıt ayrıntıları">
+                            <summary>{log.technical_message}</summary>
+                            <p>
+                              Kullanıcı: <code>{log.actor_id ?? "—"}</code>
+                            </p>
+                            <p>
+                              Entity: {log.entity_type} ·{" "}
+                              <code>{log.entity_id ?? "—"}</code>
+                            </p>
+                            <p>
+                              Request ID: <code>{log.request_id}</code>
+                            </p>
+                            <CopyRequestId value={log.request_id} />
+                            <pre>
+                              {JSON.stringify(log.safe_detail, null, 2)}
+                            </pre>
+                            {href ? (
+                              <Link href={href}>İlgili kaydı aç</Link>
+                            ) : null}
+                          </AdminDialog>
+                        </td>
+                        <td>
+                          <form action={resolveSystemLog}>
+                            <input type="hidden" name="id" value={log.id} />
+                            <input
+                              type="hidden"
+                              name="resolved"
+                              value={log.resolved_at ? "false" : "true"}
+                            />
+                            <button type="submit">
+                              {log.resolved_at
+                                ? "Yeniden aç"
+                                : "Çözüldü işaretle"}
+                            </button>
+                          </form>
+                          {log.resolved_at ? (
+                            <small>{formatAdminDate(log.resolved_at)}</small>
                           ) : null}
-                        </details>
-                      </td>
-                      <td>
-                        <form action={resolveSystemLog}>
-                          <input type="hidden" name="id" value={log.id} />
-                          <input
-                            type="hidden"
-                            name="resolved"
-                            value={log.resolved_at ? "false" : "true"}
-                          />
-                          <button type="submit">
-                            {log.resolved_at
-                              ? "Yeniden aç"
-                              : "Çözüldü işaretle"}
-                          </button>
-                        </form>
-                        {log.resolved_at ? (
-                          <small>{formatAdminDate(log.resolved_at)}</small>
-                        ) : null}
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>

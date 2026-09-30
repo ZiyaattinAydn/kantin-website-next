@@ -6,11 +6,10 @@ import type { AdminOptionSource } from "./resources";
 export type AdminOption = {
   value: string;
   label: string;
+  url?: string;
 };
 
-export type AdminOptionsMap = Partial<
-  Record<AdminOptionSource, AdminOption[]>
->;
+export type AdminOptionsMap = Partial<Record<AdminOptionSource, AdminOption[]>>;
 
 export const ADMIN_OPTION_PAGE_SIZE = 500;
 
@@ -97,7 +96,7 @@ export async function loadAdminOptions(
           supabase
             .from("media")
             .select(
-              "id, title, alt_text, local_path, object_path, source",
+              "id, title, alt_text, local_path, object_path, source, bucket_name, external_url",
             )
             .eq("kind", "image")
             .eq("is_active", true)
@@ -108,6 +107,16 @@ export async function loadAdminOptions(
 
         result[source] = data.map((row) => ({
           value: row.id,
+          url:
+            row.source === "local"
+              ? (row.local_path ?? undefined)
+              : row.source === "external"
+                ? (row.external_url ?? undefined)
+                : row.bucket_name && row.object_path
+                  ? supabase.storage
+                      .from(row.bucket_name)
+                      .getPublicUrl(row.object_path).data.publicUrl
+                  : undefined,
           label:
             row.title ||
             row.alt_text ||
@@ -214,19 +223,13 @@ export async function loadAdminOptions(
           ),
         ]);
 
-        const itemMap = new Map(
-          items.map((row) => [row.id, row.name]),
-        );
+        const itemMap = new Map(items.map((row) => [row.id, row.name]));
 
-        const branchMap = new Map(
-          branches.map((row) => [row.id, row.name]),
-        );
+        const branchMap = new Map(branches.map((row) => [row.id, row.name]));
 
         result[source] = links.map((row) => ({
           value: row.id,
-          label: `${
-            itemMap.get(row.menu_item_id) ?? "Ürün"
-          } · ${
+          label: `${itemMap.get(row.menu_item_id) ?? "Ürün"} · ${
             branchMap.get(row.branch_id) ?? "Şube"
           }`,
         }));

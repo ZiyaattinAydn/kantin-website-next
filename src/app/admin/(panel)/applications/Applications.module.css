@@ -155,7 +155,9 @@
 .tableHeader,
 .applicationSummary {
   display: grid;
-  grid-template-columns: minmax(210px, 1.3fr) minmax(120px, 0.72fr) minmax(120px, 0.72fr) minmax(118px, 0.72fr) minmax(170px, 1fr) minmax(125px, 0.72fr) 82px;
+  grid-template-columns:
+    minmax(210px, 1.3fr) minmax(120px, 0.72fr) minmax(120px, 0.72fr)
+    minmax(118px, 0.72fr) minmax(170px, 1fr) minmax(125px, 0.72fr) 82px;
   align-items: center;
   gap: 14px;
 }
@@ -463,7 +465,9 @@
 
 @media (min-width: 760px) {
   .filters {
-    grid-template-columns: minmax(0, 1.35fr) minmax(170px, 0.7fr) minmax(190px, 0.8fr) minmax(190px, 0.7fr);
+    grid-template-columns:
+      minmax(0, 1.35fr) minmax(170px, 0.7fr) minmax(190px, 0.8fr)
+      minmax(190px, 0.7fr);
     align-items: end;
   }
 
@@ -565,4 +569,72 @@
   .editorSection > a {
     width: 100%;
   }
+}
+
+/* Unified daily management cards */
+.applicationTable {
+  background: transparent;
+  border: 0;
+  overflow: visible;
+}
+.tableHeader {
+  display: none;
+}
+.applicationList {
+  display: grid;
+  gap: 14px;
+}
+.applicationCard,
+.applicationCard:last-child {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: white;
+  overflow: hidden;
+  box-shadow: 0 6px 24px #071d5906;
+}
+.applicationSummary {
+  border: 0;
+  background: transparent;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 22px;
+  gap: 16px;
+}
+.applicationSummary:hover {
+  background: #f5f8ff;
+}
+.applicationSummary:focus-visible {
+  outline: 3px solid #8bb5ff;
+  outline-offset: -3px;
+}
+.summaryCell::before {
+  content: attr(data-label);
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.summaryCell:first-child::before {
+  display: none;
+}
+@media (max-width: 900px) {
+  .applicationSummary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.page h1,
+.head h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.12;
+}
+
+.header h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.12;
 }
