@@ -227,7 +227,7 @@ function CoffeeBar({ data }: { data: MenuPublicData }) {
 
   return (
     <section className="coffee-bar-section dotted-paper reveal" id="kahve-bari">
-      <AmbientDoodles />
+      <AmbientDoodles preset="events" parallax={false} />
       <div className="coffee-bar-inner">
         <header className="coffee-menu-intro">
           <div className="coffee-intro-copy">
@@ -787,7 +787,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
         </div>
       </div>
       <div className="atakent-food dotted-paper">
-        <AmbientDoodles />
+        <AmbientDoodles preset="events" parallax={false} />
         <div className="container">
           {data.atakentHotItems.length || data.atakentGrillItems.length ? (
             <BranchIntro
