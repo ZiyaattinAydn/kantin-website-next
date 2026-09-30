@@ -9,8 +9,8 @@ import type { NavigationItem } from "@/types/content";
 import styles from "./SiteHeader.module.css";
 
 const DESKTOP_BREAKPOINT = 1180;
-const HEADER_HIDE_THRESHOLD = 96;
-const SCROLL_DIRECTION_DELTA = 8;
+const HEADER_HIDE_THRESHOLD = 160;
+const SCROLL_DIRECTION_DELTA = 12;
 
 function isNavigationItemActive(pathname: string, item: NavigationItem) {
   if (item.href.includes("#")) return false;
