@@ -38,7 +38,6 @@ export default function MenuPageClient({
   const selectorRef = useRef<HTMLDivElement | null>(null);
   const selectorSentinelRef = useRef<HTMLDivElement | null>(null);
   const panelRefs = useRef(new Map<string, HTMLElement>());
-  const shouldScrollAfterBranchChangeRef = useRef(false);
 
   const setPanelRef = useCallback(
     (slug: string) => (element: HTMLElement | null) => {
@@ -48,22 +47,20 @@ export default function MenuPageClient({
     [],
   );
 
-  const scrollToPanelStart = useCallback((branch: MenuBranch) => {
-    const panel = panelRefs.current.get(branch);
-    if (!panel) return;
+  const scrollToMenuStart = useCallback(() => {
+    const sentinel = selectorSentinelRef.current;
+    if (!sentinel) return;
 
     const rootStyles = window.getComputedStyle(document.documentElement);
     const headerHeight =
       Number.parseFloat(rootStyles.getPropertyValue("--header-height")) || 0;
-    const selectorHeight =
-      selectorRef.current?.getBoundingClientRect().height ?? 0;
-    const panelTop = panel.getBoundingClientRect().top + window.scrollY;
+    const menuTop = sentinel.getBoundingClientRect().top + window.scrollY;
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
     window.scrollTo({
-      top: Math.max(0, panelTop - headerHeight - selectorHeight - 8),
+      top: Math.max(0, menuTop - headerHeight - 4),
       behavior: reduceMotion ? "auto" : "smooth",
     });
   }, []);
@@ -74,20 +71,27 @@ export default function MenuPageClient({
     if (!selector || !sentinel) return;
 
     let frame: number | null = null;
+    let headerHeight = 0;
+    let selectorHeight = 0;
+    let sentinelPageY = 0;
+
+    const measure = () => {
+      const rootStyles = window.getComputedStyle(document.documentElement);
+      headerHeight =
+        Number.parseFloat(rootStyles.getPropertyValue("--header-height")) || 0;
+      selectorHeight = selector.getBoundingClientRect().height;
+      sentinelPageY = sentinel.getBoundingClientRect().top + window.scrollY;
+    };
 
     const updateStickyState = () => {
       if (frame !== null) return;
 
       frame = window.requestAnimationFrame(() => {
-        const rootStyles = window.getComputedStyle(document.documentElement);
-        const headerHeight =
-          Number.parseFloat(rootStyles.getPropertyValue("--header-height")) || 0;
-        const headerHidden = document.body.classList.contains("header-hidden");
-        const stickyTop = headerHidden ? 0 : headerHeight;
-        const sentinelTop = sentinel.getBoundingClientRect().top;
-        const selectorHeight = selector.getBoundingClientRect().height;
-        const stuckDistance = Math.max(0, stickyTop - sentinelTop);
-        const isStuck = sentinelTop <= stickyTop + 1;
+        const stuckDistance = Math.max(
+          0,
+          window.scrollY + headerHeight - sentinelPageY,
+        );
+        const isStuck = stuckDistance > 1;
         const hideReadyDistance = Math.max(120, selectorHeight * 1.35);
 
         selector.dataset.stuck = String(isStuck);
@@ -98,15 +102,21 @@ export default function MenuPageClient({
       });
     };
 
+    const remeasure = () => {
+      measure();
+      updateStickyState();
+    };
+
+    measure();
     updateStickyState();
     window.addEventListener("scroll", updateStickyState, { passive: true });
-    window.addEventListener("resize", updateStickyState);
-    window.addEventListener("pageshow", updateStickyState);
+    window.addEventListener("resize", remeasure);
+    window.addEventListener("pageshow", remeasure);
 
     return () => {
       window.removeEventListener("scroll", updateStickyState);
-      window.removeEventListener("resize", updateStickyState);
-      window.removeEventListener("pageshow", updateStickyState);
+      window.removeEventListener("resize", remeasure);
+      window.removeEventListener("pageshow", remeasure);
 
       if (frame !== null) {
         window.cancelAnimationFrame(frame);
@@ -116,27 +126,15 @@ export default function MenuPageClient({
 
   useEffect(() => {
     const panel = panelRefs.current.get(activeBranch);
-    let secondFrame: number | null = null;
-
-    const firstFrame = window.requestAnimationFrame(() => {
+    const frame = window.requestAnimationFrame(() => {
       panel?.querySelectorAll<HTMLElement>(".reveal").forEach((item) => {
         item.classList.add("is-visible");
         item.classList.remove("reveal-pending");
       });
-
-      if (!shouldScrollAfterBranchChangeRef.current) return;
-
-      secondFrame = window.requestAnimationFrame(() => {
-        shouldScrollAfterBranchChangeRef.current = false;
-        scrollToPanelStart(activeBranch);
-      });
     });
 
-    return () => {
-      window.cancelAnimationFrame(firstFrame);
-      if (secondFrame !== null) window.cancelAnimationFrame(secondFrame);
-    };
-  }, [activeBranch, scrollToPanelStart]);
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeBranch]);
 
   const activateBranch = useCallback(
     (branch: MenuBranch, shouldScroll = true) => {
@@ -144,15 +142,15 @@ export default function MenuPageClient({
       url.searchParams.set("sube", branch);
       window.history.replaceState({}, "", url);
 
-      if (branch === activeBranch) {
-        if (shouldScroll) scrollToPanelStart(branch);
-        return;
+      if (shouldScroll) {
+        scrollToMenuStart();
       }
 
-      shouldScrollAfterBranchChangeRef.current = shouldScroll;
+      if (branch === activeBranch) return;
+
       setActiveBranch(branch);
     },
-    [activeBranch, scrollToPanelStart],
+    [activeBranch, scrollToMenuStart],
   );
 
   const handleTabKeyDown = (
