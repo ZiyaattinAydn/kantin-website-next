@@ -85,8 +85,15 @@ export default function MenuPageClient({
         const headerHidden = document.body.classList.contains("header-hidden");
         const stickyTop = headerHidden ? 0 : headerHeight;
         const sentinelTop = sentinel.getBoundingClientRect().top;
+        const selectorHeight = selector.getBoundingClientRect().height;
+        const stuckDistance = Math.max(0, stickyTop - sentinelTop);
+        const isStuck = sentinelTop <= stickyTop + 1;
+        const hideReadyDistance = Math.max(120, selectorHeight * 1.35);
 
-        selector.dataset.stuck = String(sentinelTop <= stickyTop + 1);
+        selector.dataset.stuck = String(isStuck);
+        selector.dataset.hideReady = String(
+          isStuck && stuckDistance >= hideReadyDistance,
+        );
         frame = null;
       });
     };
@@ -109,19 +116,26 @@ export default function MenuPageClient({
 
   useEffect(() => {
     const panel = panelRefs.current.get(activeBranch);
-    const frame = window.requestAnimationFrame(() => {
+    let secondFrame: number | null = null;
+
+    const firstFrame = window.requestAnimationFrame(() => {
       panel?.querySelectorAll<HTMLElement>(".reveal").forEach((item) => {
         item.classList.add("is-visible");
         item.classList.remove("reveal-pending");
       });
 
-      if (shouldScrollAfterBranchChangeRef.current) {
+      if (!shouldScrollAfterBranchChangeRef.current) return;
+
+      secondFrame = window.requestAnimationFrame(() => {
         shouldScrollAfterBranchChangeRef.current = false;
         scrollToPanelStart(activeBranch);
-      }
+      });
     });
 
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      if (secondFrame !== null) window.cancelAnimationFrame(secondFrame);
+    };
   }, [activeBranch, scrollToPanelStart]);
 
   const activateBranch = useCallback(
