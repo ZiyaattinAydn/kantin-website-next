@@ -30,6 +30,7 @@ export default function DoodleParallaxStage({
 
     let animationFrame: number | null = null;
     let isActive = false;
+    let isVisible = false;
 
     const reset = () => {
       isActive = false;
@@ -37,7 +38,9 @@ export default function DoodleParallaxStage({
       stage.style.setProperty("--parallax-y", "0px");
     };
 
-    const handlePointerMove = (event: MouseEvent | PointerEvent) => {
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!isVisible) return;
+
       const boundsSource = stage.parentElement ?? stage;
       const rect = boundsSource.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0) {
@@ -67,14 +70,22 @@ export default function DoodleParallaxStage({
       });
     };
 
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = Boolean(entry?.isIntersecting);
+        if (!isVisible && isActive) reset();
+      },
+      { rootMargin: "120px 0px" },
+    );
+
+    observer.observe(stage);
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
-    window.addEventListener("mousemove", handlePointerMove, { passive: true });
     window.addEventListener("pointerleave", reset);
 
     return () => {
       if (animationFrame !== null) cancelAnimationFrame(animationFrame);
+      observer.disconnect();
       window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("mousemove", handlePointerMove);
       window.removeEventListener("pointerleave", reset);
     };
   }, [movementX, movementY]);
