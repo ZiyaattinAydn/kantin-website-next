@@ -4775,6 +4775,13 @@ body {
 .ambient-doodle-stage .merch-doodle {
   opacity: var(--ambient-doodle-opacity, 0.28);
   filter: none;
+  animation: none;
+  will-change: auto;
+}
+
+.ambient-doodle-stage {
+  contain: paint;
+  will-change: transform;
 }
 
 .ambient-doodle-table {
