@@ -5,11 +5,22 @@
   border-block: 1px solid var(--line);
   background: rgba(244, 239, 230, 0.94);
   backdrop-filter: blur(18px);
-  transition: top 360ms var(--ease);
+  transform: translateY(0);
+  transition:
+    top 360ms var(--ease),
+    transform 360ms var(--ease);
+  will-change: transform;
 }
 
 :global(body.header-hidden) .selectorWrap {
   top: 0;
+  transform: translateY(calc(-100% - 1px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selectorWrap {
+    transition: none;
+  }
 }
 
 .selector {
