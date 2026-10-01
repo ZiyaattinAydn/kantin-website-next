@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PublicEmptyState } from "@/components/data-state/PublicDataNotice";
 import GenericMenuPanel from "./GenericMenuPanel";
 import MenuProductQuickView from "./MenuProductQuickView";
+import MenuDiscoveryRadar from "./MenuDiscoveryRadar";
 import {
   AlsancakMenuPanel,
   AtakentMenuPanel,
@@ -239,6 +240,12 @@ export default function MenuPageClient({
               })}
             </div>
           </div>
+
+          {data.branches
+            .filter((branch) => branch.slug === activeBranch)
+            .map((branch) => (
+              <MenuDiscoveryRadar branch={branch} key={branch.id} />
+            ))}
 
           {data.branches.map((branch) => {
             if (branch.slug === "alsancak") {
