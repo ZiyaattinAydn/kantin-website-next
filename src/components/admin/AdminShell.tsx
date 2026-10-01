@@ -5,6 +5,7 @@ import AdminNavLink from "./ui/AdminNavLink";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import AdminSignOutButton from "@/components/admin/AdminSignOutButton";
+import AdminOnboarding from "@/components/admin/AdminOnboarding";
 import { adminNavigation } from "@/lib/admin/navigation";
 import AdminListState from "./ui/AdminListState";
 import styles from "./AdminShell.module.css";
@@ -133,6 +134,7 @@ export default function AdminShell({
         </nav>
 
         <div className={styles.sidebarFooter}>
+          <AdminOnboarding />
           <Link href="/" target="_blank">
             Ziyaretçi sitesini aç
           </Link>
