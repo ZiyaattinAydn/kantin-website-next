@@ -21,7 +21,7 @@ export default function SiteFooter({
 
   return (
     <footer className={styles.footer}>
-      <DoodleParallaxStage className={styles.doodleStage} movementX={10} movementY={7}>
+      <DoodleParallaxStage disabled className={styles.doodleStage}>
         <img
           alt=""
           className={`${styles.doodle} ${styles.doodleLeft}`}
