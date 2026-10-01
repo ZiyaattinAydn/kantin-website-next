@@ -170,7 +170,7 @@ export default function CareersPage({
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
-        <DoodleParallaxStage className={styles.heroDoodles}>
+        <DoodleParallaxStage disabled className={styles.heroDoodles}>
           <img
             alt=""
             className={`${styles.doodle} ${styles.doodleOne}`}
@@ -253,7 +253,7 @@ export default function CareersPage({
       </section>
 
       <section className={styles.formSection} id="basvuru" aria-labelledby="application-title">
-        <DoodleParallaxStage className={styles.formDoodles}>
+        <DoodleParallaxStage disabled className={styles.formDoodles}>
           {careerFormDoodles.map((src, index) => (
             <img
               alt=""
