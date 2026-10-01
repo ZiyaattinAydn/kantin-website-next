@@ -54,8 +54,8 @@
 
 .radar {
   position: relative;
-  min-height: 520px;
-  overflow: hidden;
+  min-height: 540px;
+  overflow: visible;
   border: 1px solid rgba(0, 71, 187, 0.18);
   border-radius: 32px;
   background: var(--blue);
@@ -92,6 +92,8 @@
 
 .crosshair {
   inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
   opacity: 0.18;
   background:
     linear-gradient(
@@ -110,27 +112,45 @@
     );
 }
 
-.center {
+.centerWrap {
   position: absolute;
   left: 50%;
   top: 50%;
-  z-index: 2;
+  z-index: 8;
+  transform: translate(-50%, -50%);
+}
+
+.center {
   display: grid;
-  width: 148px;
+  width: 154px;
   aspect-ratio: 1;
   place-content: center;
   justify-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 999px;
   background: rgba(244, 239, 230, 0.1);
+  color: var(--white);
   text-align: center;
-  transform: translate(-50%, -50%);
+  cursor: pointer;
   backdrop-filter: blur(10px);
+  transition:
+    transform 240ms var(--ease),
+    background-color 240ms ease,
+    box-shadow 240ms ease;
+}
+
+.center:hover,
+.center:focus-visible,
+.centerWrapOpen .center {
+  transform: scale(1.045);
+  background: rgba(244, 239, 230, 0.17);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16);
 }
 
 .center span,
 .center small {
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -138,11 +158,74 @@
 
 .center strong {
   margin: 4px 0;
-  font-size: 1.2rem;
+  font-size: 1.18rem;
 }
 
 .center small {
-  opacity: 0.62;
+  opacity: 0.7;
+}
+
+.branchPicker {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 10px);
+  display: grid;
+  width: 190px;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 18px;
+  background: rgba(2, 25, 75, 0.94);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -10px) scale(0.94);
+  transform-origin: 50% 0;
+  backdrop-filter: blur(16px);
+  transition:
+    opacity 200ms ease,
+    transform 260ms var(--ease);
+}
+
+.centerWrapOpen .branchPicker {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.branchPicker button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--white);
+  text-align: left;
+  cursor: pointer;
+}
+
+.branchPicker button:hover,
+.branchPicker button:focus-visible,
+.branchPicker .branchCurrent {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.branchPicker span {
+  display: grid;
+  min-width: 34px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.56rem;
+  font-weight: 900;
+}
+
+.branchPicker strong {
+  font-size: 0.82rem;
 }
 
 .node {
@@ -209,45 +292,130 @@
   background: rgba(0, 71, 187, 0.1);
 }
 
-.showcase {
+.carousel {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(240px, 0.82fr) minmax(0, 1fr);
-  min-height: 520px;
+  grid-template-rows: auto 1fr auto;
+  min-width: 0;
+  min-height: 540px;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 32px;
-  background: var(--white);
+  background: var(--card-bg);
+  color: var(--card-ink);
   box-shadow: 0 24px 70px rgba(2, 25, 75, 0.08);
+  transition:
+    background-color 420ms ease,
+    color 420ms ease;
+}
+
+.carouselTop {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 18px 0;
+}
+
+.carouselTop > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.carouselTop p,
+.carouselTop strong {
+  margin: 0;
+}
+
+.carouselTop p {
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.62;
+}
+
+.carouselTop strong {
+  font-size: 0.92rem;
+}
+
+.carouselControls {
+  display: flex;
+  gap: 7px;
+}
+
+.carouselControls button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--card-ink) 24%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card-bg) 78%, white 22%);
+  color: var(--card-ink);
+  font-size: 1rem;
+  cursor: pointer;
+  transition:
+    transform 180ms var(--ease),
+    background-color 180ms ease;
+}
+
+.carouselControls button:hover,
+.carouselControls button:focus-visible {
+  transform: translateY(-2px);
+}
+
+.viewport {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  height: 100%;
+  transform: translateX(var(--track-x));
+  transition: transform 620ms var(--ease);
+}
+
+.slide {
+  display: grid;
+  min-width: 100%;
+  grid-template-columns: minmax(230px, 0.82fr) minmax(0, 1fr);
+  align-items: stretch;
 }
 
 .imageWrap {
   position: relative;
-  min-height: 100%;
+  min-height: 430px;
   overflow: hidden;
+  margin: 18px 0 18px 18px;
+  border-radius: 24px;
   background: #d9d2c7;
 }
 
 .imageWrap img {
   width: 100%;
   height: 100%;
-  min-height: 520px;
+  min-height: 430px;
   object-fit: cover;
   transition: transform 700ms var(--ease);
 }
 
-.showcase:hover .imageWrap img {
+.slide:hover .imageWrap img {
   transform: scale(1.035);
 }
 
 .imageWrap > span {
   position: absolute;
-  left: 16px;
-  bottom: 16px;
+  left: 14px;
+  bottom: 14px;
   padding: 7px 10px;
   border-radius: 999px;
   background: rgba(2, 25, 75, 0.82);
   color: var(--white);
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   font-weight: 900;
   letter-spacing: 0.04em;
   backdrop-filter: blur(9px);
@@ -258,16 +426,17 @@
   min-width: 0;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(28px, 4vw, 48px);
+  padding: clamp(26px, 3.4vw, 44px);
 }
 
 .categoryLabel {
   margin: 0 0 14px;
-  color: var(--blue);
-  font-size: 0.68rem;
+  color: currentColor;
+  font-size: 0.66rem;
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  opacity: 0.68;
 }
 
 .productTitle {
@@ -279,7 +448,7 @@
 .productTitle h3 {
   margin: 0;
   max-width: 9ch;
-  font-size: clamp(2.7rem, 5vw, 5rem);
+  font-size: clamp(2.55rem, 4.5vw, 4.6rem);
   line-height: 0.88;
   letter-spacing: -0.065em;
   text-wrap: balance;
@@ -289,15 +458,15 @@
 
 .description {
   max-width: 42ch;
-  margin: 22px 0 0;
-  color: var(--muted);
+  margin: 20px 0 0;
   line-height: 1.58;
+  opacity: 0.72;
 }
 
 .price {
-  margin-top: 24px;
-  color: var(--blue);
-  font-size: clamp(1.35rem, 2.3vw, 2rem);
+  margin-top: 22px;
+  color: currentColor;
+  font-size: clamp(1.3rem, 2.2vw, 1.9rem);
   letter-spacing: -0.035em;
 }
 
@@ -306,9 +475,9 @@
   width: fit-content;
   align-items: center;
   gap: 12px;
-  margin-top: 28px;
+  margin-top: 26px;
   padding: 13px 16px;
-  border: 1px solid var(--blue);
+  border: 1px solid currentColor;
   border-radius: 999px;
   background: var(--blue);
   color: var(--white);
@@ -326,26 +495,42 @@
   transform: translateY(-2px);
 }
 
-@media (max-width: 980px) {
-  .heading {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
+.dots {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 18px 16px;
+}
 
+.dots button {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.24;
+  cursor: pointer;
+  transition:
+    width 180ms var(--ease),
+    opacity 180ms ease;
+}
+
+.dots .dotActive {
+  width: 28px;
+  opacity: 0.78;
+}
+
+@media (max-width: 1080px) {
   .layout {
     grid-template-columns: 1fr;
   }
 
-  .radar {
+  .radar,
+  .carousel {
     min-height: 500px;
-  }
-
-  .showcase {
-    min-height: 460px;
-  }
-
-  .imageWrap img {
-    min-height: 460px;
   }
 }
 
@@ -354,27 +539,22 @@
     padding-block: 24px 34px;
   }
 
+  .heading {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
   .heading h2 {
     font-size: clamp(2.5rem, 14vw, 4rem);
   }
 
   .radar {
-    min-height: auto;
-    padding: 20px;
-    border-radius: 24px;
-  }
-
-  .ringOne,
-  .ringTwo,
-  .crosshair,
-  .center {
-    display: none;
-  }
-
-  .radar {
     display: flex;
+    min-height: auto;
     gap: 8px;
+    padding: 14px;
     overflow-x: auto;
+    border-radius: 24px;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
   }
@@ -383,12 +563,59 @@
     display: none;
   }
 
+  .ringOne,
+  .ringTwo,
+  .crosshair {
+    display: none;
+  }
+
+  .centerWrap {
+    position: relative;
+    left: auto;
+    top: auto;
+    flex: 0 0 auto;
+    transform: none;
+  }
+
+  .center {
+    width: 132px;
+    height: 50px;
+    aspect-ratio: auto;
+    grid-template-columns: auto 1fr;
+    column-gap: 8px;
+    place-content: center;
+    text-align: left;
+    border-radius: 16px;
+  }
+
+  .center span,
+  .center small {
+    display: none;
+  }
+
+  .center strong {
+    margin: 0;
+    font-size: 0.82rem;
+  }
+
+  .branchPicker {
+    left: 0;
+    top: calc(100% + 7px);
+    width: 180px;
+    transform: translate(0, -8px) scale(0.94);
+    transform-origin: 0 0;
+  }
+
+  .centerWrapOpen .branchPicker {
+    transform: translate(0, 0) scale(1);
+  }
+
   .node,
   .nodeActive {
     position: static;
     flex: 0 0 auto;
     max-width: 180px;
-    min-height: 48px;
+    min-height: 50px;
     scroll-snap-align: start;
     transform: none;
   }
@@ -399,35 +626,48 @@
     transform: none;
   }
 
-  .showcase {
-    grid-template-columns: 1fr;
+  .carousel {
     min-height: 0;
     border-radius: 24px;
   }
 
+  .slide {
+    grid-template-columns: 1fr;
+  }
+
   .imageWrap {
-    min-height: 300px;
+    min-height: 290px;
+    margin: 12px 12px 0;
+    border-radius: 20px;
   }
 
   .imageWrap img {
-    min-height: 300px;
-    max-height: 54dvh;
+    min-height: 290px;
+    max-height: 48dvh;
   }
 
   .copy {
-    padding: 24px 22px 28px;
+    padding: 22px 20px 26px;
   }
 
   .productTitle h3 {
     max-width: 11ch;
-    font-size: clamp(2.4rem, 12vw, 3.7rem);
+    font-size: clamp(2.35rem, 12vw, 3.6rem);
+  }
+
+  .carouselTop {
+    padding: 14px 14px 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .center,
+  .branchPicker,
   .node,
+  .track,
   .imageWrap img,
-  .jumpButton {
+  .jumpButton,
+  .dots button {
     transition: none;
   }
 }
