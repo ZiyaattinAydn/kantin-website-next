@@ -118,6 +118,8 @@ function CheeseFeature({ data }: { data: MenuPublicData["cheesePortions"] }) {
               name={data.feature.name}
               description={data.feature.description}
               price={data.feature.price}
+              category="Deli + Salata"
+              subcategory="Peynir"
             />
           </h4>
           <p>{data.feature.description}</p>
@@ -153,7 +155,19 @@ function CheeseFeature({ data }: { data: MenuPublicData["cheesePortions"] }) {
               key={option.name}
               className={`cheese-option${option.mixed ? " cheese-option-mixed" : ""}`}
             >
-              <b>{option.name}</b>
+              <b>
+                {option.name}
+                <MenuQuickViewButton
+                  name={option.name}
+                  detail={option.detail}
+                  price={data.prices
+                    .map((item) => `${item.label}: ${item.price}`)
+                    .join(" · ")}
+                  note={option.portion}
+                  category="Deli + Salata"
+                  subcategory="Peynir"
+                />
+              </b>
               <small>{option.detail}</small>
               <span>{option.portion}</span>
             </div>
@@ -191,6 +205,8 @@ function BeerSalads({ salads }: { salads: MenuPublicData["beerSalads"] }) {
                     .map((item) => `${item.label}: ${item.price}`)
                     .join(" · ")}
                   badge="VEGAN"
+                  category="Deli + Salata"
+                  subcategory="Salata"
                 />
               </h4>
               <p>{salad.description}</p>
@@ -229,6 +245,8 @@ function CoffeeGroup({ group }: { group: CoffeeMenuGroup }) {
                 name={item.name}
                 detail={item.detail}
                 price={item.price}
+                category="İçecek"
+                subcategory={group.title}
               />
               {item.detail ? <small>{item.detail}</small> : null}
             </span>
@@ -283,7 +301,17 @@ function CoffeeBar({ data }: { data: MenuPublicData }) {
           {data.coffeeExtras.map((extra) => (
             <div key={extra.label}>
               <span>
-                <b>{extra.label}</b> · {extra.description}
+                <b>
+                  {extra.label}
+                  <MenuQuickViewButton
+                    name={extra.label}
+                    description={extra.description}
+                    price={extra.price}
+                    category="İçecek"
+                    subcategory="Ekstra"
+                  />
+                </b>{" "}
+                · {extra.description}
               </span>
               <strong>{extra.price}</strong>
             </div>
@@ -380,6 +408,8 @@ function ManagedBranchMenu({
               rows={data.alsancakDraftBeers}
               headClassName="dark-head"
               rowClassName="four-cols"
+              category="Bira"
+              subcategory="Fıçı"
             />
           </>
         );
@@ -390,6 +420,8 @@ function ManagedBranchMenu({
             <CompactList
               items={data.alsancakBottleBeers}
               className="bottle-grid-als"
+              category="Bira"
+              subcategory="Şişe"
             />
           </>
         );
@@ -399,7 +431,12 @@ function ManagedBranchMenu({
             <SheetTitle>{category.name}</SheetTitle>
             <CheeseFeature data={data.cheesePortions} />
             {data.alsancakDeliItems.map((item) => (
-              <BranchFoodItem key={item.name} item={item} />
+              <BranchFoodItem
+                key={item.name}
+                item={item}
+                category="Deli + Salata"
+                subcategory="Deli"
+              />
             ))}
             <BeerSalads salads={data.beerSalads} />
           </>
@@ -417,6 +454,8 @@ function ManagedBranchMenu({
                     description={data.alsancakWine.description}
                     price={data.alsancakWine.price}
                     note={data.alsancakWine.priceDetail}
+                    category="Şarap"
+                    subcategory="Kadeh / Şişe"
                   />
                 </h4>
                 <p>{data.alsancakWine.description}</p>
@@ -437,7 +476,12 @@ function ManagedBranchMenu({
               ? data.alsancakFryerItems
               : data.alsancakOvenItems
             ).map((item) => (
-              <BranchFoodItem key={item.name} item={item} />
+              <BranchFoodItem
+                key={item.name}
+                item={item}
+                category="Yemek"
+                subcategory={key === "fritoz" ? "Fritöz" : "Fırın"}
+              />
             ))}
           </>
         );
@@ -466,6 +510,8 @@ function ManagedBranchMenu({
               rows={
                 key === "saraplar" ? data.atakentWines : data.atakentDraftBeers
               }
+              category={key === "saraplar" ? "Şarap" : "Bira"}
+              subcategory={key === "saraplar" ? "Kadeh / Şişe" : "Fıçı"}
             />
           </>
         );
@@ -473,7 +519,11 @@ function ManagedBranchMenu({
         return (
           <>
             <EditorialTitle>{category.name}</EditorialTitle>
-            <CompactList items={data.atakentBottleBeers} />
+            <CompactList
+              items={data.atakentBottleBeers}
+              category="Bira"
+              subcategory="Şişe"
+            />
           </>
         );
       if (key === "bubble-kokteyller" || key === "house-kokteyller")
@@ -486,6 +536,10 @@ function ManagedBranchMenu({
                   ? data.atakentBubbleCocktails
                   : data.atakentHouseCocktails
               }
+              category="Kokteyl"
+              subcategory={
+                key === "bubble-kokteyller" ? "Bubble" : "House"
+              }
             />
           </>
         );
@@ -497,7 +551,12 @@ function ManagedBranchMenu({
               ? data.atakentHotItems
               : data.atakentGrillItems
             ).map((item) => (
-              <AtakentFoodItem key={item.name} item={item} />
+              <AtakentFoodItem
+                key={item.name}
+                item={item}
+                category="Yemek"
+                subcategory={key === "sicaklar" ? "Sıcaklar" : "Izgara Şişleri"}
+              />
             ))}
           </>
         );
@@ -505,7 +564,11 @@ function ManagedBranchMenu({
         return (
           <>
             <SheetTitle>{category.name}</SheetTitle>
-            <BranchFoodItem item={data.atakentDessert} />
+            <BranchFoodItem
+              item={data.atakentDessert}
+              category="Yemek"
+              subcategory="Tatlı"
+            />
           </>
         );
     }
@@ -662,6 +725,8 @@ export function AlsancakMenuPanel({
                     description={data.alsancakWine.description}
                     price={data.alsancakWine.price}
                     note={data.alsancakWine.priceDetail}
+                    category="Şarap"
+                    subcategory="Kadeh / Şişe"
                   />
                 </h4>
                           <p>{data.alsancakWine.description}</p>
@@ -687,7 +752,12 @@ export function AlsancakMenuPanel({
                     >
                       <SheetTitle>Fritöz</SheetTitle>
                       {data.alsancakFryerItems.map((item) => (
-                        <BranchFoodItem key={item.name} item={item} />
+                        <BranchFoodItem
+                          key={item.name}
+                          item={item}
+                          category="Yemek"
+                          subcategory="Fritöz"
+                        />
                       ))}
                     </section>
                   );
@@ -708,7 +778,12 @@ export function AlsancakMenuPanel({
                         edilir ♡
                       </div>
                       {data.alsancakOvenItems.map((item) => (
-                        <BranchFoodItem key={item.name} item={item} />
+                        <BranchFoodItem
+                          key={item.name}
+                          item={item}
+                          category="Yemek"
+                          subcategory="Fırın"
+                        />
                       ))}
                     </section>
                   );
@@ -726,7 +801,12 @@ export function AlsancakMenuPanel({
                 <SheetTitle>Deli + Salata</SheetTitle>
                 <CheeseFeature data={data.cheesePortions} />
                 {data.alsancakDeliItems.map((item) => (
-                  <BranchFoodItem key={item.name} item={item} />
+                  <BranchFoodItem
+                    key={item.name}
+                    item={item}
+                    category="Deli + Salata"
+                    subcategory="Deli"
+                  />
                 ))}
                 <BeerSalads salads={data.beerSalads} />
               </section>
@@ -788,13 +868,19 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                 <PriceTable
                   headers={["Ürün", "25 cl", "50 cl"]}
                   rows={data.atakentDraftBeers}
+                  category="Bira"
+                  subcategory="Fıçı"
                 />
               </section>
             ) : null}
             {data.atakentBubbleCocktails.length ? (
               <section className="menu-editorial-block reveal reveal-delay-1">
                 <EditorialTitle>Bubble Kokteyller</EditorialTitle>
-                <EditorialItems items={data.atakentBubbleCocktails} />
+                <EditorialItems
+                  items={data.atakentBubbleCocktails}
+                  category="Kokteyl"
+                  subcategory="Bubble"
+                />
               </section>
             ) : null}
             {data.atakentHouseCocktails.length ? (
@@ -803,13 +889,19 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                 <EditorialItems
                   items={data.atakentHouseCocktails}
                   className="cocktail-grid"
+                  category="Kokteyl"
+                  subcategory="House"
                 />
               </section>
             ) : null}
             {data.atakentBottleBeers.length ? (
               <section className="menu-editorial-block reveal">
                 <EditorialTitle>Şişe Biralar</EditorialTitle>
-                <CompactList items={data.atakentBottleBeers} />
+                <CompactList
+                  items={data.atakentBottleBeers}
+                  category="Bira"
+                  subcategory="Şişe"
+                />
               </section>
             ) : null}
             {data.atakentWines.length ? (
@@ -819,6 +911,8 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                   headers={["Şarap", "Kadeh", "Şişe"]}
                   rows={data.atakentWines}
                   headClassName="wine-head"
+                  category="Şarap"
+                  subcategory="Kadeh / Şişe"
                 />
               </section>
             ) : null}
@@ -842,7 +936,12 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                   <h3>Sıcaklar</h3>
                 </div>
                 {data.atakentHotItems.map((item) => (
-                  <AtakentFoodItem key={item.name} item={item} />
+                  <AtakentFoodItem
+                    key={item.name}
+                    item={item}
+                    category="Yemek"
+                    subcategory="Sıcaklar"
+                  />
                 ))}
               </section>
             ) : null}
@@ -853,7 +952,12 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                   <small>17:00’dan itibaren</small>
                 </div>
                 {data.atakentGrillItems.map((item) => (
-                  <AtakentFoodItem key={item.name} item={item} />
+                  <AtakentFoodItem
+                    key={item.name}
+                    item={item}
+                    category="Yemek"
+                    subcategory="Izgara Şişleri"
+                  />
                 ))}
               </section>
             ) : null}
@@ -869,6 +973,8 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                     description={data.atakentDessert.description}
                     price={data.atakentDessert.price}
                     allergens={data.atakentDessert.allergens}
+                    category="Yemek"
+                    subcategory="Tatlı"
                   />
                 </h3>
                 <p>{data.atakentDessert.description}</p>
