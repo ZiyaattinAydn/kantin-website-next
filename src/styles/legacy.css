@@ -2131,11 +2131,11 @@ body {
   pointer-events: none;
 }
 
-.menu-radar-return-wrap:nth-of-type(odd) {
+.menu-radar-return-wrap {
   justify-content: flex-start;
 }
 
-.menu-radar-return-wrap:nth-of-type(even) {
+.menu-radar-return-wrap-light {
   justify-content: flex-end;
 }
 
