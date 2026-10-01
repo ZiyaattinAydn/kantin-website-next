@@ -353,3 +353,149 @@
 .contentSummary span {
   font-size: 0.85rem;
 }
+
+
+@media (max-width: 759px) {
+  .head {
+    align-items: stretch;
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+  .head > div:first-child {
+    width: 100%;
+  }
+
+  .head h1 {
+    font-size: clamp(2rem, 10vw, 2.7rem);
+    line-height: 1;
+  }
+
+  .head > .primary {
+    width: 100%;
+  }
+
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 4px 0 8px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tabs > * {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .panel {
+    padding: 18px;
+    margin-block: 12px;
+  }
+
+  .product {
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .product > div:first-child {
+    width: 100%;
+  }
+
+  .product .actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .product .actions button {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 10px;
+  }
+
+  .prices {
+    gap: 6px 12px;
+    font-size: 0.84rem;
+  }
+
+  .contentSummary {
+    min-height: 58px;
+  }
+
+  .page .contentSummary {
+    padding: 18px;
+    font-size: 1rem;
+  }
+
+  .contentSummary span {
+    font-size: 0.76rem;
+  }
+
+  .imagePicker {
+    padding: 13px;
+  }
+
+  .imagePicker .actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .imagePicker .actions > * {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .media {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: 56dvh;
+    overscroll-behavior: contain;
+  }
+}
+
+@media (max-width: 460px) {
+  .head {
+    padding: 17px;
+  }
+
+  .actions:not(.product .actions):not(.imagePicker .actions) {
+    align-items: stretch;
+  }
+
+  .product .actions,
+  .imagePicker .actions {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 15px;
+    border-radius: 16px;
+  }
+
+  .panel h2 {
+    margin-bottom: 10px;
+  }
+
+  .badge {
+    display: inline-flex;
+    margin-top: 5px;
+  }
+
+  .media {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .media button {
+    padding: 8px;
+  }
+
+  .media img,
+  .imagePicker .media img {
+    height: 90px;
+  }
+}
