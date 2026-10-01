@@ -3,13 +3,8 @@
   padding: clamp(28px, 4vw, 56px) 0;
   overflow: hidden;
   scroll-margin-top: calc(var(--header-height) + 24px);
-  background-color: var(--cream);
-  background-image:
-    radial-gradient(circle at 15% 20%, rgba(0, 71, 187, 0.08), transparent 28%),
-    radial-gradient(circle at 1px 1px, rgba(0, 71, 187, 0.16) 1px, transparent 1.15px);
-  background-size:
-    auto,
-    20px 20px;
+  background-color: transparent;
+  background-image: none;
   border-bottom: 1px solid var(--line);
 }
 
