@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import styles from "./SauceExplorer.module.css";
 
+type CssVars = CSSProperties & Record<`--${string}`, string>;
+
 type SauceExplorerProps = {
   items: string[];
   kicker?: string;
@@ -122,7 +124,7 @@ export default function SauceExplorer({
     "--sauce-bg": activePalette.bg,
     "--sauce-accent": activePalette.accent,
     "--sauce-ink": activePalette.ink,
-  } as CSSProperties;
+  } as CssVars;
 
   return (
     <>
@@ -197,7 +199,7 @@ export default function SauceExplorer({
               const sectionStyle = {
                 "--panel-accent": palette.accent,
                 "--panel-ink": palette.ink,
-              } as CSSProperties;
+              } as CssVars;
               const isActive = index === activeIndex;
 
               return (
