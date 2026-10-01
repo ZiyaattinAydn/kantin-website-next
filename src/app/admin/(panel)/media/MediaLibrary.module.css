@@ -777,3 +777,112 @@
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1.12;
 }
+
+
+/* Final responsive pass: keep media management compact and touch-friendly. */
+@media (max-width: 900px) {
+  .mediaSummary {
+    grid-template-columns: 88px minmax(0, 1fr);
+    align-items: start;
+    padding: 16px;
+  }
+
+  .summaryCell:nth-child(n + 3),
+  .openAction {
+    grid-column: 1 / -1;
+  }
+
+  .preview,
+  .noPreview {
+    width: 82px;
+    height: 72px;
+  }
+
+  .openAction {
+    min-height: 40px;
+    align-content: center;
+  }
+
+  .editorGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .filterPanel {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .mediaSearch {
+    gap: 12px;
+  }
+
+  .filterActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filterActions > * {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .uploadSummary {
+    min-height: 60px;
+    padding: 12px 14px;
+  }
+
+  .uploadBody,
+  .mediaEditor {
+    padding: 14px;
+  }
+
+  .previewPanel,
+  .formPanel,
+  .replaceSection,
+  .lifecycleSection,
+  .pendingPanel {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .previewPanel > img {
+    max-height: 48dvh;
+  }
+}
+
+@media (max-width: 460px) {
+  .shortcuts {
+    gap: 7px;
+  }
+
+  .mediaSummary {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .summaryCell:nth-child(n + 3),
+  .openAction {
+    grid-column: auto;
+  }
+
+  .preview,
+  .noPreview {
+    width: 100%;
+    height: 180px;
+  }
+
+  .filterActions {
+    grid-template-columns: 1fr;
+  }
+
+  .mediaIdentity strong {
+    font-size: 0.86rem;
+  }
+
+  .resultSummary {
+    line-height: 1.5;
+  }
+}
