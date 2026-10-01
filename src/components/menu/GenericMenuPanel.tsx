@@ -5,6 +5,7 @@ import type {
   GenericMenuItemData,
 } from "@/lib/public-data/types";
 import styles from "./GenericMenuPanel.module.css";
+import { MenuQuickViewButton } from "./MenuProductQuickView";
 
 function ItemPrice({ item }: { item: GenericMenuItemData }) {
   if (item.variants.length) {
@@ -47,7 +48,24 @@ function MenuItemCard({ item }: { item: GenericMenuItemData }) {
       <div className={styles.itemBody}>
         <div className={styles.itemHeading}>
           <div>
-            <h3>{item.name}</h3>
+            <h3>
+              {item.name}
+              <MenuQuickViewButton
+                name={item.name}
+                description={item.description}
+                detail={item.detail}
+                price={
+                  item.variants.length
+                    ? item.variants
+                        .map((variant) => `${variant.label}: ${variant.price}`)
+                        .join(" · ")
+                    : item.price
+                }
+                note={item.priceNote ?? item.availabilityNote}
+                allergens={item.allergens}
+                badge={item.badges[0]}
+              />
+            </h3>
             {item.detail ? <small>{item.detail}</small> : null}
           </div>
           <ItemPrice item={item} />
