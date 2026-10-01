@@ -32,6 +32,7 @@ const CARD_TONES = [
 type RadarStyle = CSSProperties & {
   "--node-x": string;
   "--node-y": string;
+  "--node-delay": string;
 };
 
 type CarouselStyle = CSSProperties & {
@@ -199,6 +200,7 @@ export default function MenuDiscoveryRadar({
                 const nodeStyle = {
                   "--node-x": x,
                   "--node-y": y,
+                  "--node-delay": `${index * -0.42}s`,
                 } as RadarStyle;
 
                 return (
