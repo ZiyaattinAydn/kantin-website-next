@@ -66,8 +66,15 @@
   border-radius: inherit;
   background: var(--blue);
   transform: scaleX(0);
-  transform-origin: right center;
   transition: transform 420ms var(--ease);
+}
+
+.tab[data-fill-side="from-left"]::before {
+  transform-origin: left center;
+}
+
+.tab[data-fill-side="from-right"]::before {
+  transform-origin: right center;
 }
 
 .tab > * {
@@ -92,7 +99,6 @@
 
 .active::before {
   transform: scaleX(1);
-  transform-origin: left center;
 }
 
 .active small {
