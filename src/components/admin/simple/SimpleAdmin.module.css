@@ -499,3 +499,107 @@
     height: 90px;
   }
 }
+
+
+@media (max-width: 759px) {
+  .steps {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .steps::-webkit-scrollbar {
+    display: none;
+  }
+
+  .steps li {
+    flex: 0 0 auto;
+    min-width: 170px;
+    scroll-snap-align: start;
+  }
+
+  .check {
+    min-height: 44px;
+    padding-block: 6px;
+  }
+
+  .field textarea {
+    min-height: 110px;
+  }
+
+  .panel > .head {
+    margin: -2px -2px 16px;
+    padding: 16px;
+    border-radius: 14px;
+    box-shadow: none;
+  }
+
+  .panel > .head h2 {
+    margin: 0;
+    font-size: clamp(1.15rem, 5vw, 1.5rem);
+  }
+
+  .panel .panel {
+    margin: 12px 0;
+    padding: 14px;
+    background: #f8faff;
+    box-shadow: none;
+  }
+
+  .option {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .option:first-of-type {
+    border-top: 0;
+  }
+
+  .fieldset > .primary {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 8px;
+  }
+
+  .notice {
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+
+  .grid > section {
+    min-width: 0;
+  }
+
+  .grid > section h3 {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 460px) {
+  .steps li {
+    min-width: 150px;
+    padding: 9px 10px;
+    font-size: 0.74rem;
+  }
+
+  .field {
+    margin-block: 10px;
+  }
+
+  .check {
+    margin-block: 10px;
+  }
+
+  .page input,
+  .page select,
+  .page textarea {
+    font-size: 16px;
+  }
+
+  .panel .panel {
+    padding: 12px;
+  }
+}
