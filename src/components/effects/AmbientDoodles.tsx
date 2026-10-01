@@ -65,7 +65,7 @@ const presetIds: Record<AmbientDoodlePreset, readonly AmbientDoodle["id"][]> = {
 export default function AmbientDoodles({
   preset = "all",
   className = "",
-  parallax = true,
+  parallax = false,
 }: {
   preset?: AmbientDoodlePreset;
   className?: string;
