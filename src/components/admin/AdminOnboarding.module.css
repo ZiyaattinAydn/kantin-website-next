@@ -35,7 +35,7 @@
 .layer {
   position: fixed;
   inset: 0;
-  z-index: 300;
+  z-index: 2200;
   display: grid;
   place-items: center;
   padding: 18px;
@@ -300,4 +300,85 @@
   border-radius: 0 !important;
   background: transparent !important;
   white-space: nowrap !important;
+}
+
+
+/* Rendered through a body portal so the tour is never constrained by the
+   transformed mobile sidebar. */
+.dialog {
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.step {
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.step:hover {
+  transform: translateY(-1px);
+  border-color: rgba(0, 71, 187, 0.24);
+  box-shadow: 0 10px 24px rgba(2, 25, 75, 0.06);
+}
+
+@media (max-width: 720px) {
+  .layer {
+    align-items: end;
+    padding: 12px 12px 0;
+  }
+
+  .dialog {
+    width: min(100%, 620px);
+    max-height: 90dvh;
+    padding:
+      22px
+      max(18px, env(safe-area-inset-right))
+      calc(24px + env(safe-area-inset-bottom))
+      max(18px, env(safe-area-inset-left));
+    border-radius: 24px 24px 0 0;
+  }
+
+  .head {
+    gap: 12px;
+  }
+
+  .head h2 {
+    max-width: 11ch;
+    font-size: clamp(2.25rem, 9vw, 3.15rem);
+  }
+
+  .intro {
+    margin: 16px 0 20px;
+  }
+
+  .step {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .step > span {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 420px) {
+  .layer {
+    padding-inline: 0;
+  }
+
+  .dialog {
+    width: 100%;
+  }
+
+  .step {
+    grid-template-columns: 1fr;
+  }
+
+  .tip {
+    margin-top: 14px;
+  }
 }
