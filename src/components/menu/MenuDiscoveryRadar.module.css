@@ -83,11 +83,13 @@
 .ringOne {
   width: 68%;
   aspect-ratio: 1;
+  animation: radarWaveOuter 5.8s ease-in-out infinite;
 }
 
 .ringTwo {
   width: 38%;
   aspect-ratio: 1;
+  animation: radarWaveInner 4.7s ease-in-out -1.4s infinite;
 }
 
 .crosshair {
@@ -231,6 +233,7 @@
 .node {
   --node-x: 50%;
   --node-y: 50%;
+  --node-delay: 0s;
   position: absolute;
   left: var(--node-x);
   top: var(--node-y);
@@ -257,6 +260,7 @@
     background-color 220ms ease,
     color 220ms ease,
     border-color 220ms ease;
+  animation: radarNodeWave 4.6s ease-in-out var(--node-delay) infinite;
 }
 
 .node span {
@@ -286,6 +290,7 @@
   color: var(--blue);
   transform: translate(-50%, -50%) scale(1.08);
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.18);
+  animation-name: radarNodeWaveActive;
 }
 
 .nodeActive small {
@@ -523,6 +528,55 @@
   opacity: 0.78;
 }
 
+
+@keyframes radarWaveOuter {
+  0%,
+  100% {
+    opacity: 0.16;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+
+  50% {
+    opacity: 0.34;
+    transform: translate(-50%, -50%) scale(1.055);
+  }
+}
+
+@keyframes radarWaveInner {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+
+  50% {
+    opacity: 0.42;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+@keyframes radarNodeWave {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translate(-50%, -50%) translateY(-7px) scale(1.025);
+  }
+}
+
+@keyframes radarNodeWaveActive {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0) scale(1.08);
+  }
+
+  50% {
+    transform: translate(-50%, -50%) translateY(-8px) scale(1.105);
+  }
+}
+
 @media (max-width: 1080px) {
   .layout {
     grid-template-columns: 1fr;
@@ -618,6 +672,7 @@
     min-height: 50px;
     scroll-snap-align: start;
     transform: none;
+    animation: none;
   }
 
   .node:hover,
@@ -663,11 +718,19 @@
 @media (prefers-reduced-motion: reduce) {
   .center,
   .branchPicker,
+  .ringOne,
+  .ringTwo,
   .node,
   .track,
   .imageWrap img,
   .jumpButton,
   .dots button {
     transition: none;
+  }
+
+  .ringOne,
+  .ringTwo,
+  .node {
+    animation: none;
   }
 }
