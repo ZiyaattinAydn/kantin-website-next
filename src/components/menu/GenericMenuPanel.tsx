@@ -108,7 +108,26 @@ function MenuItemCard({
   );
 }
 
-function MenuCategory({ category }: { category: GenericMenuCategoryData }) {
+function CategoryRadarReturn({ align }: { align: "start" | "end" }) {
+  return (
+    <div
+      className={`menu-radar-return-slot menu-radar-return-slot-${align} reveal`}
+    >
+      <a className="menu-radar-return" href="#menu-radar">
+        <span aria-hidden="true">↖</span>
+        Radara dön
+      </a>
+    </div>
+  );
+}
+
+function MenuCategory({
+  category,
+  index,
+}: {
+  category: GenericMenuCategoryData;
+  index: number;
+}) {
   return (
     <section
       className={styles.category}
@@ -127,6 +146,7 @@ function MenuCategory({ category }: { category: GenericMenuCategoryData }) {
           <MenuItemCard key={item.id} item={item} category={category} />
         ))}
       </div>
+      <CategoryRadarReturn align={index % 2 === 0 ? "start" : "end"} />
     </section>
   );
 }
@@ -140,8 +160,12 @@ export function GenericMenuCategoryList({
 
   return (
     <div className={styles.categories}>
-      {categories.map((category) => (
-        <MenuCategory key={category.id} category={category} />
+      {categories.map((category, index) => (
+        <MenuCategory
+          key={category.id}
+          category={category}
+          index={index}
+        />
       ))}
     </div>
   );
