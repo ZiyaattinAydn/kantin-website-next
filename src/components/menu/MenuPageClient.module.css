@@ -15,7 +15,7 @@
   will-change: transform;
 }
 
-:global(body.header-hidden) .selectorWrap {
+:global(body.header-hidden) .selectorWrap[data-stuck="true"] {
   transform: translateY(calc(-1 * var(--header-height)));
 }
 
