@@ -314,7 +314,7 @@
   place-items: center;
   justify-self: end;
   opacity: 0.5;
-  transform: translateY(18px) scale(0.94);
+  transform: translate(18px, -52px) scale(0.94);
   transition:
     opacity 520ms ease,
     transform 720ms var(--ease);
@@ -322,7 +322,7 @@
 
 .sauce[data-active="true"] .sauceVisual {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translate(18px, -68px) scale(1);
 }
 
 .stockImage {
