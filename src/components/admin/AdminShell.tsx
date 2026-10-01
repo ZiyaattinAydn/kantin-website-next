@@ -68,7 +68,6 @@ export default function AdminShell({
           kantin<span>.</span>
         </Link>
         <div className={styles.mobileActions}>
-          <AdminOnboarding compact light />
           <button
             aria-expanded={open}
             aria-controls="admin-sidebar"
