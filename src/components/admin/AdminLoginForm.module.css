@@ -56,3 +56,24 @@
   font-size: 0.75rem;
   line-height: 1.6;
 }
+
+
+@media (max-width: 520px) {
+  .form {
+    gap: 15px;
+  }
+
+  .input {
+    min-height: 52px;
+    font-size: 16px;
+  }
+
+  .submit {
+    min-height: 48px;
+  }
+
+  .help,
+  .message {
+    font-size: 0.8rem;
+  }
+}
