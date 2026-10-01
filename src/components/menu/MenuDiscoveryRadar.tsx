@@ -31,7 +31,7 @@ function formatPrice(category: GenericMenuBranchData["categories"][number]) {
   if (item.variants.length) {
     return item.variants
       .slice(0, 2)
-      .map((variant) => \`\${variant.label} \${variant.price}\`)
+      .map((variant) => `${variant.label} ${variant.price}`)
       .join(" · ");
   }
 
@@ -67,13 +67,13 @@ export default function MenuDiscoveryRadar({
   const imageSrc = featuredItem.image?.imageUrl || STOCK_IMAGE;
   const imageAlt =
     featuredItem.image?.imageAlt ||
-    \`\${featuredItem.name} için geçici temsili ürün görseli\`;
+    `${featuredItem.name} için geçici temsili ürün görseli`;
 
   const scrollToCategory = () => {
-    const panel = document.getElementById(\`panel-\${branch.slug}\`);
+    const panel = document.getElementById(`panel-${branch.slug}`);
     const target =
-      panel?.querySelector<HTMLElement>(\`#kategori-\${activeCategory.slug}\`) ??
-      document.getElementById(\`kategori-\${activeCategory.slug}\`);
+      panel?.querySelector<HTMLElement>(`#kategori-${activeCategory.slug}`) ??
+      document.getElementById(`kategori-${activeCategory.slug}`);
 
     if (!target) return;
 
@@ -128,7 +128,7 @@ export default function MenuDiscoveryRadar({
                 return (
                   <button
                     aria-pressed={isActive}
-                    className={\`\${styles.node}\${isActive ? \` \${styles.nodeActive}\` : ""}\`}
+                    className={`${styles.node}${isActive ? ` ${styles.nodeActive}` : ""}`}
                     key={category.id}
                     onClick={() => setActiveSlug(category.slug)}
                     style={nodeStyle}
