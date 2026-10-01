@@ -268,7 +268,10 @@ function CoffeeBar({ data }: { data: MenuPublicData }) {
     return null;
 
   return (
-    <section className="coffee-bar-section dotted-paper reveal" id="kahve-bari">
+    <section
+      className="coffee-bar-section dotted-paper reveal"
+      id="kategori-kahve"
+    >
       <AmbientDoodles parallax={false} />
       <div className="coffee-bar-inner">
         <header className="coffee-menu-intro">
@@ -684,7 +687,10 @@ export function AlsancakMenuPanel({
         />
         <div className="alsancak-menu-grid">
           {data.alsancakDraftBeers.length ? (
-            <section className="menu-sheet-block reveal">
+            <section
+              className="menu-sheet-block reveal"
+              id="kategori-fici-biralar"
+            >
               <SheetTitle>Fıçı Biralar</SheetTitle>
               <p className="draft-beer-note">
                 Tüm fıçı biralar Mexican hazırlanabilir.
@@ -700,7 +706,10 @@ export function AlsancakMenuPanel({
             </section>
           ) : null}
           {data.alsancakBottleBeers.length ? (
-            <section className="menu-sheet-block reveal reveal-delay-1">
+            <section
+              className="menu-sheet-block reveal reveal-delay-1"
+              id="kategori-sise-biralar"
+            >
               <SheetTitle>Şişe Biralar</SheetTitle>
               <CompactList
                 items={data.alsancakBottleBeers}
@@ -722,6 +731,7 @@ export function AlsancakMenuPanel({
                   return (
                     <section
                       className="menu-sheet-block reveal"
+                      id={`kategori-${categorySlug}`}
                       key={categorySlug}
                     >
                       <SheetTitle>Şaraplar</SheetTitle>
@@ -757,6 +767,7 @@ export function AlsancakMenuPanel({
                   return (
                     <section
                       className="menu-sheet-block reveal reveal-delay-1"
+                      id={`kategori-${categorySlug}`}
                       key={categorySlug}
                     >
                       <SheetTitle>Fritöz</SheetTitle>
@@ -779,6 +790,7 @@ export function AlsancakMenuPanel({
                   return (
                     <section
                       className="menu-sheet-block reveal"
+                      id={`kategori-${categorySlug}`}
                       key={categorySlug}
                     >
                       <SheetTitle>Fırın</SheetTitle>
@@ -806,7 +818,10 @@ export function AlsancakMenuPanel({
             data.cheesePortions.feature.name ||
             data.cheesePortions.options.length ||
             data.beerSalads.length ? (
-              <section className="menu-sheet-block reveal reveal-delay-1">
+              <section
+                className="menu-sheet-block reveal reveal-delay-1"
+                id="kategori-deli-salata"
+              >
                 <SheetTitle>Deli + Salata</SheetTitle>
                 <CheeseFeature data={data.cheesePortions} />
                 {data.alsancakDeliItems.map((item) => (
@@ -823,7 +838,7 @@ export function AlsancakMenuPanel({
           </div>
         </div>
         {data.sauceBar.items.length ? (
-          <aside className="sauce-bar reveal">
+          <aside className="sauce-bar reveal" id="kategori-soslar">
             <div>
               <p className="menu-kicker">{data.sauceBar.kicker}</p>
               <h3>{data.sauceBar.title}</h3>
@@ -873,7 +888,10 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
           />
           <div className="menu-editorial-grid">
             {data.atakentDraftBeers.length ? (
-              <section className="menu-editorial-block reveal">
+              <section
+                className="menu-editorial-block reveal"
+                id="kategori-fici-biralar"
+              >
                 <EditorialTitle>Fıçıdan</EditorialTitle>
                 <p className="draft-beer-note draft-beer-note-light">
                   Tüm fıçı biralar Mexican hazırlanabilir.
@@ -887,7 +905,10 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
               </section>
             ) : null}
             {data.atakentBubbleCocktails.length ? (
-              <section className="menu-editorial-block reveal reveal-delay-1">
+              <section
+                className="menu-editorial-block reveal reveal-delay-1"
+                id="kategori-bubble-kokteyller"
+              >
                 <EditorialTitle>Bubble Kokteyller</EditorialTitle>
                 <EditorialItems
                   items={data.atakentBubbleCocktails}
@@ -897,7 +918,10 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
               </section>
             ) : null}
             {data.atakentHouseCocktails.length ? (
-              <section className="menu-editorial-block menu-editorial-wide reveal">
+              <section
+                className="menu-editorial-block menu-editorial-wide reveal"
+                id="kategori-house-kokteyller"
+              >
                 <EditorialTitle>House Kokteyller</EditorialTitle>
                 <EditorialItems
                   items={data.atakentHouseCocktails}
@@ -908,7 +932,10 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
               </section>
             ) : null}
             {data.atakentBottleBeers.length ? (
-              <section className="menu-editorial-block reveal">
+              <section
+                className="menu-editorial-block reveal"
+                id="kategori-sise-biralar"
+              >
                 <EditorialTitle>Şişe Biralar</EditorialTitle>
                 <CompactList
                   items={data.atakentBottleBeers}
@@ -918,7 +945,10 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
               </section>
             ) : null}
             {data.atakentWines.length ? (
-              <section className="menu-editorial-block reveal reveal-delay-1">
+              <section
+                className="menu-editorial-block reveal reveal-delay-1"
+                id="kategori-saraplar"
+              >
                 <EditorialTitle>Şaraplar</EditorialTitle>
                 <PriceTable
                   headers={["Şarap", "Kadeh", "Şişe"]}
@@ -944,7 +974,10 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
           ) : null}
           <div className="food-menu-layout">
             {data.atakentHotItems.length ? (
-              <section className="food-column reveal">
+              <section
+                className="food-column reveal"
+                id="kategori-sicaklar"
+              >
                 <div className="food-section-heading">
                   <h3>Sıcaklar</h3>
                 </div>
@@ -959,7 +992,10 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
               </section>
             ) : null}
             {data.atakentGrillItems.length ? (
-              <section className="food-column reveal reveal-delay-1">
+              <section
+                className="food-column reveal reveal-delay-1"
+                id="kategori-izgara-sisleri"
+              >
                 <div className="food-section-heading">
                   <h3>Izgara Şişleri</h3>
                   <small>17:00’dan itibaren</small>
@@ -976,7 +1012,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
             ) : null}
           </div>
           {data.atakentDessert.name ? (
-            <section className="dessert-line reveal">
+            <section className="dessert-line reveal" id="kategori-tatli">
               <div>
                 <p className="menu-kicker">{data.atakentDessert.kicker}</p>
                 <h3>
