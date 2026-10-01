@@ -6,6 +6,7 @@ import type {
 } from "@/types/menu";
 import type { MenuItemImageData } from "@/lib/public-data/types";
 import styles from "./MenuItemImages.module.css";
+import { MenuQuickViewButton } from "./MenuProductQuickView";
 
 export function MenuItemImages({ items }: { items: MenuItemImageData[] }) {
   if (!items.length) return null;
@@ -73,6 +74,11 @@ export function PriceTable({
         <div key={`${row.name}-${row.prices.join("-")}`} className={`menu-price-row ${rowClassName}`.trim()}>
           <strong>
             {row.name}
+            <MenuQuickViewButton
+              name={row.name}
+              detail={row.detail}
+              price={row.prices.filter(Boolean).join(" · ")}
+            />
             {row.detail ? <small>{row.detail}</small> : null}
           </strong>
           {row.prices.map((price, index) => (
@@ -97,6 +103,11 @@ export function CompactList({
         <div key={`${item.name}-${item.detail}-${index}`} className="compact-row">
           <span>
             {item.name}
+            <MenuQuickViewButton
+              name={item.name}
+              detail={item.detail}
+              price={item.price}
+            />
             {item.detail ? <small>{item.detail}</small> : null}
           </span>
           <strong>{item.price}</strong>
@@ -126,6 +137,14 @@ export function BranchFoodItem({ item }: { item: FoodMenuItem }) {
       <div>
         <h4>
           {item.name}
+          <MenuQuickViewButton
+            name={item.name}
+            description={item.description}
+            price={item.price}
+            note={item.priceNote}
+            allergens={item.allergens}
+            badge={item.badge}
+          />
           {item.badge ? <span className="spicy-badge">{item.badge}</span> : null}
         </h4>
         {renderDescription(item)}
@@ -148,7 +167,14 @@ export function EditorialItems({
       {items.map((item) => (
         <article key={item.name} className="editorial-item">
           <div>
-            <h4>{item.name}</h4>
+            <h4>
+              {item.name}
+              <MenuQuickViewButton
+                name={item.name}
+                description={item.description}
+                price={item.price}
+              />
+            </h4>
             <p>{item.description}</p>
           </div>
           <strong>{item.price}</strong>
@@ -162,7 +188,16 @@ export function AtakentFoodItem({ item }: { item: FoodMenuItem }) {
   return (
     <article className="food-item">
       <div>
-        <h4>{item.name}</h4>
+        <h4>
+          {item.name}
+          <MenuQuickViewButton
+            name={item.name}
+            description={item.description}
+            price={item.price}
+            note={item.priceNote}
+            allergens={item.allergens}
+          />
+        </h4>
         {item.description ? <p>{item.description}</p> : null}
         {item.allergens ? <small>{item.allergens}</small> : null}
       </div>
