@@ -84,6 +84,27 @@
   isolation: isolate;
 }
 
+.radar::before,
+.radar::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  width: 82%;
+  aspect-ratio: 1;
+  border: 2px solid rgba(0, 71, 187, 0.12);
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.92);
+  animation: radarOuterWave 7.2s cubic-bezier(0.2, 0.64, 0.3, 1) infinite;
+}
+
+.radar::after {
+  animation-delay: -3.6s;
+}
+
 .ringOne,
 .ringTwo,
 .crosshair,
@@ -652,6 +673,26 @@
   box-shadow: 0 18px 38px rgba(2, 25, 75, 0.18);
 }
 
+@keyframes radarOuterWave {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+
+  16% {
+    opacity: 0.18;
+  }
+
+  68% {
+    opacity: 0.08;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.72);
+  }
+}
+
 @keyframes radarRingWave {
   0% {
     opacity: 0.5;
@@ -879,6 +920,8 @@
     transition: none;
   }
 
+  .radar::before,
+  .radar::after,
   .ringOne,
   .ringTwo,
   .rippleOne,
