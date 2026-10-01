@@ -757,3 +757,116 @@
     justify-content: start;
   }
 }
+
+
+/* Final phone/tablet pass */
+@media (max-width: 900px) {
+  .pricingTable {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .tableHeader {
+    display: none;
+  }
+
+  .productList {
+    gap: 12px;
+  }
+
+  .productCard {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: white;
+  }
+
+  .productSummary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 0;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .productNameCell {
+    grid-column: 1 / -1;
+  }
+
+  .openAction {
+    justify-content: start;
+  }
+}
+
+@media (max-width: 759px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .filterPanel {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .productEditor {
+    border-radius: 0;
+  }
+
+  .editorHead,
+  .branchHead,
+  .variantsHead {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .branchState {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .branchCard {
+    padding: 16px;
+  }
+
+  .priceFields,
+  .noteFields,
+  .menuPlacementGrid,
+  .variantRow {
+    grid-template-columns: 1fr;
+  }
+
+  .filters input,
+  .filters select,
+  .priceFields input:not([type="checkbox"]),
+  .noteFields input,
+  .variantRow input:not([type="checkbox"]),
+  .menuPlacementGrid input,
+  .menuPlacementGrid select {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 460px) {
+  .productSummary {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .productNameCell {
+    grid-column: auto;
+  }
+
+  .branchCard {
+    padding: 14px;
+  }
+
+  .priceChip {
+    width: 100%;
+  }
+
+  .branchSummary {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
