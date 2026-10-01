@@ -248,3 +248,98 @@
 .counts .card > span {
   font-size: 1.5rem;
 }
+
+
+@media (max-width: 679px) {
+  .page {
+    width: 100%;
+  }
+
+  .head {
+    align-items: stretch;
+    gap: 18px;
+    margin-bottom: 22px;
+  }
+
+  .head > div:first-child {
+    width: 100%;
+  }
+
+  .head h1 {
+    max-width: 12ch;
+    margin-bottom: 10px;
+    font-size: clamp(2rem, 10vw, 2.8rem);
+    line-height: 0.98;
+  }
+
+  .head p:not(:global(.eyebrow)) {
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .headActions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .headActions a {
+    min-height: 44px;
+    display: grid;
+    place-items: center;
+    padding: 9px 10px;
+    text-align: center;
+  }
+
+  .alert {
+    align-items: flex-start;
+    padding: 14px;
+  }
+
+  .alert a {
+    width: 100%;
+    margin-left: 0;
+    padding-top: 4px;
+  }
+
+  .card {
+    min-height: 124px;
+    padding: 17px;
+  }
+
+  .panel {
+    padding: 17px;
+    border-radius: 16px;
+  }
+
+  .panelHead {
+    align-items: flex-start;
+  }
+
+  .counts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .counts .card {
+    min-width: 0;
+  }
+
+  .security {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .headActions {
+    grid-template-columns: 1fr;
+  }
+
+  .counts {
+    grid-template-columns: 1fr;
+  }
+
+  .panelHead {
+    display: grid;
+  }
+}
