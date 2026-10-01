@@ -2606,10 +2606,14 @@ body {
   }
 
   .instagram-strip,
-  .branch-menu-intro,
-  .sauce-bar {
+  .branch-menu-intro {
     grid-template-columns: minmax(0, 1fr) minmax(260px, 0.65fr);
     align-items: end;
+  }
+
+  .sauce-bar {
+    grid-template-columns: minmax(0, 0.72fr) minmax(280px, 1fr) auto;
+    align-items: center;
   }
 
   .branch-content-v3 {
