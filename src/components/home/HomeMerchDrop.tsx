@@ -61,7 +61,7 @@ export default function HomeMerchDrop({
     <>
       <section className="section merch-drop-section home-merch-cartoon" id="merch-drop">
       <div className="merch-panel-shell home-merch-panel reveal">
-        <DoodleParallaxStage className="merch-doodle-stage home-merch-doodles">
+        <DoodleParallaxStage disabled className="merch-doodle-stage home-merch-doodles">
           {doodles.map((doodle) => (
             <img
               key={doodle.src}
