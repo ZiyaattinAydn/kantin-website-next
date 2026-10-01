@@ -7,6 +7,7 @@ import managedStyles from "./ManagedMenu.module.css";
 import AmbientDoodles from "@/components/effects/AmbientDoodles";
 import MenuMerchShowcase from "@/components/merch/MenuMerchShowcase";
 import { GenericMenuCategoryList } from "./GenericMenuPanel";
+import { MenuQuickViewButton } from "./MenuProductQuickView";
 import type { MenuPublicData } from "@/lib/public-data/types";
 import type {
   MerchBundle,
@@ -111,7 +112,14 @@ function CheeseFeature({ data }: { data: MenuPublicData["cheesePortions"] }) {
     <article className="branch-food-item deli-feature-item">
       {data.feature.name ? (
         <div>
-          <h4>{data.feature.name}</h4>
+          <h4>
+            {data.feature.name}
+            <MenuQuickViewButton
+              name={data.feature.name}
+              description={data.feature.description}
+              price={data.feature.price}
+            />
+          </h4>
           <p>{data.feature.description}</p>
         </div>
       ) : null}
@@ -174,7 +182,17 @@ function BeerSalads({ salads }: { salads: MenuPublicData["beerSalads"] }) {
         {salads.map((salad) => (
           <article key={salad.name} className="beer-salad-card">
             <div>
-              <h4>{salad.name}</h4>
+              <h4>
+                {salad.name}
+                <MenuQuickViewButton
+                  name={salad.name}
+                  description={salad.description}
+                  price={salad.prices
+                    .map((item) => `${item.label}: ${item.price}`)
+                    .join(" · ")}
+                  badge="VEGAN"
+                />
+              </h4>
               <p>{salad.description}</p>
             </div>
             <div
@@ -207,6 +225,11 @@ function CoffeeGroup({ group }: { group: CoffeeMenuGroup }) {
           <div key={item.name}>
             <span>
               {item.name}
+              <MenuQuickViewButton
+                name={item.name}
+                detail={item.detail}
+                price={item.price}
+              />
               {item.detail ? <small>{item.detail}</small> : null}
             </span>
             <strong>{item.price}</strong>
@@ -387,7 +410,15 @@ function ManagedBranchMenu({
             <SheetTitle>{category.name}</SheetTitle>
             <article className="editorial-item editorial-dark">
               <div>
-                <h4>{data.alsancakWine.name}</h4>
+                <h4>
+                  {data.alsancakWine.name}
+                  <MenuQuickViewButton
+                    name={data.alsancakWine.name}
+                    description={data.alsancakWine.description}
+                    price={data.alsancakWine.price}
+                    note={data.alsancakWine.priceDetail}
+                  />
+                </h4>
                 <p>{data.alsancakWine.description}</p>
               </div>
               <strong>
@@ -624,7 +655,15 @@ export function AlsancakMenuPanel({
                       <SheetTitle>Şaraplar</SheetTitle>
                       <article className="editorial-item editorial-dark">
                         <div>
-                          <h4>{data.alsancakWine.name}</h4>
+                          <h4>
+                  {data.alsancakWine.name}
+                  <MenuQuickViewButton
+                    name={data.alsancakWine.name}
+                    description={data.alsancakWine.description}
+                    price={data.alsancakWine.price}
+                    note={data.alsancakWine.priceDetail}
+                  />
+                </h4>
                           <p>{data.alsancakWine.description}</p>
                         </div>
                         <strong>
@@ -823,7 +862,15 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
             <section className="dessert-line reveal">
               <div>
                 <p className="menu-kicker">{data.atakentDessert.kicker}</p>
-                <h3>{data.atakentDessert.name}</h3>
+                <h3>
+                  {data.atakentDessert.name}
+                  <MenuQuickViewButton
+                    name={data.atakentDessert.name}
+                    description={data.atakentDessert.description}
+                    price={data.atakentDessert.price}
+                    allergens={data.atakentDessert.allergens}
+                  />
+                </h3>
                 <p>{data.atakentDessert.description}</p>
                 <small>{data.atakentDessert.allergens}</small>
               </div>
