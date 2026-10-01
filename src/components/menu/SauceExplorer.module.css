@@ -143,57 +143,17 @@
   right: 0;
   left: 0;
   z-index: 5;
-  display: flex;
   min-height: 88px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
   padding: 18px clamp(18px, 3vw, 36px);
   color: var(--sauce-ink);
   pointer-events: none;
 }
 
-.topbar > div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.topbar span,
-.topbar strong {
+.topbar span {
   font-size: 0.7rem;
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-}
-
-.topbar strong {
-  opacity: 0.62;
-}
-
-.close {
-  display: grid;
-  width: 54px;
-  height: 54px;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, var(--sauce-ink) 38%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--sauce-bg) 72%, transparent);
-  color: var(--sauce-ink);
-  font-size: 1.55rem;
-  line-height: 1;
-  cursor: pointer;
-  pointer-events: auto;
-  backdrop-filter: blur(12px);
-  transition:
-    transform 180ms var(--ease),
-    background-color 180ms ease;
-}
-
-.close:hover,
-.close:focus-visible {
-  transform: rotate(6deg) scale(1.05);
-  background: color-mix(in srgb, var(--sauce-ink) 14%, transparent);
 }
 
 .rail {
@@ -301,15 +261,6 @@
   text-transform: uppercase;
 }
 
-.copy > p {
-  margin: 0 0 12px;
-  color: var(--sauce-ink);
-  font-size: 0.74rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .copy h2 {
   max-width: 9ch;
   margin: 0;
@@ -358,7 +309,7 @@
 .sauceVisual {
   position: relative;
   display: grid;
-  width: min(29vw, 350px);
+  width: min(34vw, 430px);
   aspect-ratio: 1;
   place-items: center;
   justify-self: end;
@@ -374,26 +325,10 @@
   transform: translateY(0) scale(1);
 }
 
-.numberBackdrop {
-  position: absolute;
-  right: -18px;
-  bottom: -24px;
-  z-index: 0;
-  color: var(--sauce-ink);
-  font-family: "Montserrat", sans-serif;
-  font-size: clamp(5.6rem, 10vw, 9.8rem);
-  font-weight: 900;
-  line-height: 0.8;
-  letter-spacing: -0.09em;
-  opacity: 0.16;
-  pointer-events: none;
-  user-select: none;
-}
-
 .stockImage {
   position: relative;
   z-index: 1;
-  width: min(22vw, 270px);
+  width: min(28vw, 340px);
   aspect-ratio: 1;
   object-fit: cover;
   border: 1px solid color-mix(in srgb, var(--sauce-ink) 24%, transparent);
@@ -423,45 +358,51 @@
   }
 
   .panel {
-    height: min(72dvh, 680px);
-    min-height: 540px;
+    height: min(82dvh, 760px);
+    min-height: 650px;
     border-radius: 24px;
   }
 
   .sauce {
     grid-template-columns: 1fr;
-    align-content: center;
-    gap: 30px;
-    padding: 100px 48px 44px 22px;
+    align-content: start;
+    gap: 26px;
+    padding: 92px 44px 30px 22px;
+  }
+
+  .copy {
+    max-width: 100%;
   }
 
   .copy h2 {
-    max-width: 8ch;
-    font-size: clamp(3.6rem, 17vw, 5.8rem);
+    max-width: 100%;
+    font-size: clamp(3.25rem, 15vw, 5.4rem);
   }
 
   .detailCard {
-    margin-top: 22px;
+    max-width: 100%;
+    margin-top: 20px;
     padding: 15px 16px;
   }
 
   .sauceVisual {
-    position: absolute;
-    right: 38px;
-    bottom: 26px;
-    width: min(42vw, 210px);
-    opacity: 0.32;
+    position: static;
+    width: 100%;
+    aspect-ratio: auto;
+    justify-self: stretch;
+    place-items: end;
+    opacity: 1;
+    transform: none;
   }
 
   .stockImage {
-    width: min(34vw, 160px);
-    border-radius: 18px;
+    width: clamp(210px, 58vw, 280px);
+    border-radius: 20px;
+    transform: none;
   }
 
-  .numberBackdrop {
-    right: -10px;
-    bottom: -14px;
-    font-size: clamp(4.2rem, 20vw, 6.6rem);
+  .sauce[data-active="true"] .stockImage {
+    transform: translateY(-2px);
   }
 
   .rail {
@@ -469,13 +410,8 @@
   }
 
   .topbar {
-    min-height: 76px;
-    padding: 12px 12px 12px 18px;
-  }
-
-  .close {
-    width: 48px;
-    height: 48px;
+    min-height: 72px;
+    padding: 14px 18px;
   }
 }
 
@@ -484,7 +420,6 @@
   .panel,
   .background span,
   .trigger,
-  .close,
   .rail button span,
   .copy,
   .sauceVisual,
