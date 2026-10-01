@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
-import type { GenericMenuBranchData } from "@/lib/public-data/types";
+import type {
+  GenericMenuBranchData,
+  GenericMenuItemData,
+} from "@/lib/public-data/types";
 import { MenuQuickViewButton } from "./MenuProductQuickView";
 import styles from "./MenuDiscoveryRadar.module.css";
 
@@ -19,15 +22,25 @@ const POSITIONS = [
   ["22%", "20%"],
 ] as const;
 
+const CARD_TONES = [
+  ["#f4efe6", "#0047bb"],
+  ["#dce8ff", "#003b9c"],
+  ["#d9e7b8", "#24441f"],
+  ["#ffd978", "#492d00"],
+] as const;
+
 type RadarStyle = CSSProperties & {
   "--node-x": string;
   "--node-y": string;
 };
 
-function formatPrice(category: GenericMenuBranchData["categories"][number]) {
-  const item = category.items[0];
-  if (!item) return "Menüyü keşfet";
+type CarouselStyle = CSSProperties & {
+  "--track-x": string;
+  "--card-bg": string;
+  "--card-ink": string;
+};
 
+function formatItemPrice(item: GenericMenuItemData) {
   if (item.variants.length) {
     return item.variants
       .slice(0, 2)
@@ -40,8 +53,12 @@ function formatPrice(category: GenericMenuBranchData["categories"][number]) {
 
 export default function MenuDiscoveryRadar({
   branch,
+  branches,
+  onBranchChange,
 }: {
   branch: GenericMenuBranchData;
+  branches: GenericMenuBranchData[];
+  onBranchChange: (branch: string) => void;
 }) {
   const categories = useMemo(
     () =>
@@ -53,21 +70,32 @@ export default function MenuDiscoveryRadar({
   );
 
   const [activeSlug, setActiveSlug] = useState(categories[0]?.slug ?? "");
+  const [activeProductIndex, setActiveProductIndex] = useState(0);
+  const [branchPickerOpen, setBranchPickerOpen] = useState(false);
 
   useEffect(() => {
     setActiveSlug(categories[0]?.slug ?? "");
+    setActiveProductIndex(0);
+    setBranchPickerOpen(false);
   }, [branch.id, categories]);
 
   const activeCategory =
     categories.find((category) => category.slug === activeSlug) ?? categories[0];
-  const featuredItem = activeCategory?.items[0];
+  const products = activeCategory?.items ?? [];
+  const activeProduct =
+    products[activeProductIndex] ?? activeCategory?.items[0] ?? null;
 
-  if (!activeCategory || !featuredItem) return null;
+  if (!activeCategory || !activeProduct) return null;
 
-  const imageSrc = featuredItem.image?.imageUrl || STOCK_IMAGE;
-  const imageAlt =
-    featuredItem.image?.imageAlt ||
-    `${featuredItem.name} için geçici temsili ürün görseli`;
+  const setCategory = (slug: string) => {
+    setActiveSlug(slug);
+    setActiveProductIndex(0);
+  };
+
+  const goToProduct = (index: number) => {
+    if (!products.length) return;
+    setActiveProductIndex((index + products.length) % products.length);
+  };
 
   const scrollToCategory = () => {
     const panel = document.getElementById(`panel-${branch.slug}`);
@@ -90,6 +118,14 @@ export default function MenuDiscoveryRadar({
     });
   };
 
+  const [cardBg, cardInk] =
+    CARD_TONES[activeProductIndex % CARD_TONES.length] ?? CARD_TONES[0];
+  const carouselStyle = {
+    "--track-x": `${activeProductIndex * -100}%`,
+    "--card-bg": cardBg,
+    "--card-ink": cardInk,
+  } as CarouselStyle;
+
   return (
     <section className={styles.section} aria-label="Menü keşfi">
       <div className="container">
@@ -100,8 +136,8 @@ export default function MenuDiscoveryRadar({
               <h2>Ne içelim, ne yiyelim?</h2>
             </div>
             <p>
-              Kategoriyi seç, öne çıkan ürüne göz at. İstersen direkt menüde o
-              bölüme atla.
+              Kategoriyi seç, ürünleri sağa sola gez. Şubeyi değiştirmek için
+              radarın ortasına dokun.
             </p>
           </div>
 
@@ -111,10 +147,50 @@ export default function MenuDiscoveryRadar({
               <div aria-hidden="true" className={styles.ringTwo} />
               <div aria-hidden="true" className={styles.crosshair} />
 
-              <div className={styles.center}>
-                <span>{branch.code}</span>
-                <strong>{branch.name}</strong>
-                <small>{categories.length} kategori</small>
+              <div
+                className={`${styles.centerWrap}${
+                  branchPickerOpen ? ` ${styles.centerWrapOpen}` : ""
+                }`}
+              >
+                <button
+                  aria-expanded={branchPickerOpen}
+                  aria-haspopup="menu"
+                  className={styles.center}
+                  onClick={() => setBranchPickerOpen((open) => !open)}
+                  type="button"
+                >
+                  <span>{branch.code}</span>
+                  <strong>{branch.name}</strong>
+                  <small>Şube değiştir ↓</small>
+                </button>
+
+                <div
+                  aria-hidden={!branchPickerOpen}
+                  className={styles.branchPicker}
+                  role="menu"
+                >
+                  {branches.map((option) => {
+                    const isCurrent = option.slug === branch.slug;
+
+                    return (
+                      <button
+                        aria-current={isCurrent ? "true" : undefined}
+                        className={isCurrent ? styles.branchCurrent : ""}
+                        key={option.id}
+                        onClick={() => {
+                          setBranchPickerOpen(false);
+                          if (!isCurrent) onBranchChange(option.slug);
+                        }}
+                        role="menuitem"
+                        tabIndex={branchPickerOpen ? 0 : -1}
+                        type="button"
+                      >
+                        <span>{option.code}</span>
+                        <strong>{option.name}</strong>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {categories.map((category, index) => {
@@ -128,9 +204,11 @@ export default function MenuDiscoveryRadar({
                 return (
                   <button
                     aria-pressed={isActive}
-                    className={`${styles.node}${isActive ? ` ${styles.nodeActive}` : ""}`}
+                    className={`${styles.node}${
+                      isActive ? ` ${styles.nodeActive}` : ""
+                    }`}
                     key={category.id}
-                    onClick={() => setActiveSlug(category.slug)}
+                    onClick={() => setCategory(category.slug)}
                     style={nodeStyle}
                     type="button"
                   >
@@ -141,55 +219,118 @@ export default function MenuDiscoveryRadar({
               })}
             </div>
 
-            <article className={styles.showcase}>
-              <div className={styles.imageWrap}>
-                <img alt={imageAlt} decoding="async" src={imageSrc} />
-                <span>{activeCategory.name}</span>
-              </div>
-
-              <div className={styles.copy}>
-                <p className={styles.categoryLabel}>
-                  {branch.name} · {activeCategory.name}
-                </p>
-
-                <div className={styles.productTitle}>
-                  <h3>{featuredItem.name}</h3>
-                  <MenuQuickViewButton
-                    name={featuredItem.name}
-                    description={featuredItem.description}
-                    detail={featuredItem.detail}
-                    price={formatPrice(activeCategory)}
-                    note={
-                      featuredItem.priceNote ?? featuredItem.availabilityNote
-                    }
-                    allergens={featuredItem.allergens}
-                    badge={featuredItem.badges[0]}
-                    highlight={featuredItem.highlight}
-                    category={activeCategory.name}
-                    subcategory={activeCategory.group?.label}
-                  />
+            <article className={styles.carousel} style={carouselStyle}>
+              <div className={styles.carouselTop}>
+                <div>
+                  <p>{branch.name}</p>
+                  <strong>{activeCategory.name}</strong>
                 </div>
 
-                <p className={styles.description}>
-                  {featuredItem.description ||
-                    featuredItem.detail ||
-                    activeCategory.description ||
-                    "Bu kategoriden öne çıkan ürün."}
-                </p>
-
-                <strong className={styles.price}>
-                  {formatPrice(activeCategory)}
-                </strong>
-
-                <button
-                  className={styles.jumpButton}
-                  onClick={scrollToCategory}
-                  type="button"
-                >
-                  Kategoriye git
-                  <span aria-hidden="true">↘</span>
-                </button>
+                {products.length > 1 ? (
+                  <div className={styles.carouselControls}>
+                    <button
+                      aria-label="Önceki ürün"
+                      onClick={() => goToProduct(activeProductIndex - 1)}
+                      type="button"
+                    >
+                      ←
+                    </button>
+                    <button
+                      aria-label="Sonraki ürün"
+                      onClick={() => goToProduct(activeProductIndex + 1)}
+                      type="button"
+                    >
+                      →
+                    </button>
+                  </div>
+                ) : null}
               </div>
+
+              <div className={styles.viewport}>
+                <div className={styles.track}>
+                  {products.map((item, index) => {
+                    const imageSrc = item.image?.imageUrl || STOCK_IMAGE;
+                    const imageAlt =
+                      item.image?.imageAlt ||
+                      `${item.name} için geçici temsili ürün görseli`;
+
+                    return (
+                      <section
+                        aria-hidden={index !== activeProductIndex}
+                        className={styles.slide}
+                        key={item.id}
+                      >
+                        <div className={styles.imageWrap}>
+                          <img alt={imageAlt} decoding="async" src={imageSrc} />
+                          <span>{activeCategory.name}</span>
+                        </div>
+
+                        <div className={styles.copy}>
+                          <p className={styles.categoryLabel}>
+                            {activeCategory.name} ·{" "}
+                            {String(index + 1).padStart(2, "0")}
+                          </p>
+
+                          <div className={styles.productTitle}>
+                            <h3>{item.name}</h3>
+                            <MenuQuickViewButton
+                              name={item.name}
+                              description={item.description}
+                              detail={item.detail}
+                              price={formatItemPrice(item)}
+                              note={item.priceNote ?? item.availabilityNote}
+                              allergens={item.allergens}
+                              badge={item.badges[0]}
+                              highlight={item.highlight}
+                              category={activeCategory.name}
+                              subcategory={activeCategory.group?.label}
+                            />
+                          </div>
+
+                          <p className={styles.description}>
+                            {item.description ||
+                              item.detail ||
+                              activeCategory.description ||
+                              "Bu kategoriden öne çıkan ürün."}
+                          </p>
+
+                          <strong className={styles.price}>
+                            {formatItemPrice(item)}
+                          </strong>
+
+                          <button
+                            className={styles.jumpButton}
+                            onClick={scrollToCategory}
+                            type="button"
+                          >
+                            Kategoriye git
+                            <span aria-hidden="true">↘</span>
+                          </button>
+                        </div>
+                      </section>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {products.length > 1 ? (
+                <div className={styles.dots} aria-label="Ürün carousel konumu">
+                  {products.map((item, index) => (
+                    <button
+                      aria-label={`${item.name} ürününe git`}
+                      aria-current={
+                        index === activeProductIndex ? "true" : undefined
+                      }
+                      className={
+                        index === activeProductIndex ? styles.dotActive : ""
+                      }
+                      key={item.id}
+                      onClick={() => goToProduct(index)}
+                      type="button"
+                    />
+                  ))}
+                </div>
+              ) : null}
             </article>
           </div>
         </div>
