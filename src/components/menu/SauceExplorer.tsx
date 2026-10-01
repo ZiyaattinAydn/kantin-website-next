@@ -167,21 +167,7 @@ export default function SauceExplorer({
             </div>
 
             <header className={styles.topbar}>
-              <div>
-                <span>{kicker}</span>
-                <strong>
-                  {String(activeIndex + 1).padStart(2, "0")} /{" "}
-                  {String(items.length).padStart(2, "0")}
-                </strong>
-              </div>
-              <button
-                aria-label="Sos alanını kapat"
-                className={styles.close}
-                onClick={close}
-                type="button"
-              >
-                ×
-              </button>
+              <span>{kicker}</span>
             </header>
 
             <nav aria-label="Sos seçimi" className={styles.rail}>
@@ -224,7 +210,6 @@ export default function SauceExplorer({
                         <span>Sos</span>
                         <span>{kicker}</span>
                       </div>
-                      <p>Sos {String(index + 1).padStart(2, "0")}</p>
                       <h2>{item}</h2>
 
                       <div className={styles.detailCard}>
@@ -243,9 +228,6 @@ export default function SauceExplorer({
                     </div>
 
                     <div className={styles.sauceVisual}>
-                      <span aria-hidden="true" className={styles.numberBackdrop}>
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
                       <img
                         alt="Temsili sos görseli; gerçek ürün fotoğrafı daha sonra güncellenecek."
                         className={styles.stockImage}
