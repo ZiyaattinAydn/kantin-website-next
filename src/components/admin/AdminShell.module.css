@@ -429,3 +429,11 @@
     width: 100%;
   }
 }
+
+
+/* The panel tour now lives in the sidebar only; keep the mobile header simple. */
+@media (max-width: 1079px) {
+  .mobileActions {
+    margin-left: auto;
+  }
+}
