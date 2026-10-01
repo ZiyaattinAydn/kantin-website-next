@@ -26,6 +26,23 @@
   stroke-width: 1.7;
 }
 
+.eyeButtonProminent {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  margin-left: 4px;
+  border-width: 1.5px;
+  opacity: 0.92;
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 8px 20px rgba(2, 25, 75, 0.08);
+}
+
+.eyeButtonProminent svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.8;
+}
+
 .eyeButton:hover,
 .eyeButton:focus-visible {
   opacity: 1;
