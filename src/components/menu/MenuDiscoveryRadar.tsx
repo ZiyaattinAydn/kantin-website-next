@@ -207,7 +207,7 @@ export default function MenuDiscoveryRadar({
 
   return (
     <section
-      className={styles.section}
+      className={`${styles.section} dotted-paper`}
       aria-label="Menü keşfi"
       id="menu-radar"
     >
