@@ -21,7 +21,22 @@ export type MenuQuickViewData = {
 
 type QuickViewEventDetail = {
   item: MenuQuickViewData;
-  trigger: HTMLButtonElement;
+  trigger: HTMLElement;
+};
+
+export function openMenuQuickView(
+  item: MenuQuickViewData,
+  trigger: HTMLElement,
+) {
+  window.dispatchEvent(
+    new CustomEvent<QuickViewEventDetail>(QUICK_VIEW_EVENT, {
+      detail: { item, trigger },
+    }),
+  );
+}
+
+type MenuQuickViewButtonProps = MenuQuickViewData & {
+  prominent?: boolean;
 };
 
 export function MenuQuickViewButton({
@@ -35,32 +50,29 @@ export function MenuQuickViewButton({
   category,
   subcategory,
   highlight,
-}: MenuQuickViewData) {
+  prominent = false,
+}: MenuQuickViewButtonProps) {
   return (
     <button
-      className={styles.eyeButton}
+      className={`${styles.eyeButton}${prominent ? ` ${styles.eyeButtonProminent}` : ""}`}
       type="button"
       aria-label={`${name} ürün detayını gör`}
       title="Ürün detayını gör"
       onClick={(event) => {
-        window.dispatchEvent(
-          new CustomEvent<QuickViewEventDetail>(QUICK_VIEW_EVENT, {
-            detail: {
-              item: {
-                name,
-                description,
-                detail,
-                price,
-                note,
-                allergens,
-                badge,
-                category,
-                subcategory,
-                highlight,
-              },
-              trigger: event.currentTarget,
-            },
-          }),
+        openMenuQuickView(
+          {
+            name,
+            description,
+            detail,
+            price,
+            note,
+            allergens,
+            badge,
+            category,
+            subcategory,
+            highlight,
+          },
+          event.currentTarget,
         );
       }}
     >
@@ -74,7 +86,7 @@ export function MenuQuickViewButton({
 
 export default function MenuProductQuickView() {
   const [active, setActive] = useState<MenuQuickViewData | null>(null);
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const openQuickView = (event: Event) => {
