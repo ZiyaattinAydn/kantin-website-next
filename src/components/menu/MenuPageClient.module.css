@@ -24,7 +24,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .selectorWrap {
+  .selectorWrap,
+  .tab,
+  .tab::before {
     transition: none;
   }
 }
@@ -37,11 +39,13 @@
 }
 
 .tab {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 3px;
   align-items: center;
   min-height: 66px;
+  overflow: hidden;
   padding: 10px 14px;
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -49,6 +53,26 @@
   color: var(--ink);
   text-align: left;
   cursor: pointer;
+  transition:
+    color 340ms ease,
+    border-color 340ms ease;
+}
+
+.tab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: var(--blue);
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 420ms var(--ease);
+}
+
+.tab > * {
+  position: relative;
+  z-index: 1;
 }
 
 .tab strong {
@@ -62,8 +86,13 @@
 
 .active {
   border-color: var(--blue);
-  background: var(--blue);
+  background: transparent;
   color: var(--white);
+}
+
+.active::before {
+  transform: scaleX(1);
+  transform-origin: left center;
 }
 
 .active small {
