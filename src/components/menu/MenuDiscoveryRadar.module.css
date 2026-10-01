@@ -17,8 +17,8 @@
 }
 
 .discoveryDoodles :global(.merch-doodle) {
-  opacity: 0.085;
-  filter: saturate(0.7);
+  opacity: 0.18;
+  filter: saturate(1.05) contrast(1.08);
 }
 
 .section > :global(.container) {
