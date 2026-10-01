@@ -196,6 +196,19 @@ export default function MenuPageClient({
         </section>
       ) : (
         <>
+          {data.branches
+            .filter((branch) => branch.slug === activeBranch)
+            .map((branch) => (
+              <MenuDiscoveryRadar
+                branch={branch}
+                branches={data.branches}
+                key={branch.id}
+                onBranchChange={(nextBranch) =>
+                  activateBranch(nextBranch, false)
+                }
+              />
+            ))}
+
           <div
             ref={selectorSentinelRef}
             className={styles.selectorSentinel}
@@ -240,12 +253,6 @@ export default function MenuPageClient({
               })}
             </div>
           </div>
-
-          {data.branches
-            .filter((branch) => branch.slug === activeBranch)
-            .map((branch) => (
-              <MenuDiscoveryRadar branch={branch} key={branch.id} />
-            ))}
 
           {data.branches.map((branch) => {
             if (branch.slug === "alsancak") {
