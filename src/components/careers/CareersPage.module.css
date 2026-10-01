@@ -185,7 +185,12 @@
   transform: translate3d(0, 0, 0) rotate(var(--career-doodle-rotate));
   transform-origin: 50% 58%;
   animation: careersDoodleFloat var(--career-doodle-duration) ease-in-out var(--career-doodle-delay) infinite;
-  will-change: transform, opacity;
+  animation-play-state: paused;
+  will-change: auto;
+}
+
+.heroDoodles[data-visible="true"] .doodle {
+  animation-play-state: running;
 }
 
 .heroDoodles {
@@ -353,8 +358,13 @@
   transform: translate3d(0, 0, 0) rotate(var(--career-doodle-rotate));
   transform-origin: 50% 58%;
   animation: careersDoodleFloat var(--career-doodle-duration) ease-in-out var(--career-doodle-delay) infinite;
+  animation-play-state: paused;
   user-select: none;
-  will-change: transform, opacity;
+  will-change: auto;
+}
+
+.formDoodles[data-visible="true"] .formDoodle {
+  animation-play-state: running;
 }
 
 .formDoodle1 { --career-doodle-delay: -1.4s; --career-doodle-duration: 12.8s; --career-doodle-rotate: -8deg; --career-doodle-x: 8px; --career-doodle-y: -10px; left: -40px; top: 2%; }
