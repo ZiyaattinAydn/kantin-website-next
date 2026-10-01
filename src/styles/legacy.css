@@ -5879,7 +5879,7 @@ body {
   padding: 0;
   border: 0;
   background: transparent;
-  cursor: zoom-in;
+  cursor: pointer;
 }
 
 .home-merch-product-preview {
