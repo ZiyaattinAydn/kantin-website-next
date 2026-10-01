@@ -57,11 +57,15 @@ export function PriceTable({
   rows,
   headClassName = "",
   rowClassName = "",
+  category = "Menü",
+  subcategory,
 }: {
   headers: string[];
   rows: PriceTableRow[];
   headClassName?: string;
   rowClassName?: string;
+  category?: string;
+  subcategory?: string;
 }) {
   return (
     <>
@@ -78,6 +82,8 @@ export function PriceTable({
               name={row.name}
               detail={row.detail}
               price={row.prices.filter(Boolean).join(" · ")}
+              category={category}
+              subcategory={subcategory}
             />
             {row.detail ? <small>{row.detail}</small> : null}
           </strong>
@@ -93,9 +99,13 @@ export function PriceTable({
 export function CompactList({
   items,
   className = "",
+  category = "Menü",
+  subcategory,
 }: {
   items: CompactMenuItem[];
   className?: string;
+  category?: string;
+  subcategory?: string;
 }) {
   return (
     <div className={`bottle-grid ${className}`.trim()}>
@@ -107,6 +117,8 @@ export function CompactList({
               name={item.name}
               detail={item.detail}
               price={item.price}
+              category={category}
+              subcategory={subcategory}
             />
             {item.detail ? <small>{item.detail}</small> : null}
           </span>
@@ -131,7 +143,15 @@ function renderDescription(item: FoodMenuItem) {
   );
 }
 
-export function BranchFoodItem({ item }: { item: FoodMenuItem }) {
+export function BranchFoodItem({
+  item,
+  category = "Yemek",
+  subcategory,
+}: {
+  item: FoodMenuItem;
+  category?: string;
+  subcategory?: string;
+}) {
   return (
     <article className={`branch-food-item${item.className ? ` ${item.className}` : ""}`}>
       <div>
@@ -144,6 +164,9 @@ export function BranchFoodItem({ item }: { item: FoodMenuItem }) {
             note={item.priceNote}
             allergens={item.allergens}
             badge={item.badge}
+            highlight={item.highlight}
+            category={category}
+            subcategory={subcategory}
           />
           {item.badge ? <span className="spicy-badge">{item.badge}</span> : null}
         </h4>
@@ -158,9 +181,13 @@ export function BranchFoodItem({ item }: { item: FoodMenuItem }) {
 export function EditorialItems({
   items,
   className = "",
+  category = "Menü",
+  subcategory,
 }: {
   items: EditorialMenuItem[];
   className?: string;
+  category?: string;
+  subcategory?: string;
 }) {
   return (
     <div className={className || undefined}>
@@ -173,6 +200,8 @@ export function EditorialItems({
                 name={item.name}
                 description={item.description}
                 price={item.price}
+                category={category}
+                subcategory={subcategory}
               />
             </h4>
             <p>{item.description}</p>
@@ -184,7 +213,15 @@ export function EditorialItems({
   );
 }
 
-export function AtakentFoodItem({ item }: { item: FoodMenuItem }) {
+export function AtakentFoodItem({
+  item,
+  category = "Yemek",
+  subcategory,
+}: {
+  item: FoodMenuItem;
+  category?: string;
+  subcategory?: string;
+}) {
   return (
     <article className="food-item">
       <div>
@@ -196,6 +233,9 @@ export function AtakentFoodItem({ item }: { item: FoodMenuItem }) {
             price={item.price}
             note={item.priceNote}
             allergens={item.allergens}
+            highlight={item.highlight}
+            category={category}
+            subcategory={subcategory}
           />
         </h4>
         {item.description ? <p>{item.description}</p> : null}
