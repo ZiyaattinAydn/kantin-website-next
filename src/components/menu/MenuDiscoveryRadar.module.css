@@ -603,6 +603,32 @@
 }
 
 
+.backToRadar {
+  display: none;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px 18px;
+  border: 1px solid rgba(0, 71, 187, 0.22);
+  border-radius: 18px;
+  background: var(--blue);
+  color: var(--white);
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 14px 32px rgba(2, 25, 75, 0.12);
+  transition:
+    transform 180ms var(--ease),
+    box-shadow 180ms ease;
+}
+
+.backToRadar:hover,
+.backToRadar:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 38px rgba(2, 25, 75, 0.18);
+}
+
 @keyframes radarRipple {
   0% {
     opacity: 0;
@@ -637,6 +663,10 @@
     min-height: 500px;
     max-height: 500px;
   }
+
+  .backToRadar {
+    display: inline-flex;
+  }
 }
 
 @media (max-width: 620px) {
@@ -654,18 +684,11 @@
   }
 
   .radar {
-    display: flex;
-    min-height: auto;
-    gap: 8px;
-    padding: 14px;
-    overflow-x: auto;
+    display: block;
+    min-height: 440px;
+    overflow: visible;
+    padding: 0;
     border-radius: 24px;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-  }
-
-  .radar::-webkit-scrollbar {
-    display: none;
   }
 
   .ringOne,
@@ -674,66 +697,77 @@
   .rippleOne,
   .rippleTwo,
   .rippleThree {
-    display: none;
+    display: block;
   }
 
   .centerWrap {
-    position: relative;
-    left: auto;
-    top: auto;
-    flex: 0 0 auto;
-    transform: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
   }
 
   .center {
-    width: 132px;
-    height: 50px;
-    aspect-ratio: auto;
-    grid-template-columns: auto 1fr;
-    column-gap: 8px;
+    width: 122px;
+    height: 122px;
+    aspect-ratio: 1;
+    grid-template-columns: 1fr;
     place-content: center;
-    text-align: left;
-    border-radius: 16px;
+    justify-items: center;
+    text-align: center;
+    border-radius: 999px;
   }
 
   .center span,
   .center small {
-    display: none;
+    display: block;
   }
 
   .center strong {
-    margin: 0;
-    font-size: 0.82rem;
+    margin: 3px 0;
+    font-size: 0.94rem;
   }
 
   .branchPicker {
-    left: 0;
-    top: calc(100% + 7px);
-    width: 180px;
-    transform: translate(0, -8px) scale(0.94);
-    transform-origin: 0 0;
+    left: 50%;
+    top: calc(100% + 8px);
+    width: 176px;
+    transform: translate(-50%, -8px) scale(0.94);
+    transform-origin: 50% 0;
   }
 
   .centerWrapOpen .branchPicker {
-    transform: translate(0, 0) scale(1);
+    transform: translate(-50%, 0) scale(1);
   }
 
   .node,
   .nodeActive {
-    position: static;
-    flex: 0 0 148px;
-    width: 148px;
-    max-width: 148px;
-    height: 50px;
-    min-height: 50px;
-    scroll-snap-align: start;
-    transform: none;
+    position: absolute;
+    width: 104px;
+    max-width: 104px;
+    height: 42px;
+    min-height: 42px;
+    padding: 7px 9px;
+    transform: translate(-50%, -50%);
   }
 
   .node:hover,
-  .node:focus-visible,
+  .node:focus-visible {
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+
   .nodeActive {
-    transform: none;
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+
+  .node {
+    font-size: 0.58rem;
+  }
+
+  .node small {
+    min-width: 20px;
+    height: 20px;
+    font-size: 0.52rem;
   }
 
   .carousel {
@@ -782,6 +816,10 @@
   .carouselTop {
     padding: 14px 14px 0;
   }
+
+  .backToRadar {
+    border-radius: 16px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -793,7 +831,8 @@
   .track,
   .imageWrap img,
   .jumpButton,
-  .dots button {
+  .dots button,
+  .backToRadar {
     transition: none;
   }
 
