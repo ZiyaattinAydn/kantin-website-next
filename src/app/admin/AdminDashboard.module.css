@@ -343,3 +343,37 @@
     display: grid;
   }
 }
+
+
+/* Mobile dashboard cleanup after onboarding pass. */
+@media (max-width: 679px) {
+  .head h1 {
+    max-width: 11ch;
+    font-size: clamp(2.05rem, 9.5vw, 2.65rem);
+    line-height: 0.98;
+  }
+
+  .head {
+    gap: 16px;
+  }
+
+  .card {
+    min-height: 118px;
+  }
+}
+
+@media (max-width: 460px) {
+  .headActions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .headActions a {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 350px) {
+  .headActions {
+    grid-template-columns: 1fr;
+  }
+}
