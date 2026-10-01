@@ -2,6 +2,7 @@ import { getMenuPublicData } from "@/lib/public-data/menu";
 import { Fragment } from "react";
 import HomeEvents from "@/components/home/HomeEvents";
 import HomeHero from "@/components/home/HomeHero";
+import HomeGoodMusic from "@/components/home/HomeGoodMusic";
 import HomeLocations from "@/components/home/HomeLocations";
 import HomeMenuBranches from "@/components/home/HomeMenuBranches";
 import HomeMemories from "@/components/home/HomeMemories";
@@ -71,6 +72,7 @@ export default async function HomePage() {
       {visibility.homeHero && home.data.hero.title.length ? (
         <HomeHero data={home.data.hero} />
       ) : null}
+      <HomeGoodMusic />
       {common.data.themeSettings.homeSectionOrder.map((section) => (
         <Fragment key={section}>{sections[section]}</Fragment>
       ))}
