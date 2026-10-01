@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PublicEmptyState } from "@/components/data-state/PublicDataNotice";
 import GenericMenuPanel from "./GenericMenuPanel";
+import MenuProductQuickView from "./MenuProductQuickView";
 import {
   AlsancakMenuPanel,
   AtakentMenuPanel,
@@ -267,6 +268,7 @@ export default function MenuPageClient({
           })}
 
           <MenuTruthNote />
+          <MenuProductQuickView />
         </>
       )}
     </>
