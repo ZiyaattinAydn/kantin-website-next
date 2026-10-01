@@ -51,8 +51,8 @@
 .dialog {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(330px, 0.82fr);
-  width: min(1060px, 100%);
+  grid-template-columns: minmax(0, 1fr) minmax(430px, 0.86fr);
+  width: min(1120px, 100%);
   max-height: min(760px, calc(100dvh - 28px));
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.28);
@@ -99,7 +99,7 @@
 }
 
 .kicker {
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   color: var(--blue);
   font-size: 0.72rem;
   font-weight: 900;
@@ -107,24 +107,59 @@
   text-transform: uppercase;
 }
 
-.titleRow {
+.metaRow {
   display: flex;
   flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.metaChip,
+.badge {
+  display: inline-flex;
+  min-height: 30px;
   align-items: center;
-  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.035em;
+}
+
+.metaChip {
+  border: 1px solid rgba(0, 71, 187, 0.2);
+  background: rgba(0, 71, 187, 0.07);
+  color: var(--blue);
+}
+
+.titleRow {
+  display: block;
+  min-width: 0;
 }
 
 .titleRow h2 {
   margin: 0;
-  max-width: 11ch;
-  font-size: clamp(2.4rem, 4.6vw, 4.7rem);
-  line-height: 0.9;
-  letter-spacing: -0.06em;
-  overflow-wrap: anywhere;
+  max-width: 100%;
+  font-size: clamp(2.35rem, 4vw, 4.25rem);
+  line-height: 0.92;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+
+.titleRow h2.titleMedium {
+  font-size: clamp(2.2rem, 3.55vw, 3.85rem);
+}
+
+.titleRow h2.titleCompact {
+  font-size: clamp(2rem, 3vw, 3.35rem);
+  line-height: 0.95;
 }
 
 .badge {
-  padding: 6px 9px;
   border-radius: 999px;
   background: var(--blue);
   color: var(--white);
@@ -204,10 +239,16 @@
     padding: 26px 22px 32px;
   }
 
-  .titleRow h2 {
-    max-width: 12ch;
-    padding-right: 30px;
-    font-size: clamp(2rem, 11vw, 3.2rem);
+  .titleRow h2,
+  .titleRow h2.titleMedium,
+  .titleRow h2.titleCompact {
+    max-width: 100%;
+    padding-right: 34px;
+    font-size: clamp(2rem, 10vw, 3.05rem);
+    text-wrap: balance;
+    word-break: normal;
+    overflow-wrap: normal;
+    hyphens: none;
   }
 }
 
