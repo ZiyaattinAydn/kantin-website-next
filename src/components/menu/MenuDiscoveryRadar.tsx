@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type {
   GenericMenuBranchData,
@@ -114,6 +114,8 @@ export default function MenuDiscoveryRadar({
   const [activeSlug, setActiveSlug] = useState(categories[0]?.slug ?? "");
   const [activeProductIndex, setActiveProductIndex] = useState(0);
   const [branchPickerOpen, setBranchPickerOpen] = useState(false);
+  const radarRef = useRef<HTMLDivElement | null>(null);
+  const carouselRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setActiveSlug(categories[0]?.slug ?? "");
@@ -129,9 +131,42 @@ export default function MenuDiscoveryRadar({
 
   if (!activeCategory || !activeProduct) return null;
 
+  const alignDiscoveryElement = (
+    element: HTMLElement | null,
+    extraOffset = 18,
+  ) => {
+    if (!element) return;
+
+    const rootStyles = window.getComputedStyle(document.documentElement);
+    const headerHeight =
+      Number.parseFloat(rootStyles.getPropertyValue("--header-height")) || 0;
+    const targetY = Math.max(
+      0,
+      element.getBoundingClientRect().top +
+        window.scrollY -
+        headerHeight -
+        extraOffset,
+    );
+
+    animateWindowScroll(targetY);
+  };
+
   const setCategory = (slug: string) => {
     setActiveSlug(slug);
     setActiveProductIndex(0);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const isStacked = window.matchMedia("(max-width: 1080px)").matches;
+
+        if (isStacked) {
+          alignDiscoveryElement(carouselRef.current, 14);
+          return;
+        }
+
+        alignDiscoveryElement(radarRef.current, 22);
+      });
+    });
   };
 
   const goToProduct = (index: number) => {
@@ -185,7 +220,11 @@ export default function MenuDiscoveryRadar({
           </div>
 
           <div className={styles.layout}>
-            <div className={styles.radar} aria-label="Menü kategorileri">
+            <div
+              className={styles.radar}
+              aria-label="Menü kategorileri"
+              ref={radarRef}
+            >
               <div aria-hidden="true" className={styles.rippleOne} />
               <div aria-hidden="true" className={styles.rippleTwo} />
               <div aria-hidden="true" className={styles.rippleThree} />
@@ -265,7 +304,11 @@ export default function MenuDiscoveryRadar({
               })}
             </div>
 
-            <article className={styles.carousel} style={carouselStyle}>
+            <article
+              className={styles.carousel}
+              ref={carouselRef}
+              style={carouselStyle}
+            >
               <div className={styles.carouselTop}>
                 <div>
                   <p>{branch.name}</p>
@@ -409,6 +452,15 @@ export default function MenuDiscoveryRadar({
                 </div>
               ) : null}
             </article>
+
+            <button
+              className={styles.backToRadar}
+              onClick={() => alignDiscoveryElement(radarRef.current, 14)}
+              type="button"
+            >
+              <span aria-hidden="true">↖</span>
+              Kategori seçimine dön
+            </button>
           </div>
         </div>
       </div>
