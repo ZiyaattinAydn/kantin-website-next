@@ -28,7 +28,8 @@
   transition:
     transform 180ms var(--ease),
     border-radius 180ms var(--ease),
-    box-shadow 180ms ease;
+    box-shadow 180ms ease,
+    background-color 180ms ease;
 }
 
 .trigger svg {
@@ -39,6 +40,12 @@
   stroke-width: 1.55;
 }
 
+.triggerClose {
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
 .trigger:hover,
 .trigger:focus-visible {
   border-radius: 24px;
@@ -46,24 +53,51 @@
   box-shadow: 0 18px 38px rgba(0, 71, 187, 0.26);
 }
 
-.overlay {
+.expansion {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: -6px;
+  opacity: 0;
+  transition:
+    grid-template-rows 640ms var(--ease),
+    margin-top 640ms var(--ease),
+    opacity 360ms ease;
+}
+
+.expansionOpen {
+  grid-template-rows: 1fr;
+  margin-top: 18px;
+  opacity: 1;
+}
+
+.expansionInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.panel {
   --sauce-bg: #0747bb;
   --sauce-accent: #f4efe6;
   --sauce-ink: #ffffff;
 
-  position: fixed;
-  inset: 0;
-  z-index: 4000;
+  position: relative;
+  height: min(78dvh, 780px);
+  min-height: 590px;
   overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--sauce-ink) 24%, transparent);
+  border-radius: 30px;
   background: var(--sauce-bg);
   color: var(--sauce-ink);
+  box-shadow: 0 28px 80px rgba(2, 25, 75, 0.22);
   transition:
     background-color 520ms ease,
-    color 520ms ease;
+    color 520ms ease,
+    box-shadow 520ms ease;
 }
 
 .background {
-  position: fixed;
+  position: absolute;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
@@ -74,38 +108,37 @@
   border-radius: 999px;
   background: var(--sauce-accent);
   opacity: 0.16;
-  filter: blur(1px);
   transition:
     background-color 520ms ease,
     transform 700ms var(--ease);
 }
 
 .blobOne {
-  top: -18vmin;
-  right: -8vmin;
-  width: 58vmin;
-  height: 58vmin;
+  top: -34%;
+  right: -8%;
+  width: 54%;
+  aspect-ratio: 1;
   transform: rotate(18deg);
 }
 
 .blobTwo {
-  bottom: -24vmin;
-  left: -10vmin;
-  width: 68vmin;
-  height: 68vmin;
+  bottom: -48%;
+  left: -12%;
+  width: 62%;
+  aspect-ratio: 1;
   transform: rotate(-14deg);
 }
 
 .blobThree {
-  top: 36%;
-  left: 47%;
-  width: 18vmin;
-  height: 18vmin;
-  opacity: 0.1 !important;
+  top: 32%;
+  left: 46%;
+  width: 18%;
+  aspect-ratio: 1;
+  opacity: 0.09 !important;
 }
 
 .topbar {
-  position: fixed;
+  position: absolute;
   top: 0;
   right: 0;
   left: 0;
@@ -115,7 +148,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 18px clamp(18px, 4vw, 56px);
+  padding: 18px clamp(18px, 3vw, 36px);
   color: var(--sauce-ink);
   pointer-events: none;
 }
@@ -164,9 +197,9 @@
 }
 
 .rail {
-  position: fixed;
+  position: absolute;
   top: 50%;
-  right: clamp(12px, 2vw, 28px);
+  right: clamp(10px, 1.5vw, 22px);
   z-index: 5;
   display: grid;
   gap: 8px;
@@ -204,7 +237,7 @@
 .scroller {
   position: relative;
   z-index: 2;
-  height: 100dvh;
+  height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -220,25 +253,26 @@
 .sauce {
   position: relative;
   display: grid;
-  min-height: 100dvh;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.58fr);
+  height: 100%;
+  min-height: 100%;
+  grid-template-columns: minmax(0, 1.18fr) minmax(280px, 0.56fr);
   align-items: center;
-  gap: clamp(30px, 7vw, 110px);
+  gap: clamp(30px, 6vw, 90px);
   padding:
-    max(108px, env(safe-area-inset-top))
-    clamp(30px, 8vw, 130px)
-    max(70px, env(safe-area-inset-bottom));
+    112px
+    clamp(34px, 7vw, 96px)
+    64px;
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
 
 .copy {
-  max-width: 960px;
+  max-width: 760px;
   opacity: 0.28;
-  transform: translateY(42px) scale(0.98);
+  transform: translateY(38px) scale(0.985);
   transition:
-    opacity 460ms ease,
-    transform 620ms var(--ease);
+    opacity 420ms ease,
+    transform 600ms var(--ease);
 }
 
 .sauce[data-active="true"] .copy {
@@ -246,21 +280,42 @@
   transform: translateY(0) scale(1);
 }
 
-.copy p {
-  margin: 0 0 16px;
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 22px;
+}
+
+.meta span {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--sauce-ink) 24%, transparent);
+  border-radius: 999px;
   color: var(--sauce-ink);
-  font-size: 0.75rem;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.copy > p {
+  margin: 0 0 12px;
+  color: var(--sauce-ink);
+  font-size: 0.74rem;
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .copy h2 {
-  max-width: 10ch;
+  max-width: 9ch;
   margin: 0;
   color: var(--sauce-ink);
-  font-size: clamp(4.2rem, 10vw, 10.5rem);
-  line-height: 0.82;
+  font-size: clamp(4.4rem, 8vw, 8.5rem);
+  line-height: 0.84;
   letter-spacing: -0.075em;
   text-wrap: balance;
   word-break: normal;
@@ -268,19 +323,42 @@
   hyphens: none;
 }
 
-.copy > span {
-  display: block;
-  margin-top: clamp(30px, 5vh, 56px);
+.detailCard {
+  display: grid;
+  max-width: 620px;
+  gap: 8px;
+  margin-top: 30px;
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--sauce-ink) 22%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--sauce-ink) 8%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.detailCard strong {
+  font-size: 0.92rem;
+}
+
+.detailCard span {
   color: var(--sauce-ink);
   font-size: 0.82rem;
+  line-height: 1.55;
+  opacity: 0.72;
+}
+
+.copy small {
+  display: block;
+  margin-top: 22px;
+  color: var(--sauce-ink);
+  font-size: 0.76rem;
   font-weight: 800;
-  opacity: 0.68;
+  opacity: 0.62;
 }
 
 .sauceMark {
   position: relative;
   display: grid;
-  width: min(31vw, 390px);
+  width: min(29vw, 350px);
   aspect-ratio: 1;
   place-items: center;
   justify-self: end;
@@ -299,7 +377,7 @@
 .sauceMark i {
   position: absolute;
   inset: 0;
-  border: clamp(16px, 2vw, 26px) solid var(--sauce-accent);
+  border: clamp(16px, 2vw, 25px) solid var(--sauce-accent);
   border-radius: 42% 58% 64% 36% / 45% 38% 62% 55%;
   background: color-mix(in srgb, var(--sauce-accent) 38%, transparent);
   box-shadow:
@@ -313,7 +391,7 @@
   z-index: 1;
   color: var(--panel-ink);
   font-family: "Montserrat", sans-serif;
-  font-size: clamp(4rem, 8vw, 8rem);
+  font-size: clamp(4rem, 7vw, 7.5rem);
   font-weight: 900;
   letter-spacing: -0.08em;
 }
@@ -343,30 +421,44 @@
     border-radius: 16px;
   }
 
+  .panel {
+    height: min(72dvh, 680px);
+    min-height: 540px;
+    border-radius: 24px;
+  }
+
   .sauce {
     grid-template-columns: 1fr;
     align-content: center;
-    gap: 40px;
-    padding-inline: 24px 50px;
+    gap: 30px;
+    padding: 100px 48px 44px 22px;
   }
 
   .copy h2 {
-    max-width: 9ch;
-    font-size: clamp(3.7rem, 18vw, 6.4rem);
+    max-width: 8ch;
+    font-size: clamp(3.6rem, 17vw, 5.8rem);
+  }
+
+  .detailCard {
+    margin-top: 22px;
+    padding: 15px 16px;
   }
 
   .sauceMark {
-    width: min(58vw, 300px);
-    justify-self: start;
+    position: absolute;
+    right: 38px;
+    bottom: 26px;
+    width: min(38vw, 190px);
+    opacity: 0.18;
   }
 
   .rail {
-    right: 8px;
+    right: 4px;
   }
 
   .topbar {
     min-height: 76px;
-    padding: 12px 14px 12px 20px;
+    padding: 12px 12px 12px 18px;
   }
 
   .close {
@@ -376,7 +468,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .overlay,
+  .expansion,
+  .panel,
   .background span,
   .trigger,
   .close,
