@@ -641,30 +641,33 @@ function ManagedBranchMenu({
                     (c.group ?? defaultMenuGroup(c.slug)).key === group.key,
                 )
                 .sort((a, b) => a.sortOrder - b.sortOrder)
-                .map((category) => (
-                  <div
-                    className={managedStyles.category}
-                    data-dark={
-                      slug === "atakent" &&
-                      [
-                        "fici-biralar",
-                        "sise-biralar",
-                        "saraplar",
-                        "bubble-kokteyller",
-                        "house-kokteyller",
-                      ].includes(category.slug)
-                    }
-                    key={category.id}
-                    id={`kategori-${category.slug}`}
-                  >
-                    {richContent(category)}
-                  </div>
-                ))}
+                .map((category, categoryIndex) => {
+                  const darkCategory =
+                    slug === "atakent" &&
+                    [
+                      "fici-biralar",
+                      "sise-biralar",
+                      "saraplar",
+                      "bubble-kokteyller",
+                      "house-kokteyller",
+                    ].includes(category.slug);
+
+                  return (
+                    <div
+                      className={managedStyles.category}
+                      data-dark={darkCategory}
+                      key={category.id}
+                      id={`kategori-${category.slug}`}
+                    >
+                      {richContent(category)}
+                      <RadarReturn
+                        light={darkCategory}
+                        align={categoryIndex % 2 === 0 ? "end" : "start"}
+                      />
+                    </div>
+                  );
+                })}
             </div>
-            <RadarReturn
-              light={slug === "atakent" && group.key === "main"}
-              align={group.key === "main" ? "end" : "start"}
-            />
           </section>
         ))}
         {slug === "alsancak" ? (
@@ -748,6 +751,7 @@ export function AlsancakMenuPanel({
                 category="Bira"
                 subcategory="Şişe"
               />
+              <RadarReturn light align="start" />
             </section>
           ) : null}
           <div className="menu-sheet-column menu-sheet-column-right">
@@ -787,6 +791,7 @@ export function AlsancakMenuPanel({
                           <small>{data.alsancakWine.priceDetail}</small>
                         </strong>
                       </article>
+                      <RadarReturn light align="end" />
                     </section>
                   );
                 }
@@ -810,6 +815,7 @@ export function AlsancakMenuPanel({
                           subcategory="Fritöz"
                         />
                       ))}
+                      <RadarReturn light align="start" />
                     </section>
                   );
                 }
@@ -837,6 +843,7 @@ export function AlsancakMenuPanel({
                           subcategory="Fırın"
                         />
                       ))}
+                      <RadarReturn light align="end" />
                     </section>
                   );
                 }
@@ -934,6 +941,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                   category="Bira"
                   subcategory="Fıçı"
                 />
+                <RadarReturn light align="end" />
               </section>
             ) : null}
             {data.atakentBubbleCocktails.length ? (
@@ -947,6 +955,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                   category="Kokteyl"
                   subcategory="Bubble"
                 />
+                <RadarReturn light align="start" />
               </section>
             ) : null}
             {data.atakentHouseCocktails.length ? (
@@ -975,6 +984,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                   category="Bira"
                   subcategory="Şişe"
                 />
+                <RadarReturn light align="end" />
               </section>
             ) : null}
             {data.atakentWines.length ? (
@@ -1023,6 +1033,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                     subcategory="Sıcaklar"
                   />
                 ))}
+                <RadarReturn align="start" />
               </section>
             ) : null}
             {data.atakentGrillItems.length ? (
