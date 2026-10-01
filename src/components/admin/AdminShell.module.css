@@ -325,6 +325,32 @@
 }
 
 
+
+@media (max-width: 1079px) {
+  .mobileHeader {
+    overflow: hidden;
+    gap: 10px;
+    padding-inline:
+      max(14px, env(safe-area-inset-left))
+      max(14px, env(safe-area-inset-right));
+  }
+
+  .mobileHeader :global(.brand) {
+    flex: 0 1 auto;
+    min-width: 0;
+    font-size: 1.9rem;
+  }
+
+  .mobileActions {
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+
+  .menuButton {
+    min-width: 92px;
+  }
+}
+
 @media (max-width: 620px) {
   .mobileHeader {
     gap: 10px;
