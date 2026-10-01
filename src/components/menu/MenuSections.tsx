@@ -74,11 +74,17 @@ function extraBranchCategories(
   );
 }
 
-function RadarReturn({ light = false }: { light?: boolean }) {
+function RadarReturn({
+  light = false,
+  align = "start",
+}: {
+  light?: boolean;
+  align?: "start" | "center" | "end";
+}) {
   return (
     <div
-      className={`menu-radar-return-wrap reveal${
-        light ? " menu-radar-return-wrap-light" : ""
+      className={`menu-radar-return-slot menu-radar-return-slot-${align} reveal${
+        light ? " menu-radar-return-slot-light" : ""
       }`}
     >
       <a
@@ -339,6 +345,7 @@ function CoffeeBar({ data }: { data: MenuPublicData }) {
             </div>
           ))}
         </section>
+        <RadarReturn align="start" />
       </div>
     </section>
   );
@@ -519,6 +526,7 @@ function ManagedBranchMenu({
               items={data.sauceBar.items}
               kicker={data.sauceBar.kicker}
             />
+            <RadarReturn light align="end" />
           </aside>
         );
     }
@@ -653,9 +661,12 @@ function ManagedBranchMenu({
                   </div>
                 ))}
             </div>
+            <RadarReturn
+              light={slug === "atakent" && group.key === "main"}
+              align={group.key === "main" ? "end" : "start"}
+            />
           </section>
         ))}
-        <RadarReturn />
         {slug === "alsancak" ? (
           <MenuMerchShowcase
             products={merchProducts}
@@ -722,6 +733,7 @@ export function AlsancakMenuPanel({
                 category="Bira"
                 subcategory="Fıçı"
               />
+              <RadarReturn light align="end" />
             </section>
           ) : null}
           {data.alsancakBottleBeers.length ? (
@@ -852,6 +864,7 @@ export function AlsancakMenuPanel({
                   />
                 ))}
                 <BeerSalads salads={data.beerSalads} />
+                <RadarReturn light align="start" />
               </section>
             ) : null}
           </div>
@@ -877,7 +890,6 @@ export function AlsancakMenuPanel({
           )}
         />
         <CoffeeBar data={data} />
-        <RadarReturn light />
         <MenuMerchShowcase
           products={merchProducts}
           bundles={merchBundles}
@@ -949,6 +961,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                   category="Kokteyl"
                   subcategory="House"
                 />
+                <RadarReturn light align="end" />
               </section>
             ) : null}
             {data.atakentBottleBeers.length ? (
@@ -977,11 +990,11 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                   category="Şarap"
                   subcategory="Kadeh / Şişe"
                 />
+                <RadarReturn light align="start" />
               </section>
             ) : null}
           </div>
-          <RadarReturn light />
-        </div>
+          </div>
       </div>
       <div className="atakent-food dotted-paper">
         <AmbientDoodles parallax={false} />
@@ -1029,6 +1042,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                     subcategory="Izgara Şişleri"
                   />
                 ))}
+                <RadarReturn align="end" />
               </section>
             ) : null}
           </div>
@@ -1051,6 +1065,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
                 <small>{data.atakentDessert.allergens}</small>
               </div>
               <strong>{data.atakentDessert.price}</strong>
+              <RadarReturn align="start" />
             </section>
           ) : null}
           <GenericMenuCategoryList
@@ -1060,8 +1075,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
               ATAKENT_RICH_CATEGORY_SLUGS,
             )}
           />
-          <RadarReturn />
-        </div>
+          </div>
       </div>
     </section>
   );
