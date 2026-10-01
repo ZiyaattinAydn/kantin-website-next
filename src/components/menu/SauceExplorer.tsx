@@ -48,9 +48,6 @@ export default function SauceExplorer({
   useEffect(() => {
     if (!open) return;
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       event.preventDefault();
@@ -58,11 +55,7 @@ export default function SauceExplorer({
     };
 
     document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [open]);
 
   useEffect(() => {
@@ -86,7 +79,7 @@ export default function SauceExplorer({
       },
       {
         root,
-        threshold: [0.45, 0.6, 0.75],
+        threshold: [0.5, 0.68, 0.82],
       },
     );
 
@@ -111,16 +104,19 @@ export default function SauceExplorer({
   };
 
   const scrollToSauce = (index: number) => {
-    sectionRefs.current[index]?.scrollIntoView({
+    const root = scrollerRef.current;
+    if (!root) return;
+
+    root.scrollTo({
+      top: root.clientHeight * index,
       behavior: "smooth",
-      block: "start",
     });
   };
 
   if (!items.length) return null;
 
   const activePalette = paletteFor(items[activeIndex] ?? items[0], activeIndex);
-  const overlayStyle = {
+  const panelStyle = {
     "--sauce-bg": activePalette.bg,
     "--sauce-accent": activePalette.accent,
     "--sauce-ink": activePalette.ink,
@@ -131,110 +127,130 @@ export default function SauceExplorer({
       <div className={styles.triggerWrap}>
         <span>Sosları görüntüle</span>
         <button
-          aria-haspopup="dialog"
-          aria-label="Sosları tam ekran görüntüle"
+          aria-expanded={open}
+          aria-label={open ? "Sos alanını kapat" : "Sosları görüntüle"}
           className={styles.trigger}
-          onClick={openExplorer}
+          onClick={open ? close : openExplorer}
           ref={triggerRef}
           type="button"
         >
-          <svg aria-hidden="true" viewBox="0 0 24 24">
-            <path d="M2.8 12s3.2-5.6 9.2-5.6S21.2 12 21.2 12 18 17.6 12 17.6 2.8 12 2.8 12Z" />
-            <circle cx="12" cy="12" r="2.55" />
-          </svg>
+          {open ? (
+            <span className={styles.triggerClose} aria-hidden="true">
+              ×
+            </span>
+          ) : (
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M2.8 12s3.2-5.6 9.2-5.6S21.2 12 21.2 12 18 17.6 12 17.6 2.8 12 2.8 12Z" />
+              <circle cx="12" cy="12" r="2.55" />
+            </svg>
+          )}
         </button>
       </div>
 
-      {open ? (
-        <div
-          aria-label="Kantin sosları"
-          aria-modal="true"
-          className={styles.overlay}
-          role="dialog"
-          style={overlayStyle}
-        >
-          <div aria-hidden="true" className={styles.background}>
-            <span className={styles.blobOne} />
-            <span className={styles.blobTwo} />
-            <span className={styles.blobThree} />
-          </div>
-
-          <header className={styles.topbar}>
-            <div>
-              <span>{kicker}</span>
-              <strong>
-                {String(activeIndex + 1).padStart(2, "0")} /{" "}
-                {String(items.length).padStart(2, "0")}
-              </strong>
+      <div
+        className={`${styles.expansion}${open ? ` ${styles.expansionOpen}` : ""}`}
+        data-sauce-expanded={open ? "true" : "false"}
+      >
+        <div className={styles.expansionInner}>
+          <div
+            aria-label="Kantin sosları"
+            className={styles.panel}
+            role="region"
+            style={panelStyle}
+          >
+            <div aria-hidden="true" className={styles.background}>
+              <span className={styles.blobOne} />
+              <span className={styles.blobTwo} />
+              <span className={styles.blobThree} />
             </div>
-            <button
-              autoFocus
-              aria-label="Sosları kapat"
-              className={styles.close}
-              onClick={close}
-              type="button"
-            >
-              ×
-            </button>
-          </header>
 
-          <nav aria-label="Sos seçimi" className={styles.rail}>
-            {items.map((item, index) => (
+            <header className={styles.topbar}>
+              <div>
+                <span>{kicker}</span>
+                <strong>
+                  {String(activeIndex + 1).padStart(2, "0")} /{" "}
+                  {String(items.length).padStart(2, "0")}
+                </strong>
+              </div>
               <button
-                aria-label={item}
-                aria-current={index === activeIndex ? "true" : undefined}
-                className={index === activeIndex ? styles.activeDot : ""}
-                key={item}
-                onClick={() => scrollToSauce(index)}
+                aria-label="Sos alanını kapat"
+                className={styles.close}
+                onClick={close}
                 type="button"
               >
-                <span />
+                ×
               </button>
-            ))}
-          </nav>
+            </header>
 
-          <div className={styles.scroller} ref={scrollerRef}>
-            {items.map((item, index) => {
-              const palette = paletteFor(item, index);
-              const sectionStyle = {
-                "--panel-accent": palette.accent,
-                "--panel-ink": palette.ink,
-              } as CssVars;
-              const isActive = index === activeIndex;
-
-              return (
-                <section
-                  className={styles.sauce}
-                  data-active={isActive ? "true" : "false"}
-                  data-sauce-index={index}
+            <nav aria-label="Sos seçimi" className={styles.rail}>
+              {items.map((item, index) => (
+                <button
+                  aria-label={item}
+                  aria-current={index === activeIndex ? "true" : undefined}
+                  className={index === activeIndex ? styles.activeDot : ""}
                   key={item}
-                  ref={(element) => {
-                    sectionRefs.current[index] = element;
-                  }}
-                  style={sectionStyle}
+                  onClick={() => scrollToSauce(index)}
+                  type="button"
                 >
-                  <div className={styles.copy}>
-                    <p>
-                      Sos {String(index + 1).padStart(2, "0")} · {kicker}
-                    </p>
-                    <h2>{item}</h2>
-                    <span>
-                      {index === items.length - 1
-                        ? "Başa dönmek için yukarı kaydır."
-                        : "Bir sonraki sos için aşağı kaydır."}
-                    </span>
-                  </div>
+                  <span />
+                </button>
+              ))}
+            </nav>
 
-                  <div aria-hidden="true" className={styles.sauceMark}>
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                    <i />
-                  </div>
-                </section>
-              );
-            })}
+            <div className={styles.scroller} ref={scrollerRef}>
+              {items.map((item, index) => {
+                const palette = paletteFor(item, index);
+                const sectionStyle = {
+                  "--panel-accent": palette.accent,
+                  "--panel-ink": palette.ink,
+                } as CssVars;
+                const isActive = index === activeIndex;
+
+                return (
+                  <section
+                    className={styles.sauce}
+                    data-active={isActive ? "true" : "false"}
+                    data-sauce-index={index}
+                    key={item}
+                    ref={(element) => {
+                      sectionRefs.current[index] = element;
+                    }}
+                    style={sectionStyle}
+                  >
+                    <div className={styles.copy}>
+                      <div className={styles.meta}>
+                        <span>Sos</span>
+                        <span>{kicker}</span>
+                      </div>
+                      <p>Sos {String(index + 1).padStart(2, "0")}</p>
+                      <h2>{item}</h2>
+
+                      <div className={styles.detailCard}>
+                        <strong>Bu sos için ayrılan tanıtım alanı.</strong>
+                        <span>
+                          İçerik, lezzet profili, eşleşme önerileri ve gerçek
+                          ürün görseli geldiğinde burada güncellenecek.
+                        </span>
+                      </div>
+
+                      <small>
+                        {index === items.length - 1
+                          ? "Yukarı kaydırarak önceki soslara dönebilirsin."
+                          : "Tekerleği aşağı kaydır: sıradaki sosa oturur."}
+                      </small>
+                    </div>
+
+                    <div aria-hidden="true" className={styles.sauceMark}>
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <i />
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
           </div>
         </div>
-      ) : null}
+      </div>
     </>
   );
 }
