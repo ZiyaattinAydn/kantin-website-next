@@ -346,8 +346,7 @@ export default function MenuDiscoveryRadar({
                             {String(index + 1).padStart(2, "0")}
                           </p>
 
-                          <div className={styles.productTitle}>
-                            <h3 className={titleClass}>{item.name}</h3>
+                          <div className={styles.quickViewSlot}>
                             <MenuQuickViewButton
                               prominent
                               name={item.name}
@@ -361,6 +360,10 @@ export default function MenuDiscoveryRadar({
                               category={activeCategory.name}
                               subcategory={activeCategory.group?.label}
                             />
+                          </div>
+
+                          <div className={styles.productTitle}>
+                            <h3 className={titleClass}>{item.name}</h3>
                           </div>
 
                           <p className={styles.description}>
