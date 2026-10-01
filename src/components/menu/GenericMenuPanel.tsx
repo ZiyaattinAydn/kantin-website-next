@@ -30,7 +30,13 @@ function ItemPrice({ item }: { item: GenericMenuItemData }) {
   );
 }
 
-function MenuItemCard({ item }: { item: GenericMenuItemData }) {
+function MenuItemCard({
+  item,
+  category,
+}: {
+  item: GenericMenuItemData;
+  category: GenericMenuCategoryData;
+}) {
   return (
     <article className={styles.item}>
       {item.image ? (
@@ -64,6 +70,13 @@ function MenuItemCard({ item }: { item: GenericMenuItemData }) {
                 note={item.priceNote ?? item.availabilityNote}
                 allergens={item.allergens}
                 badge={item.badges[0]}
+                highlight={item.highlight}
+                category={category.name}
+                subcategory={
+                  category.group?.label && category.group.label !== category.name
+                    ? category.group.label
+                    : undefined
+                }
               />
             </h3>
             {item.detail ? <small>{item.detail}</small> : null}
@@ -111,7 +124,7 @@ function MenuCategory({ category }: { category: GenericMenuCategoryData }) {
       </header>
       <div className={styles.items}>
         {category.items.map((item) => (
-          <MenuItemCard key={item.id} item={item} />
+          <MenuItemCard key={item.id} item={item} category={category} />
         ))}
       </div>
     </section>
