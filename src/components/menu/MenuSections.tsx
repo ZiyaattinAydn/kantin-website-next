@@ -689,6 +689,8 @@ export function AlsancakMenuPanel({
                 rows={sortAlsancakDraftBeers(data.alsancakDraftBeers)}
                 headClassName="dark-head"
                 rowClassName="four-cols"
+                category="Bira"
+                subcategory="Fıçı"
               />
             </section>
           ) : null}
@@ -698,6 +700,8 @@ export function AlsancakMenuPanel({
               <CompactList
                 items={data.alsancakBottleBeers}
                 className="bottle-grid-als"
+                category="Bira"
+                subcategory="Şişe"
               />
             </section>
           ) : null}
