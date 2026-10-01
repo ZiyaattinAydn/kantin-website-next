@@ -2123,6 +2123,56 @@ body {
   display: none;
 }
 
+.menu-radar-return-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(54px, 7vw, 82px);
+  padding-top: 24px;
+  border-top: 1px solid currentColor;
+  opacity: 0.96;
+}
+
+.menu-radar-return {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 11px 16px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--blue);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  transition:
+    gap 180ms var(--ease),
+    transform 180ms var(--ease),
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.menu-radar-return-light {
+  color: var(--white);
+}
+
+.menu-radar-return:hover,
+.menu-radar-return:focus-visible {
+  gap: 16px;
+  transform: translateY(-2px);
+}
+
+.menu-radar-return:not(.menu-radar-return-light):hover,
+.menu-radar-return:not(.menu-radar-return-light):focus-visible {
+  background: var(--blue);
+  color: var(--white);
+}
+
+.menu-radar-return-light:hover,
+.menu-radar-return-light:focus-visible {
+  background: var(--white);
+  color: var(--blue);
+}
+
 .alsancak-menu-panel {
   padding: 90px 0 110px;
   background: var(--blue);
