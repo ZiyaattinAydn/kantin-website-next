@@ -76,7 +76,11 @@ function extraBranchCategories(
 
 function RadarReturn({ light = false }: { light?: boolean }) {
   return (
-    <div className="menu-radar-return-wrap reveal">
+    <div
+      className={`menu-radar-return-wrap reveal${
+        light ? " menu-radar-return-wrap-light" : ""
+      }`}
+    >
       <a
         className={`menu-radar-return${light ? " menu-radar-return-light" : ""}`}
         href="#menu-radar"
