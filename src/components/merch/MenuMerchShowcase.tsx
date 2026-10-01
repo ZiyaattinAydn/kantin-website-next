@@ -45,7 +45,7 @@ export default function MenuMerchShowcase({
     <>
       <section className="alsancak-merch-section reveal" id="merch-drop">
       <div className="merch-panel-shell">
-        <DoodleParallaxStage className="merch-doodle-stage">
+        <DoodleParallaxStage disabled className="merch-doodle-stage">
           {doodles.slice(0, 8).map((doodle) => (
             <img key={doodle.src} alt="" className={`merch-doodle ${doodle.className}`} src={doodle.src} />
           ))}
