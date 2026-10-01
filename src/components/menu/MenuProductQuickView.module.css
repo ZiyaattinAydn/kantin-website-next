@@ -1,0 +1,218 @@
+.eyeButton {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  margin-left: 8px;
+  padding: 0;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: currentColor;
+  opacity: 0.68;
+  vertical-align: middle;
+  cursor: pointer;
+  transition:
+    opacity 160ms ease,
+    transform 160ms var(--ease),
+    background-color 160ms ease;
+}
+
+.eyeButton svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+}
+
+.eyeButton:hover,
+.eyeButton:focus-visible {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.eyeButton:focus-visible {
+  outline: 3px solid rgba(128, 170, 255, 0.8);
+  outline-offset: 2px;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  display: grid;
+  place-items: center;
+  padding: clamp(14px, 3vw, 34px);
+  background: rgba(7, 13, 27, 0.76);
+  backdrop-filter: blur(10px);
+}
+
+.dialog {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(330px, 0.82fr);
+  width: min(1060px, 100%);
+  max-height: min(760px, calc(100dvh - 28px));
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 30px;
+  background: var(--cream);
+  box-shadow: 0 34px 110px rgba(0, 0, 0, 0.4);
+}
+
+.media {
+  position: relative;
+  min-height: 520px;
+  margin: 0;
+  overflow: hidden;
+  background: #ddd7cd;
+}
+
+.media img {
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  object-fit: cover;
+}
+
+.media figcaption {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(2, 25, 75, 0.82);
+  color: var(--white);
+  font-size: 0.68rem;
+  font-weight: 800;
+  backdrop-filter: blur(8px);
+}
+
+.copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(30px, 4vw, 52px);
+  color: var(--ink);
+}
+
+.kicker {
+  margin: 0 0 14px;
+  color: var(--blue);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.titleRow h2 {
+  margin: 0;
+  max-width: 11ch;
+  font-size: clamp(2.4rem, 4.6vw, 4.7rem);
+  line-height: 0.9;
+  letter-spacing: -0.06em;
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: var(--white);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.description {
+  margin: 24px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.detail,
+.note,
+.allergens {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.price {
+  margin-top: 26px;
+  color: var(--blue);
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.allergens {
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 4;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: var(--blue);
+  color: var(--white);
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .backdrop {
+    align-items: end;
+    padding: 10px;
+  }
+
+  .dialog {
+    grid-template-columns: 1fr;
+    max-height: calc(100dvh - 20px);
+    overflow-y: auto;
+    border-radius: 26px;
+  }
+
+  .media {
+    min-height: 280px;
+  }
+
+  .media img {
+    min-height: 280px;
+    max-height: 44dvh;
+  }
+
+  .copy {
+    padding: 26px 22px 32px;
+  }
+
+  .titleRow h2 {
+    max-width: 12ch;
+    padding-right: 30px;
+    font-size: clamp(2rem, 11vw, 3.2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eyeButton {
+    transition: none;
+  }
+}
