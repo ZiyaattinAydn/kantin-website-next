@@ -638,3 +638,83 @@
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1.12;
 }
+
+
+/* Final phone/tablet pass */
+@media (max-width: 759px) {
+  .header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: clamp(2rem, 10vw, 2.8rem);
+    line-height: 1;
+  }
+
+  .filterPanel {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .filterActions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filterActions > * {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .applicationSummary {
+    padding: 14px;
+  }
+
+  .applicationEditor {
+    padding: 14px;
+  }
+
+  .editorSection,
+  .detailCard {
+    padding: 13px;
+    border-radius: 13px;
+  }
+
+  .field input,
+  .field select,
+  .field textarea,
+  .filters input,
+  .filters select {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 460px) {
+  .filterActions {
+    grid-template-columns: 1fr;
+  }
+
+  .applicationSummary {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+
+  .editorColumns,
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .primary,
+  .secondary,
+  .danger,
+  .closeLink {
+    width: 100%;
+  }
+}
