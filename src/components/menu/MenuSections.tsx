@@ -8,6 +8,7 @@ import AmbientDoodles from "@/components/effects/AmbientDoodles";
 import MenuMerchShowcase from "@/components/merch/MenuMerchShowcase";
 import { GenericMenuCategoryList } from "./GenericMenuPanel";
 import { MenuQuickViewButton } from "./MenuProductQuickView";
+import SauceExplorer from "./SauceExplorer";
 import type { MenuPublicData } from "@/lib/public-data/types";
 import type {
   MerchBundle,
@@ -493,6 +494,10 @@ function ManagedBranchMenu({
               <h3>{category.name}</h3>
             </div>
             <p>{data.sauceBar.items.join(" · ")}</p>
+            <SauceExplorer
+              items={data.sauceBar.items}
+              kicker={data.sauceBar.kicker}
+            />
           </aside>
         );
     }
@@ -824,6 +829,10 @@ export function AlsancakMenuPanel({
               <h3>{data.sauceBar.title}</h3>
             </div>
             <p>{data.sauceBar.items.join(" · ")}</p>
+            <SauceExplorer
+              items={data.sauceBar.items}
+              kicker={data.sauceBar.kicker}
+            />
           </aside>
         ) : null}
         <GenericMenuCategoryList
