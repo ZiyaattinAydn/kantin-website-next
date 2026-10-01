@@ -495,8 +495,4 @@
   .scroller {
     scroll-behavior: auto;
   }
-
-  .sauceMark i {
-    animation: none;
-  }
 }
