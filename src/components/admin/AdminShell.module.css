@@ -24,6 +24,12 @@
   backdrop-filter: blur(16px);
 }
 
+.mobileActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .menuButton {
   padding: 9px 13px;
   border: 1px solid var(--line);
@@ -41,7 +47,11 @@
   display: flex;
   width: min(310px, 88vw);
   flex-direction: column;
-  padding: 24px 20px;
+  padding:
+    max(24px, env(safe-area-inset-top))
+    max(20px, env(safe-area-inset-right))
+    max(24px, env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
   border-right: 1px solid rgba(255, 255, 255, 0.14);
   background: #061a4b;
   color: white;
@@ -183,7 +193,11 @@
 
 .main {
   min-width: 0;
-  padding: 28px 18px 80px;
+  padding:
+    28px
+    max(18px, env(safe-area-inset-right))
+    calc(80px + env(safe-area-inset-bottom))
+    max(18px, env(safe-area-inset-left));
 }
 
 @media (min-width: 1080px) {
@@ -306,4 +320,61 @@
 .menuButton,
 .sidebarClose {
   min-height: 44px;
+}
+
+
+@media (max-width: 620px) {
+  .mobileHeader {
+    gap: 10px;
+    padding-inline:
+      max(14px, env(safe-area-inset-left))
+      max(14px, env(safe-area-inset-right));
+  }
+
+  .mobileActions {
+    gap: 6px;
+  }
+
+  .menuButton {
+    min-width: 92px;
+  }
+
+  .sidebar {
+    width: min(330px, 94vw);
+  }
+
+  .main {
+    padding-top: 20px;
+  }
+
+  .search {
+    margin-bottom: 20px;
+  }
+
+  .search > div {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .search input,
+  .search button {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .search button {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .mobileHeader :global(.brand) {
+    font-size: 1.85rem;
+  }
+
+  .menuButton {
+    min-width: 82px;
+    padding-inline: 10px;
+    font-size: 0.75rem;
+  }
 }
