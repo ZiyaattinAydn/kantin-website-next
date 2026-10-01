@@ -31,7 +31,13 @@ const steps = [
   },
 ];
 
-export default function AdminOnboarding() {
+export default function AdminOnboarding({
+  compact = false,
+  light = false,
+}: {
+  compact?: boolean;
+  light?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
@@ -85,12 +91,15 @@ export default function AdminOnboarding() {
   return (
     <>
       <button
-        className={styles.trigger}
+        aria-label={compact ? "Panel turunu aç" : undefined}
+        className={`${styles.trigger}${compact ? ` ${styles.triggerCompact}` : ""}${
+          light ? ` ${styles.triggerLight}` : ""
+        }`}
         onClick={() => setOpen(true)}
         type="button"
       >
         <span aria-hidden="true">?</span>
-        Panel turu
+        {compact ? <span className={styles.srOnly}>Panel turu</span> : "Panel turu"}
       </button>
 
       {open ? (
