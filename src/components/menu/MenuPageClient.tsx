@@ -88,9 +88,11 @@ export default function MenuPageClient({
       if (frame !== null) return;
 
       frame = window.requestAnimationFrame(() => {
+        const headerHidden = document.body.classList.contains("header-hidden");
+        const stickyTop = headerHidden ? 0 : headerHeight;
         const stuckDistance = Math.max(
           0,
-          window.scrollY + headerHeight - sentinelPageY,
+          window.scrollY + stickyTop - sentinelPageY,
         );
         const isStuck = stuckDistance > 1;
         const hideReadyDistance = Math.max(120, selectorHeight * 1.35);
@@ -108,13 +110,20 @@ export default function MenuPageClient({
       updateStickyState();
     };
 
+    const bodyClassObserver = new MutationObserver(updateStickyState);
+
     measure();
     updateStickyState();
+    bodyClassObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     window.addEventListener("scroll", updateStickyState, { passive: true });
     window.addEventListener("resize", remeasure);
     window.addEventListener("pageshow", remeasure);
 
     return () => {
+      bodyClassObserver.disconnect();
       window.removeEventListener("scroll", updateStickyState);
       window.removeEventListener("resize", remeasure);
       window.removeEventListener("pageshow", remeasure);
