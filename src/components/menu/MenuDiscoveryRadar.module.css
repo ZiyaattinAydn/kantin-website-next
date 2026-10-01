@@ -127,12 +127,15 @@
   left: 50%;
   top: 50%;
   z-index: 0;
-  width: 34%;
+  width: 31%;
   aspect-ratio: 1;
-  border: 1px solid rgba(0, 71, 187, 0.26);
+  border: 1.5px solid rgba(255, 255, 255, 0.34);
   border-radius: 999px;
   opacity: 0;
   transform: translate(-50%, -50%) scale(0.7);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 0 34px rgba(255, 255, 255, 0.05);
   animation: radarRipple 5.4s cubic-bezier(0.2, 0.65, 0.3, 1) infinite;
 }
 
@@ -656,37 +659,37 @@
 
 @keyframes radarRingWave {
   0% {
-    opacity: 0.32;
-    transform: translate(-50%, -50%) scale(0.72);
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(0.7);
   }
 
-  68% {
-    opacity: 0.12;
+  62% {
+    opacity: 0.2;
   }
 
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(3.15);
+    transform: translate(-50%, -50%) scale(3.35);
   }
 }
 
 @keyframes radarRipple {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.65);
+    transform: translate(-50%, -50%) scale(0.58);
   }
 
-  18% {
-    opacity: 0.22;
+  12% {
+    opacity: 0.42;
   }
 
-  72% {
-    opacity: 0.08;
+  68% {
+    opacity: 0.14;
   }
 
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(4.1);
+    transform: translate(-50%, -50%) scale(4.45);
   }
 }
 
