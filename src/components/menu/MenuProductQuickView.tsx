@@ -14,6 +14,9 @@ export type MenuQuickViewData = {
   note?: string;
   allergens?: string;
   badge?: string;
+  category: string;
+  subcategory?: string;
+  highlight?: string;
 };
 
 type QuickViewEventDetail = {
@@ -29,6 +32,9 @@ export function MenuQuickViewButton({
   note,
   allergens,
   badge,
+  category,
+  subcategory,
+  highlight,
 }: MenuQuickViewData) {
   return (
     <button
@@ -48,6 +54,9 @@ export function MenuQuickViewButton({
                 note,
                 allergens,
                 badge,
+                category,
+                subcategory,
+                highlight,
               },
               trigger: event.currentTarget,
             },
@@ -105,10 +114,38 @@ export default function MenuProductQuickView() {
 
   if (!active) return null;
 
+  const cleanText = (value?: string) =>
+    value
+      ?.replace(/\{highlight\}/g, active.highlight ?? "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const detailIsMeta = Boolean(
+    active.detail &&
+      active.detail.length <= 28 &&
+      (/^\d/.test(active.detail) ||
+        /^(yarım|tam|tek|duble)/i.test(active.detail)),
+  );
   const description =
-    active.description ||
-    active.detail ||
+    cleanText(active.description) ||
+    (!detailIsMeta ? cleanText(active.detail) : undefined) ||
     "Ürün açıklaması ve gerçek ürün görseli yakında eklenecek.";
+  const detail = cleanText(active.detail);
+  const metaItems = Array.from(
+    new Set(
+      [
+        active.category,
+        active.subcategory,
+        detailIsMeta ? detail : undefined,
+      ].filter((item): item is string => Boolean(item)),
+    ),
+  );
+  const titleClass =
+    active.name.length >= 28
+      ? styles.titleCompact
+      : active.name.length >= 18
+        ? styles.titleMedium
+        : "";
 
   return (
     <div
@@ -144,15 +181,31 @@ export default function MenuProductQuickView() {
 
         <div className={styles.copy}>
           <p className={styles.kicker}>Menü detayı</p>
+
+          <div className={styles.metaRow} aria-label="Ürün kategorisi">
+            {metaItems.map((item) => (
+              <span className={styles.metaChip} key={item}>
+                {item}
+              </span>
+            ))}
+            {active.badge ? (
+              <span className={styles.badge}>{active.badge}</span>
+            ) : null}
+          </div>
+
           <div className={styles.titleRow}>
-            <h2 id="menu-quick-view-title">{active.name}</h2>
-            {active.badge ? <span className={styles.badge}>{active.badge}</span> : null}
+            <h2
+              className={titleClass}
+              id="menu-quick-view-title"
+            >
+              {active.name}
+            </h2>
           </div>
 
           <p className={styles.description}>{description}</p>
 
-          {active.detail && active.detail !== description ? (
-            <p className={styles.detail}>{active.detail}</p>
+          {detail && !detailIsMeta && detail !== description ? (
+            <p className={styles.detail}>{detail}</p>
           ) : null}
 
           <div className={styles.price}>{active.price}</div>
