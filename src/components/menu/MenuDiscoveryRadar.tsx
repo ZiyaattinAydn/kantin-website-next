@@ -300,10 +300,13 @@ export default function MenuDiscoveryRadar({
                       item.image?.imageAlt ||
                       `${item.name} için geçici temsili ürün görseli`;
                     const itemPrice = formatItemPrice(item);
+                    const longestWord = Math.max(
+                      ...item.name.split(/\s+/).map((word) => word.length),
+                    );
                     const titleClass =
-                      item.name.length >= 25
+                      item.name.length >= 24 || longestWord >= 12
                         ? styles.productTitleCompact
-                        : item.name.length >= 16
+                        : item.name.length >= 15 || longestWord >= 9
                           ? styles.productTitleMedium
                           : "";
                     const quickViewData = {
