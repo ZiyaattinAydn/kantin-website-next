@@ -237,6 +237,13 @@ export default function MenuPageClient({
                     }}
                     id={`tab-${branch.id}`}
                     className={`${styles.tab}${isActive ? ` ${styles.active}` : ""}`}
+                    data-fill-side={
+                      branch.id === "alsancak"
+                        ? "from-right"
+                        : branch.id === "atakent"
+                          ? "from-left"
+                          : undefined
+                    }
                     type="button"
                     role="tab"
                     aria-controls={`panel-${branch.id}`}
