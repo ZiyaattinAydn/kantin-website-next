@@ -15,6 +15,24 @@
   font-size: var(--theme-body-size, 16px);
 }
 
+/* Public image cursor policy: interactive images use a normal pointer,
+   static images never show zoom/progress-style cursors. */
+.public-theme-root img {
+  cursor: default;
+}
+
+.public-theme-root :where(a, button, [role="button"]) {
+  cursor: pointer;
+}
+
+.public-theme-root :where(a, button, [role="button"]) img {
+  cursor: pointer;
+}
+
+.public-theme-root :where(button:disabled, [aria-disabled="true"]) {
+  cursor: default;
+}
+
 .public-theme-root[data-color-preset="kantin"] {
   --blue: #0047bb;
   --blue-dark: #00348a;
