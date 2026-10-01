@@ -74,6 +74,20 @@ function extraBranchCategories(
   );
 }
 
+function RadarReturn({ light = false }: { light?: boolean }) {
+  return (
+    <div className="menu-radar-return-wrap reveal">
+      <a
+        className={`menu-radar-return${light ? " menu-radar-return-light" : ""}`}
+        href="#menu-radar"
+      >
+        <span aria-hidden="true">↖</span>
+        Radara dön
+      </a>
+    </div>
+  );
+}
+
 function BranchIntro({
   kicker,
   titleLines,
@@ -637,6 +651,7 @@ function ManagedBranchMenu({
             </div>
           </section>
         ))}
+        <RadarReturn />
         {slug === "alsancak" ? (
           <MenuMerchShowcase
             products={merchProducts}
@@ -858,6 +873,7 @@ export function AlsancakMenuPanel({
           )}
         />
         <CoffeeBar data={data} />
+        <RadarReturn light />
         <MenuMerchShowcase
           products={merchProducts}
           bundles={merchBundles}
@@ -960,6 +976,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
               </section>
             ) : null}
           </div>
+          <RadarReturn light />
         </div>
       </div>
       <div className="atakent-food dotted-paper">
@@ -1039,6 +1056,7 @@ export function AtakentMenuPanel({ hidden, panelRef, data }: PanelProps) {
               ATAKENT_RICH_CATEGORY_SLUGS,
             )}
           />
+          <RadarReturn />
         </div>
       </div>
     </section>
