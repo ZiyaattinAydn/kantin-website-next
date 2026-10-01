@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import styles from "./AdminOnboarding.module.css";
 
@@ -102,67 +103,70 @@ export default function AdminOnboarding({
         {compact ? <span className={styles.srOnly}>Panel turu</span> : "Panel turu"}
       </button>
 
-      {open ? (
-        <div className={styles.layer}>
-          <button
-            aria-label="Panel turunu kapat"
-            className={styles.backdrop}
-            onClick={() => setOpen(false)}
-            type="button"
-          />
-
-          <div
-            aria-labelledby="admin-onboarding-title"
-            aria-modal="true"
-            className={styles.dialog}
-            ref={dialogRef}
-            role="dialog"
-          >
-            <div className={styles.head}>
-              <div>
-                <p>Hızlı yardım</p>
-                <h2 id="admin-onboarding-title">Paneli 1 dakikada tanı.</h2>
-              </div>
+      {open
+        ? createPortal(
+            <div className={styles.layer}>
               <button
                 aria-label="Panel turunu kapat"
-                className={styles.close}
+                className={styles.backdrop}
                 onClick={() => setOpen(false)}
                 type="button"
+              />
+
+              <div
+                aria-labelledby="admin-onboarding-title"
+                aria-modal="true"
+                className={styles.dialog}
+                ref={dialogRef}
+                role="dialog"
               >
-                ×
-              </button>
-            </div>
-
-            <p className={styles.intro}>
-              En sık yapılan işlemler burada. İhtiyacın olan bölümü seçip
-              doğrudan yönetmeye başlayabilirsin.
-            </p>
-
-            <div className={styles.steps}>
-              {steps.map((step, index) => (
-                <article className={styles.step} key={step.href}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
+                <div className={styles.head}>
                   <div>
-                    <h3>{step.title}</h3>
-                    <p>{step.description}</p>
-                    <Link href={step.href} onClick={() => setOpen(false)}>
-                      {step.action} →
-                    </Link>
+                    <p>Hızlı yardım</p>
+                    <h2 id="admin-onboarding-title">Paneli 1 dakikada tanı.</h2>
                   </div>
-                </article>
-              ))}
-            </div>
+                  <button
+                    aria-label="Panel turunu kapat"
+                    className={styles.close}
+                    onClick={() => setOpen(false)}
+                    type="button"
+                  >
+                    ×
+                  </button>
+                </div>
 
-            <div className={styles.tip}>
-              <strong>İpucu</strong>
-              <p>
-                Sol menüde ne aradığını bulamazsan üstteki “Panelde ara”
-                alanına yapmak istediğin işlemi yaz.
-              </p>
-            </div>
-          </div>
-        </div>
-      ) : null}
+                <p className={styles.intro}>
+                  En sık yapılan işlemler burada. İhtiyacın olan bölümü seçip
+                  doğrudan yönetmeye başlayabilirsin.
+                </p>
+
+                <div className={styles.steps}>
+                  {steps.map((step, index) => (
+                    <article className={styles.step} key={step.href}>
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <div>
+                        <h3>{step.title}</h3>
+                        <p>{step.description}</p>
+                        <Link href={step.href} onClick={() => setOpen(false)}>
+                          {step.action} →
+                        </Link>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+
+                <div className={styles.tip}>
+                  <strong>İpucu</strong>
+                  <p>
+                    Sol menüde ne aradığını bulamazsan üstteki “Panelde ara”
+                    alanına yapmak istediğin işlemi yaz.
+                  </p>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
