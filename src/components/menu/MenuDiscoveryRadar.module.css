@@ -470,6 +470,7 @@
 }
 
 .copy {
+  position: relative;
   display: flex;
   min-width: 0;
   min-height: 0;
@@ -489,11 +490,19 @@
   opacity: 0.68;
 }
 
+.quickViewSlot {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 2;
+}
+
 .productTitle {
   display: flex;
   min-width: 0;
   align-items: flex-start;
   gap: 10px;
+  padding-right: 56px;
 }
 
 .productTitle h3 {
@@ -752,6 +761,15 @@
 
   .copy {
     padding: 22px 20px 26px;
+  }
+
+  .quickViewSlot {
+    top: 18px;
+    right: 18px;
+  }
+
+  .productTitle {
+    padding-right: 54px;
   }
 
   .productTitle h3,
