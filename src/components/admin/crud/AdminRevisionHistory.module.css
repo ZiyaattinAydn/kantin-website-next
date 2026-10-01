@@ -246,3 +246,29 @@
     width: 100%;
   }
 }
+
+
+@media (max-width: 520px) {
+  .history {
+    padding: 13px;
+    border-radius: 14px;
+  }
+
+  .revision > summary {
+    padding: 10px;
+  }
+
+  .body {
+    padding: 10px;
+  }
+
+  .values > div,
+  .restoreForm {
+    padding: 10px;
+  }
+
+  .values pre {
+    max-height: 42dvh;
+    overscroll-behavior: contain;
+  }
+}
