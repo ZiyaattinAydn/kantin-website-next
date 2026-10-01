@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import AmbientDoodles from "@/components/effects/AmbientDoodles";
 import type {
   GenericMenuBranchData,
   GenericMenuItemData,
@@ -43,10 +44,10 @@ type CarouselStyle = CSSProperties & {
   "--card-ink": string;
 };
 
-function formatItemPrice(item: GenericMenuItemData) {
+function formatItemPrice(item: GenericMenuItemData, variantLimit = 2) {
   if (item.variants.length) {
     return item.variants
-      .slice(0, 2)
+      .slice(0, variantLimit)
       .map((variant) => `${variant.label} ${variant.price}`)
       .join(" · ");
   }
@@ -157,7 +158,7 @@ export default function MenuDiscoveryRadar({
 
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
-        const isStacked = window.matchMedia("(max-width: 1080px)").matches;
+        const isStacked = window.matchMedia("(max-width: 1180px)").matches;
 
         if (isStacked) {
           alignDiscoveryElement(carouselRef.current, 14);
@@ -205,7 +206,16 @@ export default function MenuDiscoveryRadar({
   } as CarouselStyle;
 
   return (
-    <section className={styles.section} aria-label="Menü keşfi">
+    <section
+      className={styles.section}
+      aria-label="Menü keşfi"
+      id="menu-radar"
+    >
+      <AmbientDoodles
+        className={styles.discoveryDoodles}
+        parallax={false}
+        preset="memories"
+      />
       <div className="container">
         <div className={styles.shell}>
           <div className={styles.heading}>
@@ -342,7 +352,10 @@ export default function MenuDiscoveryRadar({
                     const imageAlt =
                       item.image?.imageAlt ||
                       `${item.name} için geçici temsili ürün görseli`;
-                    const itemPrice = formatItemPrice(item);
+                    const itemPrice = formatItemPrice(
+                      item,
+                      activeCategory.slug === "fici-biralar" ? 3 : 2,
+                    );
                     const longestWord = Math.max(
                       ...item.name.split(/\s+/).map((word) => word.length),
                     );
