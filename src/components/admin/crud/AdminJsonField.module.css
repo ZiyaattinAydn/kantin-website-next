@@ -71,3 +71,31 @@
 .invalid {
   color: #a12626;
 }
+
+
+@media (max-width: 560px) {
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .toolbar button {
+    min-height: 40px;
+    width: 100%;
+  }
+
+  .guardNotice {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .actions {
+    grid-template-columns: 1fr;
+  }
+}
