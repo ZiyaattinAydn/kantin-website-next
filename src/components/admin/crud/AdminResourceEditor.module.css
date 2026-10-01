@@ -908,3 +908,87 @@
   margin: 0 0 18px;
   color: var(--blue);
 }
+
+
+/* Final phone/tablet pass */
+@media (max-width: 759px) {
+  .header {
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: clamp(2rem, 10vw, 2.8rem);
+    line-height: 1;
+  }
+
+  .actions,
+  .filterActions,
+  .formActions {
+    width: 100%;
+  }
+
+  .filterPanel,
+  .fieldPanel {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .recordSummary {
+    padding: 14px;
+  }
+
+  .inlineEditor {
+    padding: 0;
+  }
+
+  .advancedFields > summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .deleteImpact li {
+    grid-template-columns: 1fr;
+  }
+
+  .deleteImpact li small {
+    grid-column: auto;
+  }
+
+  .field input,
+  .field textarea,
+  .field select,
+  .search input {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 460px) {
+  .recordSummary {
+    grid-template-columns: 1fr !important;
+  }
+
+  .actions,
+  .filterActions,
+  .formActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .actions > *,
+  .filterActions > *,
+  .formActions > * {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .createRecord > summary,
+  .createRecord > button {
+    padding: 14px;
+  }
+
+  .visibilityNotice {
+    padding: 12px;
+  }
+}
