@@ -930,3 +930,27 @@
     animation: none;
   }
 }
+
+
+/* Mobile hotfix: edge nodes must keep the same pill size when active.
+   The 16%/84% desktop positions push scaled pills outside narrow radars. */
+@media (max-width: 620px) {
+  .node,
+  .nodeActive {
+    width: 108px;
+    max-width: 108px;
+    min-width: 108px;
+  }
+
+  .nodeActive {
+    transform: translate(-50%, -50%);
+  }
+
+  .node:nth-of-type(3) {
+    --node-x: 79% !important;
+  }
+
+  .node:nth-of-type(7) {
+    --node-x: 21% !important;
+  }
+}
