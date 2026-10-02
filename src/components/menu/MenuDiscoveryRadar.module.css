@@ -954,3 +954,35 @@
     --node-x: 21% !important;
   }
 }
+
+
+/* Final mobile radar fix: side nodes keep one stable size and stay clear of the centre selector. */
+@media (max-width: 620px) {
+  .node,
+  .nodeActive {
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .node[data-radar-index="2"],
+  .node[data-radar-index="6"] {
+    width: 92px !important;
+    min-width: 92px !important;
+    max-width: 92px !important;
+  }
+
+  .node[data-radar-index="2"] {
+    --node-x: 84% !important;
+  }
+
+  .node[data-radar-index="6"] {
+    --node-x: 16% !important;
+  }
+
+  .node[data-radar-index="2"].nodeActive,
+  .node[data-radar-index="6"].nodeActive {
+    width: 92px !important;
+    min-width: 92px !important;
+    max-width: 92px !important;
+    transform: translate(-50%, -50%) !important;
+  }
+}
