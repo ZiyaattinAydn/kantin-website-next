@@ -431,3 +431,68 @@
     scroll-behavior: auto;
   }
 }
+
+
+/* Mobile hotfix: keep the visual in normal flow and prevent it from
+   colliding with the description / swipe hint. */
+@media (max-width: 760px) {
+  .panel {
+    height: min(88dvh, 840px);
+    min-height: 720px;
+  }
+
+  .sauce {
+    grid-template-rows: auto auto;
+    align-content: start;
+    gap: 22px;
+    padding: 88px 38px 34px 20px;
+  }
+
+  .copy h2 {
+    font-size: clamp(3rem, 13vw, 4.7rem);
+    line-height: 0.88;
+  }
+
+  .copy small {
+    margin-top: 16px;
+  }
+
+  .sauceVisual,
+  .sauce[data-active="true"] .sauceVisual {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    justify-self: stretch;
+    place-items: center;
+    margin: 0;
+    opacity: 1;
+    transform: none;
+  }
+
+  .stockImage,
+  .sauce[data-active="true"] .stockImage {
+    display: block;
+    width: min(100%, 340px);
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    margin-inline: auto;
+    object-fit: cover;
+    transform: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .panel {
+    min-height: 700px;
+  }
+
+  .sauce {
+    padding-inline: 18px 34px;
+  }
+
+  .stockImage,
+  .sauce[data-active="true"] .stockImage {
+    width: min(100%, 300px);
+  }
+}
