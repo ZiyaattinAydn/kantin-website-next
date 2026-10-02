@@ -302,6 +302,7 @@ export default function MenuDiscoveryRadar({
                     className={`${styles.node}${
                       isActive ? ` ${styles.nodeActive}` : ""
                     }`}
+                    data-radar-index={index}
                     key={category.id}
                     onClick={() => setCategory(category.slug)}
                     style={nodeStyle}
